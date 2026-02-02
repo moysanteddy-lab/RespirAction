@@ -1864,16 +1864,34 @@ function initSettings() {
 
   if (testVoiceLangBtn) {
     testVoiceLangBtn.addEventListener('click', () => {
+      console.log('=== TEST VOICE BUTTON CLICKED ===');
       const lang = state.settings.voiceLang || 'fr';
+      console.log('Language:', lang);
+      console.log('speechSynthesis available:', 'speechSynthesis' in window);
+
       const testPhrases = {
-        fr: 'Inspire par le nez, expire par la bouche',
-        en: 'Breathe in through your nose, breathe out through your mouth',
-        es: 'Inspira por la nariz, exhala por la boca',
-        de: 'Atme durch die Nase ein, atme durch den Mund aus',
-        it: 'Inspira dal naso, espira dalla bocca',
-        pt: 'Inspire pelo nariz, expire pela boca'
+        fr: 'Bonjour, ceci est un test',
+        en: 'Hello, this is a test',
+        es: 'Hola, esto es una prueba',
+        de: 'Hallo, das ist ein Test',
+        it: 'Ciao, questo è un test',
+        pt: 'Olá, isto é um teste'
       };
-      voicePlayer.speak(testPhrases[lang] || testPhrases.fr, lang);
+
+      const text = testPhrases[lang] || testPhrases.fr;
+      console.log('Speaking:', text);
+
+      // Test direct sans passer par voicePlayer
+      if ('speechSynthesis' in window) {
+        speechSynthesis.cancel();
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = lang + '-' + lang.toUpperCase();
+        utterance.onstart = () => console.log('>>> SPEECH STARTED');
+        utterance.onend = () => console.log('>>> SPEECH ENDED');
+        utterance.onerror = (e) => console.log('>>> SPEECH ERROR:', e.error);
+        speechSynthesis.speak(utterance);
+        console.log('speechSynthesis.speak() called');
+      }
     });
   }
 
