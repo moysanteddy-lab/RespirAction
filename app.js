@@ -452,20 +452,62 @@ class AudioGuide {
     }
   }
 
-  // Synthese vocale
+  // Synthese vocale - voix douce et feminine
   speak(text) {
     if (!('speechSynthesis' in window)) return;
 
     const utterance = new SpeechSynthesisUtterance(text);
     utterance.lang = 'fr-FR';
-    utterance.rate = 0.9;
-    utterance.volume = 0.8;
+    utterance.rate = 0.85;  // Plus lent = plus doux
+    utterance.pitch = 1.1;  // Legèrement plus aigu = plus feminin
+    utterance.volume = 0.75;
 
-    // Chercher une voix francaise
+    // Chercher la meilleure voix feminine francaise
     const voices = speechSynthesis.getVoices();
-    const frenchVoice = voices.find(v => v.lang.startsWith('fr'));
-    if (frenchVoice) {
-      utterance.voice = frenchVoice;
+
+    // Priorite aux voix de haute qualite (Google, Microsoft, Apple)
+    const preferredVoiceNames = [
+      'Google français',      // Google - très naturelle
+      'Microsoft Denise',     // Microsoft - feminine douce
+      'Microsoft Julie',      // Microsoft - feminine
+      'Amelie',               // Apple macOS - feminine
+      'Audrey',               // Apple - feminine premium
+      'Thomas',               // Si pas de feminine, voix douce
+      'Google',               // Fallback Google
+      'Microsoft',            // Fallback Microsoft
+    ];
+
+    let selectedVoice = null;
+
+    // Chercher d'abord une voix feminine francaise de qualite
+    for (const prefName of preferredVoiceNames) {
+      selectedVoice = voices.find(v =>
+        v.lang.startsWith('fr') &&
+        v.name.toLowerCase().includes(prefName.toLowerCase())
+      );
+      if (selectedVoice) break;
+    }
+
+    // Si pas trouve, chercher n'importe quelle voix feminine francaise
+    if (!selectedVoice) {
+      const feminineKeywords = ['female', 'femme', 'amelie', 'julie', 'denise', 'audrey', 'marie', 'chloe', 'lea'];
+      selectedVoice = voices.find(v =>
+        v.lang.startsWith('fr') &&
+        feminineKeywords.some(kw => v.name.toLowerCase().includes(kw))
+      );
+    }
+
+    // Fallback: premiere voix francaise disponible
+    if (!selectedVoice) {
+      selectedVoice = voices.find(v => v.lang.startsWith('fr'));
+    }
+
+    if (selectedVoice) {
+      utterance.voice = selectedVoice;
+      // Ajuster selon le type de voix
+      if (selectedVoice.name.toLowerCase().includes('google')) {
+        utterance.rate = 0.8;  // Google est un peu rapide
+      }
     }
 
     speechSynthesis.speak(utterance);
@@ -491,19 +533,65 @@ class AudioGuide {
 // Instance globale du guide audio
 const audioGuide = new AudioGuide();
 
-// URLs de musiques (samples libres de droits / placeholders)
+// URLs de musiques categorisees (libres de droits)
 const musicTracks = {
-  hangdrum1: {
-    name: 'Handpan Meditation',
-    url: 'https://cdn.pixabay.com/audio/2024/02/14/audio_8e26e38d2e.mp3'
+  // === CALME - Pour relaxation, sommeil, coherence cardiaque ===
+  calmAmbient: {
+    name: 'Ambient Nature - Calme',
+    url: 'https://cdn.pixabay.com/audio/2022/08/02/audio_884fe92c21.mp3',
+    category: 'calme'
   },
-  hangdrum2: {
-    name: 'Peaceful Hang Drum',
-    url: 'https://cdn.pixabay.com/audio/2022/10/25/audio_946ac15077.mp3'
+  calmPiano: {
+    name: 'Piano Doux - Calme',
+    url: 'https://cdn.pixabay.com/audio/2022/12/13/audio_3ffb7e4b9a.mp3',
+    category: 'calme'
   },
-  ambient: {
-    name: 'Ambient Nature',
-    url: 'https://cdn.pixabay.com/audio/2022/08/02/audio_884fe92c21.mp3'
+  calmMeditation: {
+    name: 'Meditation Zen - Calme',
+    url: 'https://cdn.pixabay.com/audio/2023/09/04/audio_4b3e86a256.mp3',
+    category: 'calme'
+  },
+  calmSleep: {
+    name: 'Deep Sleep - Calme',
+    url: 'https://cdn.pixabay.com/audio/2023/07/19/audio_e9e846e0b3.mp3',
+    category: 'calme'
+  },
+  calmLofi: {
+    name: 'Lofi Chill - Calme',
+    url: 'https://cdn.pixabay.com/audio/2024/01/10/audio_fb77e09de8.mp3',
+    category: 'calme'
+  },
+  // === NEUTRE - Pour box breathing, exercices equilibres ===
+  neutralBowls: {
+    name: 'Tibetan Bowls - Neutre',
+    url: 'https://cdn.pixabay.com/audio/2022/03/24/audio_811c4f7c86.mp3',
+    category: 'neutre'
+  },
+  neutralSpa: {
+    name: 'Spa Relaxation - Neutre',
+    url: 'https://cdn.pixabay.com/audio/2023/05/16/audio_168a3a1558.mp3',
+    category: 'neutre'
+  },
+  neutralNature: {
+    name: 'Forest Stream - Neutre',
+    url: 'https://cdn.pixabay.com/audio/2022/06/07/audio_b9bd4170e4.mp3',
+    category: 'neutre'
+  },
+  // === ACTIVE - Pour Wim Hof, Bhastrika, Tummo ===
+  activeEpic: {
+    name: 'Epic Rise - Active',
+    url: 'https://cdn.pixabay.com/audio/2023/10/03/audio_11e7e33e47.mp3',
+    category: 'active'
+  },
+  activeDrums: {
+    name: 'Tribal Drums - Active',
+    url: 'https://cdn.pixabay.com/audio/2022/01/18/audio_d0c29e8398.mp3',
+    category: 'active'
+  },
+  activeEnergy: {
+    name: 'Energy Flow - Active',
+    url: 'https://cdn.pixabay.com/audio/2023/08/10/audio_dc39bde808.mp3',
+    category: 'active'
   }
 };
 
@@ -1298,6 +1386,14 @@ function initSettings() {
       state.settings.voiceGuide = voiceGuideToggle.checked;
       audioGuide.voiceEnabled = voiceGuideToggle.checked;
       saveData();
+    });
+  }
+
+  // Bouton test voix
+  const testVoiceBtn = document.getElementById('test-voice-btn');
+  if (testVoiceBtn) {
+    testVoiceBtn.addEventListener('click', () => {
+      audioGuide.speak('Inspire doucement par le nez... Expire lentement...');
     });
   }
 

@@ -1057,6 +1057,12 @@ main {
   color: var(--text-muted);
 }
 
+.setting-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
 /* Toggle switch */
 .toggle {
   position: relative;

@@ -341,9 +341,23 @@
             </div>
             <select id="music-select" class="music-select">
               <option value="">Aucune musique</option>
-              <option value="hangdrum1">Handpan Meditation</option>
-              <option value="hangdrum2">Peaceful Hang Drum</option>
-              <option value="ambient">Ambient Nature</option>
+              <optgroup label="Calme - Relaxation, Sommeil">
+                <option value="calmAmbient">Ambient Nature - Calme</option>
+                <option value="calmPiano">Piano Doux - Calme</option>
+                <option value="calmMeditation">Meditation Zen - Calme</option>
+                <option value="calmSleep">Deep Sleep - Calme</option>
+                <option value="calmLofi">Lofi Chill - Calme</option>
+              </optgroup>
+              <optgroup label="Neutre - Equilibre, Focus">
+                <option value="neutralBowls">Tibetan Bowls - Neutre</option>
+                <option value="neutralSpa">Spa Relaxation - Neutre</option>
+                <option value="neutralNature">Forest Stream - Neutre</option>
+              </optgroup>
+              <optgroup label="Active - Energie, Wim Hof">
+                <option value="activeEpic">Epic Rise - Active</option>
+                <option value="activeDrums">Tribal Drums - Active</option>
+                <option value="activeEnergy">Energy Flow - Active</option>
+              </optgroup>
               <option value="custom">Ma musique...</option>
             </select>
             <input type="file" id="custom-music" accept="audio/*" class="hidden">
@@ -475,10 +489,13 @@
               <span class="setting-name">Guidage vocal</span>
               <span class="setting-desc">Instructions vocales (inspire, expire...)</span>
             </div>
-            <label class="toggle">
-              <input type="checkbox" id="voice-guide-toggle">
-              <span class="toggle-slider"></span>
-            </label>
+            <div class="setting-actions">
+              <button id="test-voice-btn" class="btn secondary small">Test</button>
+              <label class="toggle">
+                <input type="checkbox" id="voice-guide-toggle">
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
           </div>
 
           <div class="setting-item">
