@@ -984,11 +984,75 @@ const musicTracks = {
     url: 'https://archive.org/download/meditation-music-for-focus/Super%20Intelligence.mp3',
     category: 'active'
   },
-  // === HANGDRUM - Pour méditation et relaxation ===
-  hangdrum1: {
-    name: 'Handpan Meditation',
-    url: 'https://archive.org/download/meditation-music/Handpan%20Meditation%20Music.mp3',
-    category: 'neutre'
+  // === EPIC - Pour douches froides, défis, motivation ===
+  // Musiques ÉPIQUES
+  epicVictory: {
+    name: 'VICTORY - Two Steps From Hell',
+    url: 'https://archive.org/download/VictoryTwoStepsFromHell320kbpsMP3/Victory%20-%20Two%20Steps%20From%20Hell%20%5B320kbps_MP3%5D.mp3',
+    category: 'epic'
+  },
+  epicTime: {
+    name: 'TIME - Hans Zimmer (Inception)',
+    url: 'https://archive.org/download/InceptionSoundtrackHD12TimeHansZimmer/Inception%20Soundtrack%20HD%20-%20%2312%20Time%20%28Hans%20Zimmer%29.mp3',
+    category: 'epic'
+  },
+  epicBattle42: {
+    name: 'BATTLE EPIC 42min',
+    url: 'https://archive.org/download/epic-music-soundtracks-battle-music-42min/Epic%20Music%20Soundtracks%20%28Battle%20Music%2C%2042min%29.mp3',
+    category: 'epic'
+  },
+  epicDramatic: {
+    name: 'Dramatic Epic Cinematic',
+    url: 'https://archive.org/download/ActionCinematicMusic/Dramatic%20Epic%20Cinematic.mp3',
+    category: 'epic'
+  },
+  // Sons de BATAILLE
+  battleMedieval: {
+    name: 'Bataille Médiévale',
+    url: 'https://archive.org/download/WarBattleSounds/Medieval%20battle%20sound%20effect%20-%20infantry.mp3',
+    category: 'epic'
+  },
+  battleWar: {
+    name: 'Cris de Guerre',
+    url: 'https://archive.org/download/WarBattleSounds/War%20-%20Battle%20Sounds.mp3',
+    category: 'epic'
+  },
+  // VIKING BATTLE
+  vikingBattle: {
+    name: 'Viking Battle Mix',
+    url: 'https://archive.org/download/filip_lackovic_celtic-viking-battle-music/CelticViking%20Battle%20Music%20Mix.mp3',
+    category: 'epic'
+  },
+  // === MEDITATION - Bols tibétains et chants ===
+  tibetanBowl: {
+    name: 'Bol Tibétain',
+    url: 'https://archive.org/download/singingbowl/singingbowl.mp3',
+    category: 'meditation'
+  },
+  meditationBowl: {
+    name: 'Singing Bowl Long',
+    url: 'https://archive.org/download/singingbowlmeditation/Singing%20Bowl%20Meditation.mp3',
+    category: 'meditation'
+  },
+  omChanting: {
+    name: 'Chant Om',
+    url: 'https://archive.org/download/OmChanting/om2.wav.mp3',
+    category: 'meditation'
+  },
+  omMeditation: {
+    name: 'Om Meditation 15min',
+    url: 'https://archive.org/download/15-minutes-om-meditation/15%20Minutes%20OM%20Meditation.mp3',
+    category: 'meditation'
+  },
+  handpan: {
+    name: 'Handpan Focus',
+    url: 'https://archive.org/download/hang-drum-music-for-focus-handpan-study-music/Hang%20Drum%20Music%20for%20Focus%20-%20Handpan%20Study%20Music.mp3',
+    category: 'meditation'
+  },
+  cosmicAmbient: {
+    name: 'Cosmic Ambient',
+    url: 'https://archive.org/download/a-cosmic-meditation-1988/A%20Cosmic%20Meditation%20%281988%29.mp3',
+    category: 'meditation'
   }
 };
 
@@ -1285,6 +1349,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initMusic();
   initReminders();
   initMeditation();
+  initDashboard();
   updateStats();
   renderHistory();
   updateHistoryStats();
@@ -1387,6 +1452,14 @@ function initNavigation() {
       navigateTo(page);
     });
   });
+
+  // Mini dashboard sur l'accueil
+  const miniDashboard = document.querySelector('.home-dashboard-mini');
+  if (miniDashboard) {
+    miniDashboard.addEventListener('click', () => {
+      navigateTo('dashboard');
+    });
+  }
 }
 
 function navigateTo(pageName) {
@@ -1404,6 +1477,7 @@ function navigateTo(pageName) {
     // Mettre à jour le titre
     const titles = {
       home: 'BreathFlow',
+      dashboard: 'Dashboard',
       breathing: 'Respiration',
       coldshower: 'Douche Froide',
       meditation: 'Méditation',
@@ -2802,6 +2876,7 @@ const coldShowerState = {
   encouragementTimer: null,
   lastEncouragement: -1,
   musicPlaying: false,
+  audioPlayers: {}, // Pour mixer plusieurs sons épiques
   stats: {
     streak: 0,
     total: 0,
@@ -2862,6 +2937,43 @@ function initColdShower() {
   updateColdTimerDisplay();
   updateColdLevel();
 
+  // Event listeners pour les checkboxes de sons épiques (réactifs en temps réel)
+  const coldSoundCheckboxes = document.querySelectorAll('input[name="cold-sound"]');
+  coldSoundCheckboxes.forEach(checkbox => {
+    checkbox.addEventListener('change', () => {
+      if (!coldShowerState.isRunning) return;
+
+      const trackKey = checkbox.value;
+
+      if (checkbox.checked) {
+        // Démarrer ce son
+        if (trackKey && musicTracks[trackKey] && !coldShowerState.audioPlayers[trackKey]) {
+          const audio = new Audio(musicTracks[trackKey].url);
+          audio.loop = true;
+          audio.play().catch(e => console.log('Audio play blocked:', trackKey));
+          coldShowerState.audioPlayers[trackKey] = audio;
+          adjustColdShowerVolumes();
+        }
+      } else {
+        // Arrêter ce son
+        if (coldShowerState.audioPlayers[trackKey]) {
+          coldShowerState.audioPlayers[trackKey].pause();
+          coldShowerState.audioPlayers[trackKey].currentTime = 0;
+          delete coldShowerState.audioPlayers[trackKey];
+          adjustColdShowerVolumes();
+        }
+      }
+    });
+  });
+}
+
+// Ajuster les volumes selon le nombre de sons actifs (douche froide)
+function adjustColdShowerVolumes() {
+  const count = Object.keys(coldShowerState.audioPlayers).length;
+  const volume = count > 0 ? 0.6 / Math.max(1, count * 0.4) : 0.6;
+  Object.values(coldShowerState.audioPlayers).forEach(audio => {
+    audio.volume = volume;
+  });
 }
 
 function updateColdLevel() {
@@ -2941,12 +3053,21 @@ function startColdShower() {
   if (startBtn) startBtn.classList.add('hidden');
   if (stopBtn) stopBtn.classList.remove('hidden');
 
-  // Démarrer le son épique si activé
-  const epicToggle = document.getElementById('cold-epic-toggle');
-  if (epicToggle && epicToggle.checked) {
-    epicSound.start();
-    coldShowerState.musicPlaying = true;
-  }
+  // Démarrer les sons épiques cochés (mix de plusieurs sons)
+  const coldSoundCheckboxes = document.querySelectorAll('input[name="cold-sound"]:checked');
+  coldShowerState.audioPlayers = {}; // Reset
+
+  coldSoundCheckboxes.forEach(checkbox => {
+    const trackKey = checkbox.value;
+    if (trackKey && musicTracks[trackKey]) {
+      const audio = new Audio(musicTracks[trackKey].url);
+      audio.loop = true;
+      audio.play().catch(e => console.log('Audio autoplay blocked:', trackKey));
+      coldShowerState.audioPlayers[trackKey] = audio;
+    }
+  });
+  adjustColdShowerVolumes();
+  coldShowerState.musicPlaying = Object.keys(coldShowerState.audioPlayers).length > 0;
 
   // Premier encouragement immédiat
   showEncouragement();
@@ -3041,10 +3162,22 @@ function stopColdShower() {
 }
 
 function stopColdShowerMusic() {
-  if (coldShowerState.musicPlaying) {
-    epicSound.stop();
-    coldShowerState.musicPlaying = false;
+  // Arrêter tous les sons épiques du mix
+  if (coldShowerState.audioPlayers && Object.keys(coldShowerState.audioPlayers).length > 0) {
+    Object.values(coldShowerState.audioPlayers).forEach(audio => {
+      audio.pause();
+      audio.currentTime = 0;
+    });
+    coldShowerState.audioPlayers = {};
   }
+
+  // Arrêter aussi l'audio player global si utilisé
+  const audioPlayer = document.getElementById('audio-player');
+  if (audioPlayer) {
+    audioPlayer.pause();
+    audioPlayer.currentTime = 0;
+  }
+  coldShowerState.musicPlaying = false;
 }
 
 function completeColdShower() {
@@ -3898,7 +4031,8 @@ const meditationState = {
   timer: null,
   startTime: null,
   timeElapsed: 0,
-  isPaused: false
+  isPaused: false,
+  audioPlayers: {} // Objet pour associer chaque son à sa clé (trackKey: Audio)
 };
 
 // Initialisation du module méditation
@@ -3943,6 +4077,45 @@ function initMeditation() {
       document.getElementById('meditation-list').classList.remove('hidden');
     });
   }
+
+  // Event listeners pour les checkboxes de sons (réactifs en temps réel)
+  const soundCheckboxes = document.querySelectorAll('input[name="meditation-sound"]');
+  soundCheckboxes.forEach(checkbox => {
+    checkbox.addEventListener('change', () => {
+      if (!meditationState.isRunning || meditationState.isPaused) return;
+
+      const trackKey = checkbox.value;
+
+      if (checkbox.checked) {
+        // Démarrer ce son
+        if (trackKey && musicTracks[trackKey] && !meditationState.audioPlayers[trackKey]) {
+          const audio = new Audio(musicTracks[trackKey].url);
+          audio.loop = true;
+          audio.volume = 0.35;
+          audio.play().catch(e => console.log('Audio play blocked:', trackKey));
+          meditationState.audioPlayers[trackKey] = audio;
+          adjustMeditationVolumes();
+        }
+      } else {
+        // Arrêter ce son
+        if (meditationState.audioPlayers[trackKey]) {
+          meditationState.audioPlayers[trackKey].pause();
+          meditationState.audioPlayers[trackKey].currentTime = 0;
+          delete meditationState.audioPlayers[trackKey];
+          adjustMeditationVolumes();
+        }
+      }
+    });
+  });
+}
+
+// Ajuster les volumes selon le nombre de sons actifs
+function adjustMeditationVolumes() {
+  const count = Object.keys(meditationState.audioPlayers).length;
+  const volume = count > 0 ? 0.35 / Math.max(1, count * 0.5) : 0.35;
+  Object.values(meditationState.audioPlayers).forEach(audio => {
+    audio.volume = volume;
+  });
 }
 
 function prepareMeditation(type) {
@@ -4000,8 +4173,20 @@ function startMeditation(type) {
   // Update UI
   document.getElementById('meditation-instruction').textContent = langScript.intro;
 
-  // Démarrer sons d'ambiance méditation (Web Audio API)
-  meditationSounds.startAmbience();
+  // Démarrer les sons de méditation (mix de plusieurs sons cochés)
+  const soundCheckboxes = document.querySelectorAll('input[name="meditation-sound"]:checked');
+  meditationState.audioPlayers = {}; // Reset objet
+
+  soundCheckboxes.forEach(checkbox => {
+    const trackKey = checkbox.value;
+    if (trackKey && musicTracks[trackKey]) {
+      const audio = new Audio(musicTracks[trackKey].url);
+      audio.loop = true;
+      audio.play().catch(e => console.log('Audio autoplay blocked:', trackKey));
+      meditationState.audioPlayers[trackKey] = audio;
+    }
+  });
+  adjustMeditationVolumes();
 
   // Speak intro
   voicePlayer.speak(langScript.intro, lang);
@@ -4072,6 +4257,17 @@ function toggleMeditationPause() {
       : '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>';
   }
 
+  // Pause/reprendre tous les sons de méditation
+  if (meditationState.audioPlayers && Object.keys(meditationState.audioPlayers).length > 0) {
+    Object.values(meditationState.audioPlayers).forEach(audio => {
+      if (meditationState.isPaused) {
+        audio.pause();
+      } else {
+        audio.play().catch(() => {});
+      }
+    });
+  }
+
   if (meditationState.isPaused) {
     voicePlayer.stop();
   }
@@ -4086,8 +4282,21 @@ function stopMeditation() {
     meditationState.timer = null;
   }
 
-  // Arrêter sons d'ambiance méditation
-  meditationSounds.stop();
+  // Arrêter tous les sons de méditation (mix)
+  if (meditationState.audioPlayers && Object.keys(meditationState.audioPlayers).length > 0) {
+    Object.values(meditationState.audioPlayers).forEach(audio => {
+      audio.pause();
+      audio.currentTime = 0;
+    });
+    meditationState.audioPlayers = {};
+  }
+
+  // Arrêter aussi l'audio player global si utilisé
+  const audioPlayer = document.getElementById('audio-player');
+  if (audioPlayer) {
+    audioPlayer.pause();
+    audioPlayer.currentTime = 0;
+  }
 
   voicePlayer.stop();
   meditationState.currentMeditation = null;
@@ -4124,6 +4333,518 @@ function completeMeditation() {
     document.getElementById('meditation-session').classList.add('hidden');
     document.getElementById('meditation-list').classList.remove('hidden');
   }, 5000);
+}
+
+// ===== Module Dashboard / Habit Tracker =====
+const habitsList = [
+  { id: 'nophone', name: 'Pas tel matin/soir', icon: '📵' },
+  { id: 'coldshower', name: 'Douche froide', icon: '🚿' },
+  { id: 'breathing', name: 'Respiration', icon: '🌬️' },
+  { id: 'fasting', name: 'Jeûne 16h', icon: '🍽️' },
+  { id: 'calisthenics', name: 'Calisthénie', icon: '💪' },
+  { id: 'gratitude', name: 'Gratitude', icon: '🙏' },
+  { id: 'reading', name: 'Lecture', icon: '📖' },
+  { id: 'meditation', name: 'Méditation', icon: '🧘' },
+  { id: 'sleep', name: 'Couché avant minuit', icon: '😴' }
+];
+
+const badges = [
+  { id: 'iceman', name: 'Iceman', desc: '30 jours douche froide', icon: '🧊', habit: 'coldshower', target: 30, type: 'streak' },
+  { id: 'monk', name: 'Moine', desc: '7 méditations d\'affilée', icon: '🧘', habit: 'meditation', target: 7, type: 'streak' },
+  { id: 'warrior', name: 'Guerrier', desc: '3 calisthénie/semaine', icon: '⚔️', habit: 'calisthenics', target: 3, type: 'week' },
+  { id: 'breath', name: 'Souffle de Vie', desc: '50 sessions respiration', icon: '🌬️', habit: 'breathing', target: 50, type: 'total' },
+  { id: 'reader', name: 'Lecteur', desc: '14 jours lecture', icon: '📚', habit: 'reading', target: 14, type: 'streak' },
+  { id: 'discipline', name: 'Discipline Ultime', desc: '7 jours 100% complet', icon: '👑', habit: 'all', target: 7, type: 'perfect' }
+];
+
+const dashboardState = {
+  habits: {}, // { 'YYYY-MM-DD': { coldshower: true, breathing: false, ... } }
+  streaks: {}, // { coldshower: 5, breathing: 12, ... }
+  totals: {}, // { coldshower: 45, breathing: 120, ... }
+  unlockedBadges: [], // ['iceman', 'monk', ...]
+  globalStreak: 0
+};
+
+function initDashboard() {
+  // Charger les données sauvegardées
+  const savedDashboard = localStorage.getItem('breathflow_dashboard');
+  if (savedDashboard) {
+    const data = JSON.parse(savedDashboard);
+    dashboardState.habits = data.habits || {};
+    dashboardState.streaks = data.streaks || {};
+    dashboardState.totals = data.totals || {};
+    dashboardState.unlockedBadges = data.unlockedBadges || [];
+    dashboardState.globalStreak = data.globalStreak || 0;
+  }
+
+  // Mettre à jour la date
+  updateDashboardDate();
+
+  // Charger les habitudes du jour
+  loadTodayHabits();
+
+  // Event listeners sur les checkboxes
+  habitsList.forEach(habit => {
+    const checkbox = document.getElementById(`habit-${habit.id}`);
+    if (checkbox) {
+      checkbox.addEventListener('change', () => {
+        toggleHabit(habit.id, checkbox.checked);
+      });
+    }
+  });
+
+  // Initialiser le calendrier mensuel
+  initCalendar();
+
+  // Mettre à jour les badges
+  updateBadgesDisplay();
+
+  // Mettre à jour la progression
+  updateTodayProgress();
+
+  // Mettre à jour le mini résumé accueil
+  updateHomeMiniSummary();
+}
+
+function getTodayKey() {
+  return new Date().toISOString().split('T')[0];
+}
+
+function updateDashboardDate() {
+  const dateEl = document.getElementById('dashboard-date');
+  if (dateEl) {
+    const options = { weekday: 'long', day: 'numeric', month: 'long' };
+    dateEl.textContent = new Date().toLocaleDateString('fr-FR', options);
+  }
+}
+
+function loadTodayHabits() {
+  const today = getTodayKey();
+  const todayHabits = dashboardState.habits[today] || {};
+
+  habitsList.forEach(habit => {
+    const checkbox = document.getElementById(`habit-${habit.id}`);
+    if (checkbox) {
+      checkbox.checked = !!todayHabits[habit.id];
+    }
+  });
+}
+
+function toggleHabit(habitId, checked) {
+  const today = getTodayKey();
+
+  // Initialiser le jour si nécessaire
+  if (!dashboardState.habits[today]) {
+    dashboardState.habits[today] = {};
+  }
+
+  dashboardState.habits[today][habitId] = checked;
+
+  // Mettre à jour les totaux
+  if (!dashboardState.totals[habitId]) {
+    dashboardState.totals[habitId] = 0;
+  }
+  if (checked) {
+    dashboardState.totals[habitId]++;
+  } else {
+    dashboardState.totals[habitId] = Math.max(0, dashboardState.totals[habitId] - 1);
+  }
+
+  // Recalculer les streaks
+  calculateStreaks();
+
+  // Sauvegarder
+  saveDashboardData();
+
+  // Mettre à jour l'affichage
+  updateTodayProgress();
+  updateBadgesDisplay();
+  generateMonthCalendar();
+  updateHomeMiniSummary();
+}
+
+function calculateStreaks() {
+  const today = new Date();
+
+  habitsList.forEach(habit => {
+    let streak = 0;
+    let date = new Date(today);
+
+    // Compter les jours consécutifs
+    while (true) {
+      const dateKey = date.toISOString().split('T')[0];
+      const dayHabits = dashboardState.habits[dateKey];
+
+      if (dayHabits && dayHabits[habit.id]) {
+        streak++;
+        date.setDate(date.getDate() - 1);
+      } else {
+        break;
+      }
+    }
+
+    dashboardState.streaks[habit.id] = streak;
+  });
+
+  // Calculer le streak global (jours avec 100% complété)
+  let globalStreak = 0;
+  let date = new Date(today);
+
+  while (true) {
+    const dateKey = date.toISOString().split('T')[0];
+    const dayHabits = dashboardState.habits[dateKey];
+
+    if (dayHabits) {
+      const completed = habitsList.filter(h => dayHabits[h.id]).length;
+      if (completed === habitsList.length) {
+        globalStreak++;
+        date.setDate(date.getDate() - 1);
+      } else {
+        break;
+      }
+    } else {
+      break;
+    }
+  }
+
+  dashboardState.globalStreak = globalStreak;
+
+  // Mettre à jour l'affichage du streak
+  const streakEl = document.getElementById('global-streak');
+  if (streakEl) {
+    streakEl.textContent = dashboardState.globalStreak;
+  }
+}
+
+function updateTodayProgress() {
+  const today = getTodayKey();
+  const todayHabits = dashboardState.habits[today] || {};
+  const completed = habitsList.filter(h => todayHabits[h.id]).length;
+  const total = habitsList.length;
+  const percent = Math.round((completed / total) * 100);
+
+  const progressBar = document.getElementById('today-progress-bar');
+  const progressText = document.getElementById('today-progress-text');
+
+  if (progressBar) {
+    progressBar.style.width = `${percent}%`;
+  }
+  if (progressText) {
+    progressText.textContent = `${completed}/${total}`;
+  }
+}
+
+// Calendrier mensuel
+let calendarCurrentDate = new Date();
+
+function initCalendar() {
+  const prevBtn = document.getElementById('cal-prev');
+  const nextBtn = document.getElementById('cal-next');
+
+  if (prevBtn) {
+    prevBtn.addEventListener('click', () => {
+      calendarCurrentDate.setMonth(calendarCurrentDate.getMonth() - 1);
+      generateMonthCalendar();
+    });
+  }
+
+  if (nextBtn) {
+    nextBtn.addEventListener('click', () => {
+      calendarCurrentDate.setMonth(calendarCurrentDate.getMonth() + 1);
+      generateMonthCalendar();
+    });
+  }
+
+  // Modal d'édition
+  const closeModal = document.getElementById('close-day-modal');
+  const saveBtn = document.getElementById('save-day-btn');
+
+  if (closeModal) {
+    closeModal.addEventListener('click', closeDayEditModal);
+  }
+  if (saveBtn) {
+    saveBtn.addEventListener('click', saveDayEdit);
+  }
+
+  generateMonthCalendar();
+}
+
+function generateMonthCalendar() {
+  const container = document.getElementById('calendar-days');
+  const titleEl = document.getElementById('cal-month-title');
+  if (!container) return;
+
+  container.innerHTML = '';
+
+  const year = calendarCurrentDate.getFullYear();
+  const month = calendarCurrentDate.getMonth();
+
+  // Titre du mois
+  const monthNames = ['Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin',
+                      'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'];
+  if (titleEl) {
+    titleEl.textContent = `${monthNames[month]} ${year}`;
+  }
+
+  // Premier jour du mois (0 = dimanche, on veut lundi = 0)
+  const firstDay = new Date(year, month, 1);
+  let startDay = firstDay.getDay() - 1;
+  if (startDay < 0) startDay = 6; // Dimanche devient 6
+
+  // Nombre de jours dans le mois
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+  const today = new Date();
+  const todayKey = today.toISOString().split('T')[0];
+
+  // Cases vides avant le premier jour
+  for (let i = 0; i < startDay; i++) {
+    const emptyEl = document.createElement('div');
+    emptyEl.className = 'cal-day empty-day';
+    container.appendChild(emptyEl);
+  }
+
+  // Jours du mois
+  for (let day = 1; day <= daysInMonth; day++) {
+    const date = new Date(year, month, day);
+    const dateKey = date.toISOString().split('T')[0];
+    const dayHabits = dashboardState.habits[dateKey] || {};
+    const completed = habitsList.filter(h => dayHabits[h.id]).length;
+
+    const dayEl = document.createElement('div');
+    dayEl.className = 'cal-day';
+    dayEl.dataset.date = dateKey;
+
+    // Aujourd'hui
+    if (dateKey === todayKey) {
+      dayEl.classList.add('today');
+    }
+
+    // Futur (non cliquable)
+    if (date > today) {
+      dayEl.classList.add('future');
+    }
+
+    // Status
+    if (completed === habitsList.length) {
+      dayEl.classList.add('perfect');
+    } else if (completed > 0) {
+      dayEl.classList.add('partial');
+    }
+
+    dayEl.innerHTML = `
+      <span class="cal-day-num">${day}</span>
+      <span class="cal-day-dots">${getHabitDots(completed)}</span>
+    `;
+
+    // Click pour éditer (seulement passé et aujourd'hui)
+    if (date <= today) {
+      dayEl.addEventListener('click', () => openDayEditModal(dateKey));
+    }
+
+    container.appendChild(dayEl);
+  }
+}
+
+function getHabitDots(completed) {
+  if (completed === 0) return '';
+  if (completed === habitsList.length) return '●';
+  if (completed >= 7) return '◉';
+  if (completed >= 4) return '◐';
+  return '○';
+}
+
+let editingDateKey = null;
+
+function openDayEditModal(dateKey) {
+  editingDateKey = dateKey;
+
+  const modal = document.getElementById('day-edit-modal');
+  const titleEl = document.getElementById('day-edit-title');
+  const habitsContainer = document.getElementById('day-edit-habits');
+
+  if (!modal || !habitsContainer) return;
+
+  // Titre avec date formatée
+  const date = new Date(dateKey + 'T12:00:00');
+  const options = { weekday: 'long', day: 'numeric', month: 'long' };
+  if (titleEl) {
+    titleEl.textContent = date.toLocaleDateString('fr-FR', options);
+  }
+
+  // Générer les checkboxes
+  const dayHabits = dashboardState.habits[dateKey] || {};
+  habitsContainer.innerHTML = '';
+
+  habitsList.forEach(habit => {
+    const isChecked = !!dayHabits[habit.id];
+    const itemEl = document.createElement('div');
+    itemEl.className = 'day-edit-item';
+    itemEl.innerHTML = `
+      <label class="day-edit-checkbox">
+        <input type="checkbox" data-habit="${habit.id}" ${isChecked ? 'checked' : ''}>
+        <span class="day-edit-check"></span>
+      </label>
+      <span class="day-edit-icon">${habit.icon}</span>
+      <span class="day-edit-name">${habit.name}</span>
+    `;
+    habitsContainer.appendChild(itemEl);
+  });
+
+  modal.classList.remove('hidden');
+}
+
+function closeDayEditModal() {
+  const modal = document.getElementById('day-edit-modal');
+  if (modal) {
+    modal.classList.add('hidden');
+  }
+  editingDateKey = null;
+}
+
+function saveDayEdit() {
+  if (!editingDateKey) return;
+
+  const habitsContainer = document.getElementById('day-edit-habits');
+  const checkboxes = habitsContainer.querySelectorAll('input[type="checkbox"]');
+
+  // Initialiser le jour si nécessaire
+  if (!dashboardState.habits[editingDateKey]) {
+    dashboardState.habits[editingDateKey] = {};
+  }
+
+  // Sauvegarder les changements
+  checkboxes.forEach(checkbox => {
+    const habitId = checkbox.dataset.habit;
+    const wasChecked = !!dashboardState.habits[editingDateKey][habitId];
+    const isNowChecked = checkbox.checked;
+
+    dashboardState.habits[editingDateKey][habitId] = isNowChecked;
+
+    // Mettre à jour les totaux
+    if (!dashboardState.totals[habitId]) {
+      dashboardState.totals[habitId] = 0;
+    }
+    if (isNowChecked && !wasChecked) {
+      dashboardState.totals[habitId]++;
+    } else if (!isNowChecked && wasChecked) {
+      dashboardState.totals[habitId] = Math.max(0, dashboardState.totals[habitId] - 1);
+    }
+  });
+
+  // Recalculer tout
+  calculateStreaks();
+  saveDashboardData();
+  generateMonthCalendar();
+  updateBadgesDisplay();
+  updateTodayProgress();
+  updateHomeMiniSummary();
+  loadTodayHabits(); // Si on édite aujourd'hui, mettre à jour les checkboxes
+
+  closeDayEditModal();
+}
+
+function updateBadgesDisplay() {
+  badges.forEach(badge => {
+    const card = document.querySelector(`.badge-card[data-badge="${badge.id}"]`);
+    if (!card) return;
+
+    let progress = 0;
+    let current = 0;
+
+    if (badge.type === 'streak') {
+      current = dashboardState.streaks[badge.habit] || 0;
+      progress = Math.min(100, (current / badge.target) * 100);
+    } else if (badge.type === 'total') {
+      current = dashboardState.totals[badge.habit] || 0;
+      progress = Math.min(100, (current / badge.target) * 100);
+    } else if (badge.type === 'week') {
+      // Compter cette semaine
+      const today = new Date();
+      const startOfWeek = new Date(today);
+      startOfWeek.setDate(today.getDate() - today.getDay());
+      current = 0;
+
+      for (let i = 0; i <= today.getDay(); i++) {
+        const date = new Date(startOfWeek);
+        date.setDate(startOfWeek.getDate() + i);
+        const dateKey = date.toISOString().split('T')[0];
+        const dayHabits = dashboardState.habits[dateKey];
+        if (dayHabits && dayHabits[badge.habit]) {
+          current++;
+        }
+      }
+      progress = Math.min(100, (current / badge.target) * 100);
+    } else if (badge.type === 'perfect') {
+      current = dashboardState.globalStreak;
+      progress = Math.min(100, (current / badge.target) * 100);
+    }
+
+    // Mettre à jour la barre de progression
+    const progressBar = document.getElementById(`badge-${badge.id}-progress`);
+    const progressText = document.getElementById(`badge-${badge.id}-text`);
+
+    if (progressBar) {
+      progressBar.style.width = `${progress}%`;
+    }
+    if (progressText) {
+      progressText.textContent = `${current}/${badge.target}`;
+    }
+
+    // Badge débloqué ?
+    if (current >= badge.target) {
+      card.classList.remove('locked');
+      card.classList.add('unlocked');
+      if (!dashboardState.unlockedBadges.includes(badge.id)) {
+        dashboardState.unlockedBadges.push(badge.id);
+        // Animation de déblocage
+        card.classList.add('just-unlocked');
+        setTimeout(() => card.classList.remove('just-unlocked'), 2000);
+      }
+    } else {
+      card.classList.add('locked');
+      card.classList.remove('unlocked');
+    }
+  });
+}
+
+function updateHomeMiniSummary() {
+  const today = getTodayKey();
+  const todayHabits = dashboardState.habits[today] || {};
+  const completed = habitsList.filter(h => todayHabits[h.id]).length;
+  const total = habitsList.length;
+  const percent = Math.round((completed / total) * 100);
+
+  // Mettre à jour le mini résumé sur l'accueil
+  const miniStreak = document.getElementById('home-mini-streak');
+  const miniProgress = document.getElementById('home-mini-progress');
+  const miniBar = document.getElementById('home-mini-bar');
+
+  if (miniStreak) {
+    miniStreak.textContent = dashboardState.globalStreak;
+  }
+  if (miniProgress) {
+    miniProgress.textContent = `${completed}/${total}`;
+  }
+  if (miniBar) {
+    miniBar.style.width = `${percent}%`;
+  }
+
+  // Mettre à jour le streak sur l'accueil (existant)
+  const currentStreak = document.getElementById('current-streak');
+  if (currentStreak) {
+    currentStreak.textContent = dashboardState.globalStreak;
+  }
+}
+
+function saveDashboardData() {
+  localStorage.setItem('breathflow_dashboard', JSON.stringify({
+    habits: dashboardState.habits,
+    streaks: dashboardState.streaks,
+    totals: dashboardState.totals,
+    unlockedBadges: dashboardState.unlockedBadges,
+    globalStreak: dashboardState.globalStreak
+  }));
 }
 
 // ===== Service Worker =====

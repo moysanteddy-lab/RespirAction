@@ -1,4 +1,4 @@
-<!-- rebuild --> <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
@@ -46,6 +46,7 @@
       </div>
       <ul class="nav-list">
         <li><a href="#" data-page="home" class="nav-link active">Accueil</a></li>
+        <li><a href="#" data-page="dashboard" class="nav-link">Dashboard</a></li>
         <li><a href="#" data-page="breathing" class="nav-link">Respiration</a></li>
         <li><a href="#" data-page="coldshower" class="nav-link">Douche Froide</a></li>
         <li><a href="#" data-page="meditation" class="nav-link">Méditation</a></li>
@@ -112,6 +113,22 @@
           </button>
         </div>
 
+        <!-- Mini résumé Dashboard -->
+        <div class="home-dashboard-mini" data-goto="dashboard">
+          <div class="mini-header">
+            <span class="mini-flame">🔥</span>
+            <span class="mini-streak" id="home-mini-streak">0</span>
+            <span class="mini-label">jours</span>
+            <span class="mini-separator">|</span>
+            <span class="mini-today">Aujourd'hui</span>
+            <span class="mini-progress" id="home-mini-progress">0/9</span>
+          </div>
+          <div class="mini-bar-container">
+            <div class="mini-bar" id="home-mini-bar"></div>
+          </div>
+          <span class="mini-link">Voir Dashboard →</span>
+        </div>
+
         <!-- Stats rapides -->
         <div class="quick-stats">
           <div class="stat-card">
@@ -125,6 +142,236 @@
           <div class="stat-card">
             <span class="stat-value" id="current-streak">0</span>
             <span class="stat-label">Jours streak</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- Page Dashboard -->
+      <section id="page-dashboard" class="page">
+        <h2 class="section-title">Dashboard</h2>
+
+        <!-- Résumé du jour -->
+        <div class="dashboard-today">
+          <div class="today-header">
+            <h3>Aujourd'hui</h3>
+            <span class="today-date" id="dashboard-date"></span>
+          </div>
+          <div class="today-progress">
+            <div class="progress-bar-container">
+              <div class="progress-bar" id="today-progress-bar"></div>
+            </div>
+            <span class="progress-text" id="today-progress-text">0/9</span>
+          </div>
+        </div>
+
+        <!-- Tracker habitudes (ordre chronologique journée) -->
+        <div class="habits-tracker">
+          <!-- MATIN -->
+          <div class="habit-item" data-habit="nophone">
+            <label class="habit-checkbox">
+              <input type="checkbox" id="habit-nophone">
+              <span class="habit-check"></span>
+            </label>
+            <span class="habit-icon">📵</span>
+            <span class="habit-name">Pas tel matin/soir</span>
+          </div>
+          <div class="habit-item" data-habit="coldshower">
+            <label class="habit-checkbox">
+              <input type="checkbox" id="habit-coldshower">
+              <span class="habit-check"></span>
+            </label>
+            <span class="habit-icon">🚿</span>
+            <span class="habit-name">Douche froide</span>
+          </div>
+          <div class="habit-item" data-habit="breathing">
+            <label class="habit-checkbox">
+              <input type="checkbox" id="habit-breathing">
+              <span class="habit-check"></span>
+            </label>
+            <span class="habit-icon">🌬️</span>
+            <span class="habit-name">Respiration</span>
+          </div>
+          <!-- JOURNÉE -->
+          <div class="habit-item" data-habit="fasting">
+            <label class="habit-checkbox">
+              <input type="checkbox" id="habit-fasting">
+              <span class="habit-check"></span>
+            </label>
+            <span class="habit-icon">🍽️</span>
+            <span class="habit-name">Jeûne 16h</span>
+          </div>
+          <div class="habit-item" data-habit="calisthenics">
+            <label class="habit-checkbox">
+              <input type="checkbox" id="habit-calisthenics">
+              <span class="habit-check"></span>
+            </label>
+            <span class="habit-icon">💪</span>
+            <span class="habit-name">Calisthénie</span>
+          </div>
+          <!-- SOIR -->
+          <div class="habit-item" data-habit="gratitude">
+            <label class="habit-checkbox">
+              <input type="checkbox" id="habit-gratitude">
+              <span class="habit-check"></span>
+            </label>
+            <span class="habit-icon">🙏</span>
+            <span class="habit-name">Gratitude</span>
+          </div>
+          <div class="habit-item" data-habit="reading">
+            <label class="habit-checkbox">
+              <input type="checkbox" id="habit-reading">
+              <span class="habit-check"></span>
+            </label>
+            <span class="habit-icon">📖</span>
+            <span class="habit-name">Lecture</span>
+          </div>
+          <div class="habit-item" data-habit="meditation">
+            <label class="habit-checkbox">
+              <input type="checkbox" id="habit-meditation">
+              <span class="habit-check"></span>
+            </label>
+            <span class="habit-icon">🧘</span>
+            <span class="habit-name">Méditation</span>
+          </div>
+          <div class="habit-item" data-habit="sleep">
+            <label class="habit-checkbox">
+              <input type="checkbox" id="habit-sleep">
+              <span class="habit-check"></span>
+            </label>
+            <span class="habit-icon">😴</span>
+            <span class="habit-name">Couché avant minuit</span>
+          </div>
+        </div>
+
+        <!-- Streak global -->
+        <div class="streak-section">
+          <div class="streak-display">
+            <span class="streak-flame">🔥</span>
+            <span class="streak-number" id="global-streak">0</span>
+            <span class="streak-label">jours d'affilée</span>
+          </div>
+        </div>
+
+        <!-- Calendrier mensuel -->
+        <div class="month-calendar">
+          <div class="calendar-header">
+            <button id="cal-prev" class="cal-nav-btn">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M15 18l-6-6 6-6"/>
+              </svg>
+            </button>
+            <h3 id="cal-month-title">Janvier 2026</h3>
+            <button id="cal-next" class="cal-nav-btn">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M9 18l6-6-6-6"/>
+              </svg>
+            </button>
+          </div>
+          <div class="calendar-weekdays">
+            <span>Lun</span><span>Mar</span><span>Mer</span><span>Jeu</span><span>Ven</span><span>Sam</span><span>Dim</span>
+          </div>
+          <div class="calendar-days" id="calendar-days">
+            <!-- Généré par JS -->
+          </div>
+        </div>
+
+        <!-- Modal édition jour -->
+        <div id="day-edit-modal" class="modal hidden">
+          <div class="modal-content day-edit-content">
+            <div class="modal-header">
+              <h3 id="day-edit-title">Modifier le jour</h3>
+              <button id="close-day-modal" class="icon-btn">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <line x1="18" y1="6" x2="6" y2="18"></line>
+                  <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+              </button>
+            </div>
+            <div class="day-edit-habits" id="day-edit-habits">
+              <!-- Généré par JS -->
+            </div>
+            <div class="modal-actions">
+              <button id="save-day-btn" class="btn primary">Enregistrer</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Badges -->
+        <div class="badges-section">
+          <h3>Mes Badges</h3>
+          <div class="badges-grid" id="badges-grid">
+            <!-- Badge Iceman -->
+            <div class="badge-card locked" data-badge="iceman">
+              <div class="badge-icon">🧊</div>
+              <div class="badge-info">
+                <span class="badge-name">Iceman</span>
+                <span class="badge-desc">30 jours douche froide</span>
+                <div class="badge-progress">
+                  <div class="badge-progress-bar" id="badge-iceman-progress"></div>
+                </div>
+                <span class="badge-progress-text" id="badge-iceman-text">0/30</span>
+              </div>
+            </div>
+            <!-- Badge Moine -->
+            <div class="badge-card locked" data-badge="monk">
+              <div class="badge-icon">🧘</div>
+              <div class="badge-info">
+                <span class="badge-name">Moine</span>
+                <span class="badge-desc">7 méditations d'affilée</span>
+                <div class="badge-progress">
+                  <div class="badge-progress-bar" id="badge-monk-progress"></div>
+                </div>
+                <span class="badge-progress-text" id="badge-monk-text">0/7</span>
+              </div>
+            </div>
+            <!-- Badge Guerrier -->
+            <div class="badge-card locked" data-badge="warrior">
+              <div class="badge-icon">⚔️</div>
+              <div class="badge-info">
+                <span class="badge-name">Guerrier</span>
+                <span class="badge-desc">3 calisthénie/semaine</span>
+                <div class="badge-progress">
+                  <div class="badge-progress-bar" id="badge-warrior-progress"></div>
+                </div>
+                <span class="badge-progress-text" id="badge-warrior-text">0/3</span>
+              </div>
+            </div>
+            <!-- Badge Souffle -->
+            <div class="badge-card locked" data-badge="breath">
+              <div class="badge-icon">🌬️</div>
+              <div class="badge-info">
+                <span class="badge-name">Souffle de Vie</span>
+                <span class="badge-desc">50 sessions respiration</span>
+                <div class="badge-progress">
+                  <div class="badge-progress-bar" id="badge-breath-progress"></div>
+                </div>
+                <span class="badge-progress-text" id="badge-breath-text">0/50</span>
+              </div>
+            </div>
+            <!-- Badge Lecteur -->
+            <div class="badge-card locked" data-badge="reader">
+              <div class="badge-icon">📚</div>
+              <div class="badge-info">
+                <span class="badge-name">Lecteur</span>
+                <span class="badge-desc">14 jours lecture</span>
+                <div class="badge-progress">
+                  <div class="badge-progress-bar" id="badge-reader-progress"></div>
+                </div>
+                <span class="badge-progress-text" id="badge-reader-text">0/14</span>
+              </div>
+            </div>
+            <!-- Badge Discipline -->
+            <div class="badge-card locked" data-badge="discipline">
+              <div class="badge-icon">👑</div>
+              <div class="badge-info">
+                <span class="badge-name">Discipline Ultime</span>
+                <span class="badge-desc">7 jours 100% complet</span>
+                <div class="badge-progress">
+                  <div class="badge-progress-bar" id="badge-discipline-progress"></div>
+                </div>
+                <span class="badge-progress-text" id="badge-discipline-text">0/7</span>
+              </div>
+            </div>
           </div>
         </div>
       </section>
@@ -696,12 +943,36 @@
             </div>
           </div>
 
-          <!-- Son Epic -->
-          <div class="coldshower-epic">
-            <label class="toggle-label">
-              <input type="checkbox" id="cold-epic-toggle" checked>
-              <span class="toggle-text">Son Epic (Tambours)</span>
-            </label>
+          <!-- Sons Epic (mixables) -->
+          <div class="coldshower-sounds">
+            <label class="sounds-label">Sons EPIC (mixables) :</label>
+            <div class="cold-sound-checkboxes">
+              <label class="cold-sound-checkbox">
+                <input type="checkbox" name="cold-sound" value="epicVictory" checked>
+                <span class="checkbox-icon"></span>
+                <span class="checkbox-label">VICTORY (TSFH)</span>
+              </label>
+              <label class="cold-sound-checkbox">
+                <input type="checkbox" name="cold-sound" value="epicTime">
+                <span class="checkbox-icon"></span>
+                <span class="checkbox-label">TIME (Zimmer)</span>
+              </label>
+              <label class="cold-sound-checkbox">
+                <input type="checkbox" name="cold-sound" value="epicBattle42">
+                <span class="checkbox-icon"></span>
+                <span class="checkbox-label">BATTLE 42min</span>
+              </label>
+              <label class="cold-sound-checkbox">
+                <input type="checkbox" name="cold-sound" value="battleMedieval">
+                <span class="checkbox-icon"></span>
+                <span class="checkbox-label">Bataille Guerre</span>
+              </label>
+              <label class="cold-sound-checkbox">
+                <input type="checkbox" name="cold-sound" value="vikingBattle">
+                <span class="checkbox-icon"></span>
+                <span class="checkbox-label">Viking Battle</span>
+              </label>
+            </div>
           </div>
 
           <!-- Contrôles -->
@@ -831,6 +1102,33 @@
             </div>
           </div>
 
+          <!-- Ambiances mixables -->
+          <div class="meditation-sounds">
+            <label class="sounds-label">Ambiances (mixables) :</label>
+            <div class="sound-checkboxes">
+              <label class="sound-checkbox">
+                <input type="checkbox" name="meditation-sound" value="tibetanBowl" checked>
+                <span class="checkbox-icon"></span>
+                <span class="checkbox-label">Bol Tibétain</span>
+              </label>
+              <label class="sound-checkbox">
+                <input type="checkbox" name="meditation-sound" value="omChanting">
+                <span class="checkbox-icon"></span>
+                <span class="checkbox-label">Chant Om</span>
+              </label>
+              <label class="sound-checkbox">
+                <input type="checkbox" name="meditation-sound" value="cosmicAmbient">
+                <span class="checkbox-icon"></span>
+                <span class="checkbox-label">Cosmic Ambient</span>
+              </label>
+              <label class="sound-checkbox">
+                <input type="checkbox" name="meditation-sound" value="handpan">
+                <span class="checkbox-icon"></span>
+                <span class="checkbox-label">Handpan</span>
+              </label>
+            </div>
+          </div>
+
           <!-- Contrôles -->
           <div class="meditation-controls">
             <button id="meditation-start-btn" class="control-btn primary">
@@ -851,14 +1149,6 @@
               </svg>
               Arrêter
             </button>
-          </div>
-
-          <!-- Son d'ambiance -->
-          <div class="meditation-ambient">
-            <label>
-              <input type="checkbox" id="meditation-ambient-toggle" checked>
-              <span>Son d'ambiance (bol tibétain)</span>
-            </label>
           </div>
         </div>
       </section>

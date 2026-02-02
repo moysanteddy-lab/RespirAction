@@ -1975,39 +1975,90 @@ main {
   max-width: 200px;
 }
 
-/* Toggle son épique douche froide */
-.coldshower-epic {
+/* Checkboxes sons épiques douche froide (mixables) */
+.coldshower-sounds {
   display: flex;
-  justify-content: center;
-  margin-bottom: 1rem;
-}
-
-.coldshower-epic .toggle-label {
-  display: flex;
+  flex-direction: column;
   align-items: center;
   gap: 0.75rem;
-  cursor: pointer;
-  padding: 0.5rem 1rem;
-  background: rgba(0, 200, 255, 0.1);
-  border: 1px solid var(--neon-cyan);
-  border-radius: 25px;
-  transition: all 0.3s;
+  margin-bottom: 1rem;
+  width: 100%;
 }
 
-.coldshower-epic .toggle-label:hover {
+.coldshower-sounds .sounds-label {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  font-weight: 600;
+}
+
+.cold-sound-checkboxes {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.5rem;
+  width: 100%;
+  max-width: 320px;
+}
+
+.cold-sound-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.6rem 0.8rem;
+  background: rgba(0, 200, 255, 0.08);
+  border: 1px solid rgba(0, 200, 255, 0.3);
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.cold-sound-checkbox:hover {
+  background: rgba(0, 200, 255, 0.15);
+  border-color: var(--neon-cyan);
+}
+
+.cold-sound-checkbox input[type="checkbox"] {
+  display: none;
+}
+
+.cold-sound-checkbox .checkbox-icon {
+  width: 20px;
+  height: 20px;
+  border: 2px solid rgba(0, 200, 255, 0.5);
+  border-radius: 5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.cold-sound-checkbox .checkbox-icon::after {
+  content: '';
+  width: 10px;
+  height: 10px;
+  background: var(--neon-cyan);
+  border-radius: 2px;
+  transform: scale(0);
+  transition: transform 0.15s ease;
+}
+
+.cold-sound-checkbox input[type="checkbox"]:checked + .checkbox-icon {
+  border-color: var(--neon-cyan);
   background: rgba(0, 200, 255, 0.2);
 }
 
-.coldshower-epic input[type="checkbox"] {
-  width: 20px;
-  height: 20px;
-  accent-color: var(--neon-cyan);
-  cursor: pointer;
+.cold-sound-checkbox input[type="checkbox"]:checked + .checkbox-icon::after {
+  transform: scale(1);
 }
 
-.coldshower-epic .toggle-text {
-  font-size: 0.9rem;
-  color: var(--neon-cyan);
+.cold-sound-checkbox .checkbox-label {
+  font-size: 0.8rem;
+  color: var(--text-primary);
+}
+
+.cold-sound-checkbox input[type="checkbox"]:checked ~ .checkbox-label {
+  color: #00d4ff;
+  font-weight: 600;
 }
 
 .coldshower-tips {
@@ -2195,6 +2246,91 @@ main {
   min-height: 2.6em;
 }
 
+/* Checkboxes sons méditation (mixables) */
+.meditation-sounds {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+}
+
+.meditation-sounds .sounds-label {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  margin-bottom: 0.25rem;
+}
+
+.sound-checkboxes {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.5rem;
+  width: 100%;
+  max-width: 300px;
+}
+
+.sound-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.6rem 0.8rem;
+  background: rgba(180, 100, 255, 0.08);
+  border: 1px solid rgba(180, 100, 255, 0.3);
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.sound-checkbox:hover {
+  background: rgba(180, 100, 255, 0.15);
+  border-color: var(--neon-purple);
+}
+
+.sound-checkbox input[type="checkbox"] {
+  display: none;
+}
+
+.sound-checkbox .checkbox-icon {
+  width: 20px;
+  height: 20px;
+  border: 2px solid rgba(180, 100, 255, 0.5);
+  border-radius: 5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.sound-checkbox .checkbox-icon::after {
+  content: '';
+  width: 10px;
+  height: 10px;
+  background: var(--neon-purple);
+  border-radius: 2px;
+  transform: scale(0);
+  transition: transform 0.15s ease;
+}
+
+.sound-checkbox input[type="checkbox"]:checked + .checkbox-icon {
+  border-color: var(--neon-purple);
+  background: rgba(180, 100, 255, 0.2);
+}
+
+.sound-checkbox input[type="checkbox"]:checked + .checkbox-icon::after {
+  transform: scale(1);
+}
+
+.sound-checkbox .checkbox-label {
+  font-size: 0.85rem;
+  color: var(--text-primary);
+}
+
+.sound-checkbox input[type="checkbox"]:checked ~ .checkbox-label {
+  color: #b464ff;
+  font-weight: 500;
+}
+
 .meditation-controls {
   display: flex;
   justify-content: center;
@@ -2202,24 +2338,554 @@ main {
   margin-bottom: 1.5rem;
 }
 
-.meditation-ambient {
-  display: flex;
-  justify-content: center;
+/* ===== Dashboard / Habit Tracker ===== */
+
+/* Mini résumé sur l'accueil */
+.home-dashboard-mini {
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.15), rgba(139, 92, 246, 0.15));
+  border: 1px solid rgba(99, 102, 241, 0.3);
+  border-radius: 16px;
+  padding: 1rem;
+  margin: 1rem 0;
+  cursor: pointer;
+  transition: all 0.3s ease;
 }
 
-.meditation-ambient label {
+.home-dashboard-mini:hover {
+  border-color: var(--neon-purple);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 20px rgba(139, 92, 246, 0.2);
+}
+
+.mini-header {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  font-size: 0.9rem;
+  gap: 0.4rem;
+  margin-bottom: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.mini-flame {
+  font-size: 1.2rem;
+}
+
+.mini-streak {
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: #ff6b35;
+}
+
+.mini-label {
+  font-size: 0.85rem;
   color: var(--text-secondary);
+}
+
+.mini-separator {
+  color: var(--text-secondary);
+  opacity: 0.5;
+  margin: 0 0.3rem;
+}
+
+.mini-today {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+
+.mini-progress {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--neon-purple);
+}
+
+.mini-bar-container {
+  height: 8px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+  overflow: hidden;
+  margin-bottom: 0.5rem;
+}
+
+.mini-bar {
+  height: 100%;
+  background: linear-gradient(90deg, var(--neon-cyan), var(--neon-purple));
+  border-radius: 4px;
+  transition: width 0.5s ease;
+  width: 0%;
+}
+
+.mini-link {
+  display: block;
+  text-align: center;
+  font-size: 0.8rem;
+  color: var(--neon-purple);
+  opacity: 0.8;
+}
+
+/* Page Dashboard */
+#page-dashboard {
+  padding-bottom: 2rem;
+}
+
+.dashboard-today {
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(139, 92, 246, 0.1));
+  border-radius: 16px;
+  padding: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.today-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.75rem;
+}
+
+.today-header h3 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin: 0;
+}
+
+.today-date {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  text-transform: capitalize;
+}
+
+.today-progress {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.progress-bar-container {
+  flex: 1;
+  height: 12px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.progress-bar {
+  height: 100%;
+  background: linear-gradient(90deg, var(--neon-cyan), var(--neon-purple), #ff6b35);
+  border-radius: 6px;
+  transition: width 0.5s ease;
+  width: 0%;
+}
+
+.progress-text {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  min-width: 40px;
+}
+
+/* Habit Tracker */
+.habits-tracker {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.habit-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  transition: all 0.2s ease;
+}
+
+.habit-item:hover {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.15);
+}
+
+.habit-checkbox {
+  position: relative;
   cursor: pointer;
 }
 
-.meditation-ambient input[type="checkbox"] {
-  width: 18px;
-  height: 18px;
-  accent-color: #b464ff;
+.habit-checkbox input[type="checkbox"] {
+  display: none;
+}
+
+.habit-check {
+  width: 26px;
+  height: 26px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.habit-check::after {
+  content: '✓';
+  font-size: 16px;
+  color: white;
+  opacity: 0;
+  transform: scale(0);
+  transition: all 0.2s ease;
+}
+
+.habit-checkbox input:checked + .habit-check {
+  background: linear-gradient(135deg, var(--neon-cyan), var(--neon-purple));
+  border-color: transparent;
+}
+
+.habit-checkbox input:checked + .habit-check::after {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.habit-icon {
+  font-size: 1.3rem;
+  width: 30px;
+  text-align: center;
+}
+
+.habit-name {
+  font-size: 0.95rem;
+  color: var(--text-primary);
+  flex: 1;
+}
+
+/* Streak Section */
+.streak-section {
+  text-align: center;
+  padding: 1.5rem;
+  background: linear-gradient(135deg, rgba(255, 107, 53, 0.1), rgba(255, 159, 67, 0.1));
+  border: 1px solid rgba(255, 107, 53, 0.3);
+  border-radius: 16px;
+  margin-bottom: 1.5rem;
+}
+
+.streak-display {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.streak-flame {
+  font-size: 2rem;
+  animation: flicker 1s ease-in-out infinite alternate;
+}
+
+@keyframes flicker {
+  from { transform: scale(1); }
+  to { transform: scale(1.1); }
+}
+
+.streak-number {
+  font-size: 3rem;
+  font-weight: 800;
+  background: linear-gradient(135deg, #ff6b35, #ff9f43);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.streak-label {
+  font-size: 1rem;
+  color: var(--text-secondary);
+}
+
+/* Month Calendar */
+.month-calendar {
+  margin-bottom: 1.5rem;
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: 16px;
+  padding: 1rem;
+}
+
+.calendar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.calendar-header h3 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin: 0;
+  color: var(--text-primary);
+}
+
+.cal-nav-btn {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  padding: 0.5rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.cal-nav-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: var(--neon-purple);
+}
+
+.cal-nav-btn svg {
+  width: 20px;
+  height: 20px;
+  color: var(--text-primary);
+}
+
+.calendar-weekdays {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 0.25rem;
+  margin-bottom: 0.5rem;
+}
+
+.calendar-weekdays span {
+  text-align: center;
+  font-size: 0.7rem;
+  color: var(--text-secondary);
+  padding: 0.25rem 0;
+}
+
+.calendar-days {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 0.25rem;
+}
+
+.cal-day {
+  aspect-ratio: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.02);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: 1px solid transparent;
+  padding: 0.15rem;
+}
+
+.cal-day:hover:not(.future):not(.empty-day) {
+  background: rgba(139, 92, 246, 0.15);
+  border-color: var(--neon-purple);
+  transform: scale(1.05);
+}
+
+.cal-day.empty-day {
+  background: transparent;
+  cursor: default;
+}
+
+.cal-day.today {
+  border-color: var(--neon-purple);
+  background: rgba(139, 92, 246, 0.2);
+}
+
+.cal-day.perfect {
+  background: rgba(34, 197, 94, 0.25);
+  border-color: rgba(34, 197, 94, 0.5);
+}
+
+.cal-day.partial {
+  background: rgba(251, 191, 36, 0.2);
+  border-color: rgba(251, 191, 36, 0.4);
+}
+
+.cal-day.future {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.cal-day-num {
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.cal-day-dots {
+  font-size: 0.6rem;
+  color: var(--neon-cyan);
+  height: 10px;
+}
+
+.cal-day.perfect .cal-day-dots {
+  color: #22c55e;
+}
+
+.cal-day.partial .cal-day-dots {
+  color: #fbbf24;
+}
+
+/* Modal édition jour */
+.day-edit-content {
+  max-width: 350px;
+}
+
+.day-edit-habits {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+  max-height: 50vh;
+  overflow-y: auto;
+}
+
+.day-edit-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.6rem 0.75rem;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 10px;
+}
+
+.day-edit-checkbox {
+  position: relative;
+  cursor: pointer;
+}
+
+.day-edit-checkbox input[type="checkbox"] {
+  display: none;
+}
+
+.day-edit-check {
+  width: 24px;
+  height: 24px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.day-edit-check::after {
+  content: '✓';
+  font-size: 14px;
+  color: white;
+  opacity: 0;
+  transform: scale(0);
+  transition: all 0.2s ease;
+}
+
+.day-edit-checkbox input:checked + .day-edit-check {
+  background: linear-gradient(135deg, var(--neon-cyan), var(--neon-purple));
+  border-color: transparent;
+}
+
+.day-edit-checkbox input:checked + .day-edit-check::after {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.day-edit-icon {
+  font-size: 1.2rem;
+}
+
+.day-edit-name {
+  font-size: 0.9rem;
+  color: var(--text-primary);
+  flex: 1;
+}
+
+/* Badges Section */
+.badges-section h3 {
+  font-size: 1rem;
+  margin-bottom: 1rem;
+  color: var(--text-secondary);
+}
+
+.badges-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.75rem;
+}
+
+.badge-card {
+  padding: 1rem;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  transition: all 0.3s ease;
+}
+
+.badge-card.locked {
+  opacity: 0.6;
+}
+
+.badge-card.unlocked {
+  background: linear-gradient(135deg, rgba(34, 197, 94, 0.1), rgba(16, 185, 129, 0.1));
+  border-color: rgba(34, 197, 94, 0.4);
+}
+
+.badge-card.just-unlocked {
+  animation: badgeUnlock 0.5s ease;
+}
+
+@keyframes badgeUnlock {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.1); box-shadow: 0 0 30px rgba(34, 197, 94, 0.5); }
+  100% { transform: scale(1); }
+}
+
+.badge-icon {
+  font-size: 2rem;
+  margin-bottom: 0.5rem;
+}
+
+.badge-card.locked .badge-icon {
+  filter: grayscale(1);
+}
+
+.badge-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.badge-name {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.badge-desc {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+}
+
+.badge-progress {
+  height: 4px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 2px;
+  margin-top: 0.5rem;
+  overflow: hidden;
+}
+
+.badge-progress-bar {
+  height: 100%;
+  background: linear-gradient(90deg, var(--neon-cyan), var(--neon-purple));
+  border-radius: 2px;
+  transition: width 0.5s ease;
+  width: 0%;
+}
+
+.badge-card.unlocked .badge-progress-bar {
+  background: linear-gradient(90deg, #22c55e, #10b981);
+}
+
+.badge-progress-text {
+  font-size: 0.7rem;
+  color: var(--text-secondary);
+  margin-top: 0.25rem;
 }
 
 /* ===== Utilities ===== */
