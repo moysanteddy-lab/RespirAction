@@ -46,6 +46,8 @@
       <ul class="nav-list">
         <li><a href="#" data-page="home" class="nav-link active">Accueil</a></li>
         <li><a href="#" data-page="breathing" class="nav-link">Respiration</a></li>
+        <li><a href="#" data-page="coldshower" class="nav-link">Douche Froide</a></li>
+        <li><a href="#" data-page="meditation" class="nav-link">Méditation</a></li>
         <li><a href="#" data-page="pomodoro" class="nav-link">Pomodoro</a></li>
         <li><a href="#" data-page="history" class="nav-link">Historique</a></li>
         <li><a href="#" data-page="calisthenics" class="nav-link">Calisthénie</a></li>
@@ -78,6 +80,25 @@
               </svg>
             </div>
             <span>Respiration</span>
+          </button>
+
+          <button class="home-card" data-goto="coldshower">
+            <div class="card-icon coldshower-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <path d="M12 2v6m0 0l-2-2m2 2l2-2M8 10v10a2 2 0 002 2h4a2 2 0 002-2V10M6 10h12M7 14h.01M12 14h.01M17 14h.01"></path>
+              </svg>
+            </div>
+            <span>Douche Froide</span>
+          </button>
+
+          <button class="home-card" data-goto="meditation">
+            <div class="card-icon meditation-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <path d="M12 2a5 5 0 015 5c0 2.76-2.24 5-5 5s-5-2.24-5-5a5 5 0 015-5zM3 20c0-4 4-6 9-6s9 2 9 6"></path>
+                <circle cx="12" cy="7" r="2"></circle>
+              </svg>
+            </div>
+            <span>Méditation</span>
           </button>
 
           <button class="home-card" data-goto="calisthenics">
@@ -599,6 +620,89 @@
             <p>Conseil : Fais <strong>Pomodoro Prep</strong> (2min) avant de démarrer pour maximiser ta concentration !</p>
             <button id="pomodoro-breath-btn" class="btn secondary small">Faire la respiration</button>
           </div>
+        </div>
+      </section>
+
+      <!-- Page Douche Froide -->
+      <section id="page-coldshower" class="page">
+        <h2 class="section-title">Douche Froide</h2>
+
+        <div class="coldshower-container">
+          <!-- Stats rapides -->
+          <div class="coldshower-stats">
+            <div class="stat-card">
+              <span class="stat-value" id="cold-streak">0</span>
+              <span class="stat-label">Jours streak</span>
+            </div>
+            <div class="stat-card">
+              <span class="stat-value" id="cold-total">0</span>
+              <span class="stat-label">Sessions</span>
+            </div>
+            <div class="stat-card">
+              <span class="stat-value" id="cold-best">0s</span>
+              <span class="stat-label">Record</span>
+            </div>
+          </div>
+
+          <!-- Timer principal -->
+          <div class="coldshower-timer-container">
+            <div class="coldshower-level" id="cold-level">NIVEAU 1</div>
+            <div class="coldshower-timer" id="cold-timer">0:30</div>
+            <div class="coldshower-progress-ring">
+              <svg viewBox="0 0 200 200">
+                <circle cx="100" cy="100" r="90" fill="none" stroke="rgba(0, 200, 255, 0.1)" stroke-width="4"/>
+                <circle id="cold-progress-ring" cx="100" cy="100" r="90" fill="none" stroke="url(#coldGradient)" stroke-width="6" stroke-dasharray="565.48" stroke-dashoffset="0" transform="rotate(-90 100 100)" stroke-linecap="round"/>
+                <defs>
+                  <linearGradient id="coldGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" style="stop-color:#00d4ff"/>
+                    <stop offset="100%" style="stop-color:#0099ff"/>
+                  </linearGradient>
+                </defs>
+              </svg>
+            </div>
+            <div class="coldshower-encouragement" id="cold-encouragement"></div>
+          </div>
+
+          <!-- Sélecteur de durée -->
+          <div class="coldshower-levels">
+            <label>Durée :</label>
+            <div class="level-buttons">
+              <button class="level-btn active" data-duration="30">30s</button>
+              <button class="level-btn" data-duration="60">1min</button>
+              <button class="level-btn" data-duration="120">2min</button>
+              <button class="level-btn" data-duration="180">3min</button>
+              <button class="level-btn" data-duration="300">5min</button>
+            </div>
+          </div>
+
+          <!-- Contrôles -->
+          <div class="coldshower-controls">
+            <button id="cold-start-btn" class="control-btn primary">
+              <svg viewBox="0 0 24 24" fill="currentColor" width="24" height="24">
+                <path d="M8 5v14l11-7z"/>
+              </svg>
+              C'EST PARTI !
+            </button>
+            <button id="cold-stop-btn" class="control-btn danger hidden">
+              <svg viewBox="0 0 24 24" fill="currentColor" width="24" height="24">
+                <path d="M6 6h12v12H6z"/>
+              </svg>
+              STOP
+            </button>
+          </div>
+
+          <!-- Tips -->
+          <div class="coldshower-tips">
+            <p><strong>Conseil :</strong> Commence par les jambes, puis remonte progressivement. Respire profondément !</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Page Méditation -->
+      <section id="page-meditation" class="page">
+        <h2 class="section-title">Méditation</h2>
+        <div class="meditation-container">
+          <p class="empty-state">Module en cours de développement...</p>
         </div>
       </section>
 

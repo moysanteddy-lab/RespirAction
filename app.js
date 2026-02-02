@@ -990,6 +990,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initBreathing();
   initCalisthenics();
   initPomodoro();
+  initColdShower();
   initSettings();
   initMusic();
   initReminders();
@@ -1000,7 +1001,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // Initialiser le systeme de particules
   particleSystem = new ParticleSystem('particles-canvas');
 
-  // Initialiser le systeme de voix Google TTS
+  // Initialiser le systeme de voix
   voicePlayer.setLanguage(state.settings.voiceLang || 'fr');
   voicePlayer.preloadLanguage(state.settings.voiceLang || 'fr');
 });
@@ -1113,6 +1114,8 @@ function navigateTo(pageName) {
     const titles = {
       home: 'BreathFlow',
       breathing: 'Respiration',
+      coldshower: 'Douche Froide',
+      meditation: 'Méditation',
       pomodoro: 'Pomodoro',
       history: 'Historique',
       calisthenics: 'Calisthénie',
@@ -2355,6 +2358,393 @@ function updateStats() {
   document.getElementById('total-sessions').textContent = state.stats.breathingSessions;
   document.getElementById('total-workouts').textContent = state.stats.workouts;
   document.getElementById('current-streak').textContent = state.stats.streak;
+}
+
+// ===== Module Douche Froide =====
+const coldShowerEncouragements = {
+  fr: [
+    "TIENS BON !!!",
+    "TU PEUX LE FAIRE !!!",
+    "ALLEZ, RÉSISTE !!!",
+    "T'ES LE MEILLEUR !!!",
+    "T'ES UN GUERRIER !!!",
+    "RESPIRE !!! TU GÈRES !!!",
+    "LÂCHE RIEN !!!",
+    "C'EST DANS LA TÊTE !!!",
+    "TON CORPS S'ADAPTE !!!",
+    "ENCORE UN PEU !!!",
+    "T'ES UNE MACHINE !!!",
+    "PLUS FORT QUE LE FROID !!!",
+    "MENTAL D'ACIER !!!",
+    "TU VAS Y ARRIVER !!!",
+    "CHAMPION !!!",
+    "INDESTRUCTIBLE !!!"
+  ],
+  en: [
+    "HOLD ON !!!",
+    "YOU CAN DO IT !!!",
+    "KEEP GOING !!!",
+    "YOU'RE THE BEST !!!",
+    "YOU'RE A WARRIOR !!!",
+    "BREATHE !!! YOU GOT THIS !!!",
+    "DON'T GIVE UP !!!",
+    "IT'S ALL IN YOUR HEAD !!!",
+    "YOUR BODY IS ADAPTING !!!",
+    "ALMOST THERE !!!",
+    "YOU'RE A MACHINE !!!",
+    "STRONGER THAN THE COLD !!!",
+    "STEEL MINDSET !!!",
+    "YOU WILL MAKE IT !!!",
+    "CHAMPION !!!",
+    "UNSTOPPABLE !!!"
+  ],
+  es: [
+    "¡¡¡AGUANTA !!!",
+    "¡¡¡TÚ PUEDES !!!",
+    "¡¡¡SIGUE ADELANTE !!!",
+    "¡¡¡ERES EL MEJOR !!!",
+    "¡¡¡ERES UN GUERRERO !!!",
+    "¡¡¡RESPIRA !!! ¡¡¡LO TIENES !!!",
+    "¡¡¡NO TE RINDAS !!!",
+    "¡¡¡ESTÁ EN TU MENTE !!!",
+    "¡¡¡TU CUERPO SE ADAPTA !!!",
+    "¡¡¡YA CASI !!!",
+    "¡¡¡ERES UNA MÁQUINA !!!",
+    "¡¡¡MÁS FUERTE QUE EL FRÍO !!!",
+    "¡¡¡MENTALIDAD DE ACERO !!!",
+    "¡¡¡LO VAS A LOGRAR !!!",
+    "¡¡¡CAMPEÓN !!!",
+    "¡¡¡IMPARABLE !!!"
+  ],
+  de: [
+    "HALTE DURCH !!!",
+    "DU SCHAFFST DAS !!!",
+    "WEITERMACHEN !!!",
+    "DU BIST DER BESTE !!!",
+    "DU BIST EIN KRIEGER !!!",
+    "ATME !!! DU PACKST DAS !!!",
+    "GIB NICHT AUF !!!",
+    "ES IST NUR IM KOPF !!!",
+    "DEIN KÖRPER PASST SICH AN !!!",
+    "FAST GESCHAFFT !!!",
+    "DU BIST EINE MASCHINE !!!",
+    "STÄRKER ALS DIE KÄLTE !!!",
+    "STAHLHARTE MENTALITÄT !!!",
+    "DU WIRST ES SCHAFFEN !!!",
+    "CHAMPION !!!",
+    "UNAUFHALTSAM !!!"
+  ],
+  it: [
+    "RESISTI !!!",
+    "CE LA PUOI FARE !!!",
+    "VAI AVANTI !!!",
+    "SEI IL MIGLIORE !!!",
+    "SEI UN GUERRIERO !!!",
+    "RESPIRA !!! CE LA FAI !!!",
+    "NON MOLLARE !!!",
+    "È TUTTO NELLA TESTA !!!",
+    "IL TUO CORPO SI ADATTA !!!",
+    "CI SEI QUASI !!!",
+    "SEI UNA MACCHINA !!!",
+    "PIÙ FORTE DEL FREDDO !!!",
+    "MENTALITÀ D'ACCIAIO !!!",
+    "CE LA FARAI !!!",
+    "CAMPIONE !!!",
+    "INARRESTABILE !!!"
+  ],
+  pt: [
+    "AGUENTA !!!",
+    "VOCÊ CONSEGUE !!!",
+    "CONTINUE !!!",
+    "VOCÊ É O MELHOR !!!",
+    "VOCÊ É UM GUERREIRO !!!",
+    "RESPIRE !!! VOCÊ CONSEGUE !!!",
+    "NÃO DESISTA !!!",
+    "ESTÁ NA SUA MENTE !!!",
+    "SEU CORPO ESTÁ SE ADAPTANDO !!!",
+    "QUASE LÁ !!!",
+    "VOCÊ É UMA MÁQUINA !!!",
+    "MAIS FORTE QUE O FRIO !!!",
+    "MENTALIDADE DE AÇO !!!",
+    "VOCÊ VAI CONSEGUIR !!!",
+    "CAMPEÃO !!!",
+    "IMPARÁVEL !!!"
+  ]
+};
+
+const coldShowerState = {
+  isRunning: false,
+  duration: 30,
+  timeLeft: 30,
+  timer: null,
+  encouragementTimer: null,
+  lastEncouragement: -1,
+  stats: {
+    streak: 0,
+    total: 0,
+    bestTime: 0,
+    lastDate: null
+  }
+};
+
+function initColdShower() {
+  // Charger les stats sauvegardées
+  const savedStats = localStorage.getItem('breathflow_coldshower');
+  if (savedStats) {
+    coldShowerState.stats = JSON.parse(savedStats);
+    updateColdShowerStats();
+  }
+
+  // Boutons de durée
+  const levelBtns = document.querySelectorAll('.level-btn');
+  levelBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      if (coldShowerState.isRunning) return;
+
+      levelBtns.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+
+      coldShowerState.duration = parseInt(btn.dataset.duration);
+      coldShowerState.timeLeft = coldShowerState.duration;
+      updateColdTimerDisplay();
+      updateColdLevel();
+    });
+  });
+
+  // Bouton start
+  const startBtn = document.getElementById('cold-start-btn');
+  const stopBtn = document.getElementById('cold-stop-btn');
+
+  if (startBtn) {
+    startBtn.addEventListener('click', startColdShower);
+  }
+  if (stopBtn) {
+    stopBtn.addEventListener('click', stopColdShower);
+  }
+
+  updateColdTimerDisplay();
+  updateColdLevel();
+}
+
+function updateColdLevel() {
+  const levelEl = document.getElementById('cold-level');
+  if (!levelEl) return;
+
+  const levels = {
+    30: 'NIVEAU 1 - DÉBUTANT',
+    60: 'NIVEAU 2 - INTERMÉDIAIRE',
+    120: 'NIVEAU 3 - AVANCÉ',
+    180: 'NIVEAU 4 - EXPERT',
+    300: 'NIVEAU 5 - LÉGENDE'
+  };
+  levelEl.textContent = levels[coldShowerState.duration] || 'NIVEAU 1';
+}
+
+function updateColdTimerDisplay() {
+  const timerEl = document.getElementById('cold-timer');
+  if (!timerEl) return;
+
+  const minutes = Math.floor(coldShowerState.timeLeft / 60);
+  const seconds = coldShowerState.timeLeft % 60;
+
+  if (minutes > 0) {
+    timerEl.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+  } else {
+    timerEl.textContent = `${seconds}`;
+  }
+
+  // Update progress ring
+  const progressRing = document.getElementById('cold-progress-ring');
+  if (progressRing) {
+    const circumference = 565.48;
+    const progress = coldShowerState.timeLeft / coldShowerState.duration;
+    const offset = circumference * (1 - progress);
+    progressRing.style.strokeDashoffset = offset;
+  }
+}
+
+function updateColdShowerStats() {
+  const streakEl = document.getElementById('cold-streak');
+  const totalEl = document.getElementById('cold-total');
+  const bestEl = document.getElementById('cold-best');
+
+  if (streakEl) streakEl.textContent = coldShowerState.stats.streak;
+  if (totalEl) totalEl.textContent = coldShowerState.stats.total;
+  if (bestEl) {
+    const best = coldShowerState.stats.bestTime;
+    if (best >= 60) {
+      bestEl.textContent = `${Math.floor(best / 60)}m${best % 60}s`;
+    } else {
+      bestEl.textContent = `${best}s`;
+    }
+  }
+}
+
+function startColdShower() {
+  if (coldShowerState.isRunning) return;
+
+  coldShowerState.isRunning = true;
+  coldShowerState.timeLeft = coldShowerState.duration;
+
+  // Update UI
+  document.getElementById('cold-start-btn').classList.add('hidden');
+  document.getElementById('cold-stop-btn').classList.remove('hidden');
+
+  // Premier encouragement immédiat
+  showEncouragement();
+
+  // Voix de départ
+  const lang = state.settings.voiceLang || 'fr';
+  const startPhrases = {
+    fr: "C'est parti ! Tu vas gérer !",
+    en: "Let's go! You got this!",
+    es: "¡Vamos! ¡Tú puedes!",
+    de: "Los geht's! Du schaffst das!",
+    it: "Andiamo! Ce la fai!",
+    pt: "Vamos lá! Você consegue!"
+  };
+  voicePlayer.speak(startPhrases[lang] || startPhrases.fr, lang);
+
+  // Timer principal
+  coldShowerState.timer = setInterval(() => {
+    coldShowerState.timeLeft--;
+    updateColdTimerDisplay();
+
+    // Vibration chaque 10 secondes
+    if (coldShowerState.timeLeft % 10 === 0 && coldShowerState.timeLeft > 0) {
+      if (state.settings.vibration && navigator.vibrate) {
+        navigator.vibrate(100);
+      }
+    }
+
+    if (coldShowerState.timeLeft <= 0) {
+      completeColdShower();
+    }
+  }, 1000);
+
+  // Timer pour les encouragements (toutes les 5-8 secondes)
+  coldShowerState.encouragementTimer = setInterval(() => {
+    showEncouragement();
+  }, 5000 + Math.random() * 3000);
+}
+
+function showEncouragement() {
+  const lang = state.settings.voiceLang || 'fr';
+  const encouragements = coldShowerEncouragements[lang] || coldShowerEncouragements.fr;
+
+  // Éviter de répéter le même encouragement
+  let index;
+  do {
+    index = Math.floor(Math.random() * encouragements.length);
+  } while (index === coldShowerState.lastEncouragement && encouragements.length > 1);
+
+  coldShowerState.lastEncouragement = index;
+  const text = encouragements[index];
+
+  // Afficher à l'écran
+  const encouragementEl = document.getElementById('cold-encouragement');
+  if (encouragementEl) {
+    encouragementEl.textContent = text;
+    encouragementEl.style.animation = 'none';
+    setTimeout(() => {
+      encouragementEl.style.animation = 'pulse-text 0.5s ease-in-out';
+    }, 10);
+  }
+
+  // Dire à voix haute
+  voicePlayer.speak(text, lang);
+
+  // Vibration
+  if (state.settings.vibration && navigator.vibrate) {
+    navigator.vibrate([50, 50, 50]);
+  }
+}
+
+function stopColdShower() {
+  if (!coldShowerState.isRunning) return;
+
+  clearInterval(coldShowerState.timer);
+  clearInterval(coldShowerState.encouragementTimer);
+  coldShowerState.isRunning = false;
+
+  // Reset UI
+  document.getElementById('cold-start-btn').classList.remove('hidden');
+  document.getElementById('cold-stop-btn').classList.add('hidden');
+  document.getElementById('cold-encouragement').textContent = '';
+
+  // Reset timer
+  coldShowerState.timeLeft = coldShowerState.duration;
+  updateColdTimerDisplay();
+
+  voicePlayer.stop();
+}
+
+function completeColdShower() {
+  clearInterval(coldShowerState.timer);
+  clearInterval(coldShowerState.encouragementTimer);
+  coldShowerState.isRunning = false;
+
+  // Update stats
+  const today = new Date().toISOString().split('T')[0];
+  const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
+
+  if (coldShowerState.stats.lastDate === yesterday) {
+    coldShowerState.stats.streak++;
+  } else if (coldShowerState.stats.lastDate !== today) {
+    coldShowerState.stats.streak = 1;
+  }
+
+  coldShowerState.stats.lastDate = today;
+  coldShowerState.stats.total++;
+
+  if (coldShowerState.duration > coldShowerState.stats.bestTime) {
+    coldShowerState.stats.bestTime = coldShowerState.duration;
+  }
+
+  // Sauvegarder
+  localStorage.setItem('breathflow_coldshower', JSON.stringify(coldShowerState.stats));
+  updateColdShowerStats();
+
+  // Update UI
+  document.getElementById('cold-start-btn').classList.remove('hidden');
+  document.getElementById('cold-stop-btn').classList.add('hidden');
+
+  // Message de victoire
+  const lang = state.settings.voiceLang || 'fr';
+  const victoryPhrases = {
+    fr: "BRAVO !!! T'ES UN CHAMPION !!! Tu as réussi !!!",
+    en: "AMAZING !!! YOU'RE A CHAMPION !!! You did it !!!",
+    es: "¡¡¡BRAVO !!! ¡¡¡ERES UN CAMPEÓN !!! ¡¡¡Lo lograste !!!",
+    de: "BRAVO !!! DU BIST EIN CHAMPION !!! Du hast es geschafft !!!",
+    it: "BRAVO !!! SEI UN CAMPIONE !!! Ce l'hai fatta !!!",
+    pt: "PARABÉNS !!! VOCÊ É UM CAMPEÃO !!! Você conseguiu !!!"
+  };
+
+  const encouragementEl = document.getElementById('cold-encouragement');
+  if (encouragementEl) {
+    encouragementEl.textContent = '🏆 VICTOIRE !!! 🏆';
+    encouragementEl.style.color = 'var(--neon-green)';
+  }
+
+  voicePlayer.speak(victoryPhrases[lang] || victoryPhrases.fr, lang);
+
+  // Vibration de victoire
+  if (state.settings.vibration && navigator.vibrate) {
+    navigator.vibrate([200, 100, 200, 100, 400]);
+  }
+
+  // Son de victoire
+  audioGuide.playSessionEnd();
+
+  // Reset après 3 secondes
+  setTimeout(() => {
+    if (encouragementEl) {
+      encouragementEl.textContent = '';
+      encouragementEl.style.color = '';
+    }
+    coldShowerState.timeLeft = coldShowerState.duration;
+    updateColdTimerDisplay();
+  }, 5000);
 }
 
 // ===== Service Worker =====
