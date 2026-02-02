@@ -832,6 +832,37 @@ const musicTracks = {
     name: 'Super Intelligence - Active',
     url: 'https://archive.org/download/meditation-music-for-focus/Super%20Intelligence.mp3',
     category: 'active'
+  },
+  // === EPIC - Pour douches froides, défis, motivation ===
+  epicCinematic: {
+    name: 'Cinematic Epic - Douche Froide',
+    url: 'https://cdn.pixabay.com/audio/2022/02/15/audio_0f628a4e1c.mp3',
+    category: 'epic'
+  },
+  epicMotivation: {
+    name: 'Epic Motivation - Douche Froide',
+    url: 'https://cdn.pixabay.com/audio/2022/10/25/audio_52c1a60cec.mp3',
+    category: 'epic'
+  },
+  epicAction: {
+    name: 'Action Hero - Douche Froide',
+    url: 'https://cdn.pixabay.com/audio/2022/03/10/audio_d6c6c8f540.mp3',
+    category: 'epic'
+  },
+  epicPower: {
+    name: 'Power & Glory - Douche Froide',
+    url: 'https://cdn.pixabay.com/audio/2022/05/17/audio_407815a716.mp3',
+    category: 'epic'
+  },
+  epicRising: {
+    name: 'Rising Warrior - Douche Froide',
+    url: 'https://cdn.pixabay.com/audio/2023/07/27/audio_66a802fd40.mp3',
+    category: 'epic'
+  },
+  epicVictor: {
+    name: 'Victorious - Douche Froide',
+    url: 'https://cdn.pixabay.com/audio/2021/08/08/audio_6a38ad5d8e.mp3',
+    category: 'epic'
   }
 };
 
@@ -2480,6 +2511,7 @@ const coldShowerState = {
   timer: null,
   encouragementTimer: null,
   lastEncouragement: -1,
+  musicPlaying: false,
   stats: {
     streak: 0,
     total: 0,
@@ -2539,6 +2571,51 @@ function initColdShower() {
 
   updateColdTimerDisplay();
   updateColdLevel();
+
+  // Musique épique pour la douche froide
+  const musicSelect = document.getElementById('cold-music-select');
+  const musicToggle = document.getElementById('cold-music-toggle');
+
+  if (musicSelect && musicToggle) {
+    musicToggle.addEventListener('click', () => {
+      const trackId = musicSelect.value;
+      if (!trackId) return;
+
+      const audioPlayer = document.getElementById('audio-player');
+      const track = musicTracks[trackId];
+
+      if (!track) return;
+
+      if (coldShowerState.musicPlaying) {
+        // Arrêter
+        audioPlayer.pause();
+        coldShowerState.musicPlaying = false;
+        musicToggle.classList.remove('playing');
+        musicToggle.innerHTML = '<svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20"><path d="M8 5v14l11-7z"/></svg>';
+      } else {
+        // Jouer
+        audioPlayer.src = track.url;
+        audioPlayer.loop = true;
+        audioPlayer.volume = 0.7;
+        audioPlayer.play().catch(() => {});
+        coldShowerState.musicPlaying = true;
+        musicToggle.classList.add('playing');
+        musicToggle.innerHTML = '<svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>';
+      }
+    });
+
+    musicSelect.addEventListener('change', () => {
+      // Si musique en cours, changer la piste
+      if (coldShowerState.musicPlaying) {
+        const trackId = musicSelect.value;
+        if (trackId && musicTracks[trackId]) {
+          const audioPlayer = document.getElementById('audio-player');
+          audioPlayer.src = musicTracks[trackId].url;
+          audioPlayer.play().catch(() => {});
+        }
+      }
+    });
+  }
 }
 
 function updateColdLevel() {
@@ -2614,6 +2691,22 @@ function startColdShower() {
 
   if (startBtn) startBtn.classList.add('hidden');
   if (stopBtn) stopBtn.classList.remove('hidden');
+
+  // Démarrer la musique épique si sélectionnée
+  const musicSelect = document.getElementById('cold-music-select');
+  const musicToggle = document.getElementById('cold-music-toggle');
+  if (musicSelect && musicSelect.value && musicTracks[musicSelect.value]) {
+    const audioPlayer = document.getElementById('audio-player');
+    audioPlayer.src = musicTracks[musicSelect.value].url;
+    audioPlayer.loop = true;
+    audioPlayer.volume = 0.7;
+    audioPlayer.play().catch(() => {});
+    coldShowerState.musicPlaying = true;
+    if (musicToggle) {
+      musicToggle.classList.add('playing');
+      musicToggle.innerHTML = '<svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>';
+    }
+  }
 
   // Premier encouragement immédiat
   showEncouragement();
@@ -2692,6 +2785,9 @@ function stopColdShower() {
   clearInterval(coldShowerState.encouragementTimer);
   coldShowerState.isRunning = false;
 
+  // Arrêter la musique
+  stopColdShowerMusic();
+
   // Reset UI
   document.getElementById('cold-start-btn').classList.remove('hidden');
   document.getElementById('cold-stop-btn').classList.add('hidden');
@@ -2702,6 +2798,20 @@ function stopColdShower() {
   updateColdTimerDisplay();
 
   voicePlayer.stop();
+}
+
+function stopColdShowerMusic() {
+  if (coldShowerState.musicPlaying) {
+    const audioPlayer = document.getElementById('audio-player');
+    audioPlayer.pause();
+    coldShowerState.musicPlaying = false;
+
+    const musicToggle = document.getElementById('cold-music-toggle');
+    if (musicToggle) {
+      musicToggle.classList.remove('playing');
+      musicToggle.innerHTML = '<svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20"><path d="M8 5v14l11-7z"/></svg>';
+    }
+  }
 }
 
 function completeColdShower() {

@@ -1928,6 +1928,72 @@ main {
   max-width: 200px;
 }
 
+.coldshower-music {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  margin-bottom: 1rem;
+}
+
+.coldshower-music label {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+}
+
+.coldshower-music .music-selector {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.coldshower-music select {
+  padding: 0.6rem 1rem;
+  font-size: 0.9rem;
+  background: rgba(0, 200, 255, 0.1);
+  border: 1px solid var(--neon-cyan);
+  border-radius: 8px;
+  color: var(--text-primary);
+  cursor: pointer;
+  min-width: 180px;
+}
+
+.coldshower-music select:focus {
+  outline: none;
+  box-shadow: 0 0 10px rgba(0, 200, 255, 0.5);
+}
+
+.coldshower-music .music-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, rgba(0, 200, 255, 0.3), rgba(0, 150, 255, 0.3));
+  border: 1px solid var(--neon-cyan);
+  color: var(--neon-cyan);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+}
+
+.coldshower-music .music-btn:hover {
+  background: linear-gradient(135deg, rgba(0, 200, 255, 0.5), rgba(0, 150, 255, 0.5));
+  box-shadow: 0 0 15px rgba(0, 200, 255, 0.5);
+}
+
+.coldshower-music .music-btn.playing {
+  background: var(--neon-cyan);
+  color: var(--bg-primary);
+  animation: pulse-glow-cyan 2s infinite;
+}
+
+@keyframes pulse-glow-cyan {
+  0%, 100% { box-shadow: 0 0 10px rgba(0, 200, 255, 0.5); }
+  50% { box-shadow: 0 0 25px rgba(0, 200, 255, 0.8); }
+}
+
 .coldshower-tips {
   text-align: center;
   padding: 1rem;
