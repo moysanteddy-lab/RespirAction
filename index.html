@@ -668,11 +668,14 @@
           <div class="setting-item">
             <div class="setting-info">
               <span class="setting-name">Choix de la voix</span>
-              <span class="setting-desc">Sélectionne ta voix préférée</span>
+              <span class="setting-desc" id="voice-count">Sélectionne ta voix préférée</span>
             </div>
-            <select id="voice-select" class="voice-select">
-              <option value="">Chargement des voix...</option>
-            </select>
+            <div class="setting-actions">
+              <button id="refresh-voices-btn" class="btn secondary small">Rafraîchir</button>
+              <select id="voice-select" class="voice-select">
+                <option value="">Chargement des voix...</option>
+              </select>
+            </div>
           </div>
 
           <div class="voice-help-box" id="voice-help">

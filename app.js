@@ -1786,16 +1786,27 @@ function initSettings() {
 
   // Selecteur de voix
   const voiceSelect = document.getElementById('voice-select');
+  const voiceCountEl = document.getElementById('voice-count');
+  const refreshVoicesBtn = document.getElementById('refresh-voices-btn');
+
   if (voiceSelect) {
     // Fonction pour populer les voix
     const populateVoices = () => {
       const voices = speechSynthesis.getVoices();
       voiceSelect.innerHTML = '';
 
-      // Filtrer les voix francaises et anglaises
+      // Afficher le nombre de voix detectees
+      if (voiceCountEl) {
+        voiceCountEl.textContent = `${voices.length} voix détectées`;
+      }
+
+      // Filtrer les voix par langue
       const frenchVoices = voices.filter(v => v.lang.startsWith('fr'));
       const englishVoices = voices.filter(v => v.lang.startsWith('en'));
-      const otherVoices = voices.filter(v => !v.lang.startsWith('fr') && !v.lang.startsWith('en'));
+      const spanishVoices = voices.filter(v => v.lang.startsWith('es'));
+      const germanVoices = voices.filter(v => v.lang.startsWith('de'));
+      const italianVoices = voices.filter(v => v.lang.startsWith('it'));
+      const portugueseVoices = voices.filter(v => v.lang.startsWith('pt'));
 
       // Option par defaut
       const defaultOpt = document.createElement('option');
@@ -1803,33 +1814,31 @@ function initSettings() {
       defaultOpt.textContent = 'Auto (meilleure voix)';
       voiceSelect.appendChild(defaultOpt);
 
-      // Groupe francais
-      if (frenchVoices.length > 0) {
-        const frGroup = document.createElement('optgroup');
-        frGroup.label = 'Francais';
-        frenchVoices.forEach(voice => {
-          const opt = document.createElement('option');
-          opt.value = voice.name;
-          opt.textContent = voice.name.replace('Microsoft ', '').replace('Google ', '');
-          if (voice.name === state.settings.selectedVoice) opt.selected = true;
-          frGroup.appendChild(opt);
-        });
-        voiceSelect.appendChild(frGroup);
-      }
+      // Fonction helper pour creer un groupe
+      const addGroup = (label, voiceList, maxCount = 8) => {
+        if (voiceList.length > 0) {
+          const group = document.createElement('optgroup');
+          group.label = `${label} (${voiceList.length})`;
+          voiceList.slice(0, maxCount).forEach(voice => {
+            const opt = document.createElement('option');
+            opt.value = voice.name;
+            opt.textContent = voice.name.replace('Microsoft ', '').replace('Google ', '').replace(' Online (Natural)', '');
+            if (voice.name === state.settings.selectedVoice) opt.selected = true;
+            group.appendChild(opt);
+          });
+          voiceSelect.appendChild(group);
+        }
+      };
 
-      // Groupe anglais
-      if (englishVoices.length > 0) {
-        const enGroup = document.createElement('optgroup');
-        enGroup.label = 'English';
-        englishVoices.slice(0, 10).forEach(voice => { // Limiter a 10
-          const opt = document.createElement('option');
-          opt.value = voice.name;
-          opt.textContent = voice.name.replace('Microsoft ', '').replace('Google ', '');
-          if (voice.name === state.settings.selectedVoice) opt.selected = true;
-          enGroup.appendChild(opt);
-        });
-        voiceSelect.appendChild(enGroup);
-      }
+      // Ajouter les groupes par langue
+      addGroup('Français', frenchVoices);
+      addGroup('English', englishVoices);
+      addGroup('Español', spanishVoices);
+      addGroup('Deutsch', germanVoices);
+      addGroup('Italiano', italianVoices);
+      addGroup('Português', portugueseVoices);
+
+      console.log('Voix chargées:', voices.length, voices.map(v => v.name + ' (' + v.lang + ')'));
     };
 
     // Les voix peuvent charger de maniere asynchrone
@@ -1838,11 +1847,27 @@ function initSettings() {
       speechSynthesis.onvoiceschanged = populateVoices;
     }
 
+    // Bouton rafraichir les voix
+    if (refreshVoicesBtn) {
+      refreshVoicesBtn.addEventListener('click', () => {
+        // Forcer le rechargement des voix
+        speechSynthesis.cancel();
+        setTimeout(() => {
+          populateVoices();
+          // Feedback visuel
+          refreshVoicesBtn.textContent = 'OK !';
+          setTimeout(() => {
+            refreshVoicesBtn.textContent = 'Rafraîchir';
+          }, 1000);
+        }, 100);
+      });
+    }
+
     voiceSelect.addEventListener('change', () => {
       state.settings.selectedVoice = voiceSelect.value;
       saveData();
       // Test immediat de la nouvelle voix
-      audioGuide.speak('Voix selectionnee');
+      audioGuide.speak('Voix sélectionnée');
     });
   }
 
