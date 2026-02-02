@@ -514,13 +514,33 @@
 
               <div class="form-group">
                 <label>Exercices</label>
+                <div class="quick-add-exercise">
+                  <select id="preset-exercise-select">
+                    <option value="">-- Exercice rapide --</option>
+                    <option value="Pompes">Pompes</option>
+                    <option value="Tractions">Tractions</option>
+                    <option value="Dips">Dips</option>
+                    <option value="Drapeau">Drapeau</option>
+                    <option value="Reverse Planche">Reverse Planche</option>
+                    <option value="Reverse Tractions">Reverse Tractions</option>
+                    <option value="Pistols">Pistols</option>
+                    <option value="Squat Sautés">Squat Sautés</option>
+                    <option value="Squat">Squat</option>
+                  </select>
+                  <button type="button" id="quick-add-exercise-btn" class="quick-add-btn" title="Ajouter">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <line x1="12" y1="5" x2="12" y2="19"></line>
+                      <line x1="5" y1="12" x2="19" y2="12"></line>
+                    </svg>
+                  </button>
+                </div>
                 <div id="exercises-container"></div>
                 <button type="button" id="add-exercise-btn" class="add-exercise-btn">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <line x1="12" y1="5" x2="12" y2="19"></line>
                     <line x1="5" y1="12" x2="19" y2="12"></line>
                   </svg>
-                  Ajouter exercice
+                  Ajouter exercice custom
                 </button>
               </div>
 
