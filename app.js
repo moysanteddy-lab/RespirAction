@@ -34,6 +34,50 @@ const state = {
   }
 };
 
+// ===== Fonction globale d'arrêt de tous les modules =====
+// Arrête tous les timers actifs sauf le module spécifié
+function stopAllModules(exceptModule = null) {
+  // Arrêter la respiration
+  if (exceptModule !== 'breathing' && state.breathingSession) {
+    if (typeof stopSession === 'function') {
+      try { stopSession(); } catch(e) {}
+    }
+  }
+
+  // Arrêter Pomodoro
+  if (exceptModule !== 'pomodoro' && state.pomodoro.isRunning) {
+    if (typeof resetPomodoro === 'function') {
+      try { resetPomodoro(); } catch(e) {}
+    }
+  }
+
+  // Arrêter douche froide
+  if (exceptModule !== 'coldshower' && typeof coldShowerState !== 'undefined' && coldShowerState.isRunning) {
+    if (typeof stopColdShower === 'function') {
+      try { stopColdShower(); } catch(e) {}
+    }
+  }
+
+  // Arrêter méditation
+  if (exceptModule !== 'meditation' && typeof meditationState !== 'undefined' && meditationState.isRunning) {
+    if (typeof stopMeditation === 'function') {
+      try { stopMeditation(); } catch(e) {}
+    }
+  }
+
+  // Arrêter l'audio global
+  const audioPlayer = document.getElementById('audio-player');
+  if (audioPlayer) {
+    audioPlayer.pause();
+    audioPlayer.currentTime = 0;
+  }
+
+  // Arrêter le voice player
+  if (typeof voicePlayer !== 'undefined' && voicePlayer.stop) {
+    voicePlayer.stop();
+  }
+}
+
 // Techniques de respiration avec métadonnées audio
 // throughNose: true = nez, false = bouche
 // intensity: 'normal', 'strong', 'gentle'
@@ -777,7 +821,7 @@ const musicTracks = {
   },
   calmNature: {
     name: 'Ambient Nature - Calme',
-    url: 'https://cdn.pixabay.com/audio/2022/08/02/audio_884fe92c21.mp3',
+    url: 'https://archive.org/download/meditation-music/Peaceful%20Relaxing%20Instrumental%20Music.mp3',
     category: 'calme'
   },
   // === FOCUS - Pour concentration, travail, Pomodoro ===
@@ -814,7 +858,7 @@ const musicTracks = {
   },
   neutralForest: {
     name: 'Forest Stream - Neutre',
-    url: 'https://cdn.pixabay.com/audio/2022/06/07/audio_b9bd4170e4.mp3',
+    url: 'https://archive.org/download/meditation-music/Relaxing%20Music%20with%20Water%20Sounds.mp3',
     category: 'neutre'
   },
   // === ACTIVE - Pour Wim Hof, Bhastrika, Tummo ===
@@ -835,34 +879,50 @@ const musicTracks = {
   },
   // === EPIC - Pour douches froides, défis, motivation ===
   epicCinematic: {
-    name: 'Cinematic Epic - Douche Froide',
-    url: 'https://cdn.pixabay.com/audio/2022/02/15/audio_0f628a4e1c.mp3',
+    name: 'Epic Cinematic - Douche Froide',
+    url: 'https://archive.org/download/epic-motivational-music/Epic%20Cinematic%20Adventure.mp3',
     category: 'epic'
   },
   epicMotivation: {
     name: 'Epic Motivation - Douche Froide',
-    url: 'https://cdn.pixabay.com/audio/2022/10/25/audio_52c1a60cec.mp3',
+    url: 'https://archive.org/download/epic-motivational-music/Motivational%20Epic%20Music.mp3',
     category: 'epic'
   },
   epicAction: {
     name: 'Action Hero - Douche Froide',
-    url: 'https://cdn.pixabay.com/audio/2022/03/10/audio_d6c6c8f540.mp3',
+    url: 'https://archive.org/download/epic-motivational-music/Action%20Trailer%20Music.mp3',
     category: 'epic'
   },
   epicPower: {
     name: 'Power & Glory - Douche Froide',
-    url: 'https://cdn.pixabay.com/audio/2022/05/17/audio_407815a716.mp3',
+    url: 'https://archive.org/download/epic-motivational-music/Power%20And%20Glory.mp3',
     category: 'epic'
   },
   epicRising: {
     name: 'Rising Warrior - Douche Froide',
-    url: 'https://cdn.pixabay.com/audio/2023/07/27/audio_66a802fd40.mp3',
+    url: 'https://archive.org/download/epic-motivational-music/Rising%20Warrior.mp3',
     category: 'epic'
   },
   epicVictor: {
     name: 'Victorious - Douche Froide',
-    url: 'https://cdn.pixabay.com/audio/2021/08/08/audio_6a38ad5d8e.mp3',
+    url: 'https://archive.org/download/epic-motivational-music/Victorious%20Triumph.mp3',
     category: 'epic'
+  },
+  // === MEDITATION - Bol tibétain et ambiance ===
+  tibetanBowl: {
+    name: 'Bol Tibétain - Méditation',
+    url: 'https://archive.org/download/meditation-music/Tibetan%20Singing%20Bowls.mp3',
+    category: 'meditation'
+  },
+  omChanting: {
+    name: 'Om Chanting - Méditation',
+    url: 'https://archive.org/download/meditation-music/Om%20Chanting%20Meditation.mp3',
+    category: 'meditation'
+  },
+  zenAmbient: {
+    name: 'Zen Ambient - Méditation',
+    url: 'https://archive.org/download/meditation-music/Zen%20Garden%20Ambient.mp3',
+    category: 'meditation'
   }
 };
 
@@ -1236,6 +1296,9 @@ function showBreathingSession(techniqueId) {
 
 function startSession() {
   if (!state.breathingSession) return;
+
+  // Arrêter les autres modules
+  stopAllModules('breathing');
 
   // Initialiser le contexte audio (doit etre fait apres une interaction utilisateur)
   audioGuide.init();
@@ -2145,6 +2208,9 @@ function initPomodoro() {
 }
 
 function startPomodoro() {
+  // Arrêter les autres modules
+  stopAllModules('pomodoro');
+
   state.pomodoro.isRunning = true;
 
   document.getElementById('pomodoro-start').classList.add('hidden');
@@ -2704,6 +2770,9 @@ function startColdShower() {
     console.log('Already running, returning');
     return;
   }
+
+  // Arrêter les autres modules
+  stopAllModules('coldshower');
 
   coldShowerState.isRunning = true;
   coldShowerState.timeLeft = coldShowerState.duration;
@@ -3771,6 +3840,9 @@ function startMeditation(type) {
   const script = meditationScripts[type];
   if (!script) return;
 
+  // Arrêter les autres modules
+  stopAllModules('meditation');
+
   const lang = state.settings.voiceLang || 'fr';
   const langScript = script[lang] || script.fr;
 
@@ -3788,6 +3860,15 @@ function startMeditation(type) {
 
   // Update UI
   document.getElementById('meditation-instruction').textContent = langScript.intro;
+
+  // Démarrer musique d'ambiance (bol tibétain)
+  const audioPlayer = document.getElementById('audio-player');
+  if (audioPlayer && musicTracks.tibetanBowl) {
+    audioPlayer.src = musicTracks.tibetanBowl.url;
+    audioPlayer.volume = 0.3;
+    audioPlayer.loop = true;
+    audioPlayer.play().catch(e => console.log('Audio autoplay blocked'));
+  }
 
   // Speak intro
   voicePlayer.speak(langScript.intro, lang);
@@ -3870,6 +3951,13 @@ function stopMeditation() {
   if (meditationState.timer) {
     clearInterval(meditationState.timer);
     meditationState.timer = null;
+  }
+
+  // Arrêter musique d'ambiance
+  const audioPlayer = document.getElementById('audio-player');
+  if (audioPlayer) {
+    audioPlayer.pause();
+    audioPlayer.currentTime = 0;
   }
 
   voicePlayer.stop();
