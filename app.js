@@ -6,7 +6,7 @@ const state = {
   breathingSession: null,
   isPlaying: false,
   settings: {
-    darkMode: false,
+    darkMode: true,  // Dark mode par defaut (plus beau)
     vibration: true,
     sounds: true,
     audioGuide: true,
@@ -332,7 +332,7 @@ class AudioGuide {
 
     // Voix optionnelle
     if (this.voiceEnabled && state.settings.voiceGuide) {
-      this.speak(throughNose ? 'Inspire par le nez' : 'Inspire par la bouche');
+      this.speak(throughNose ? getTranslation('inhaleNose') : getTranslation('inhaleMouth'));
     }
   }
 
@@ -385,7 +385,7 @@ class AudioGuide {
     this.currentGain = gainNode;
 
     if (this.voiceEnabled && state.settings.voiceGuide) {
-      this.speak(throughNose ? 'Expire par le nez' : 'Expire par la bouche');
+      this.speak(throughNose ? getTranslation('exhaleNose') : getTranslation('exhaleMouth'));
     }
   }
 
@@ -408,7 +408,7 @@ class AudioGuide {
     }
 
     if (this.voiceEnabled && state.settings.voiceGuide) {
-      this.speak(isEmpty ? 'Retiens poumons vides' : 'Retiens');
+      this.speak(isEmpty ? getTranslation('holdEmpty') : getTranslation('hold'));
     }
   }
 
@@ -468,7 +468,7 @@ class AudioGuide {
     }
 
     if (this.voiceEnabled && state.settings.voiceGuide) {
-      this.speak('Respirations rapides');
+      this.speak(getTranslation('rapid'));
     }
   }
 
@@ -514,27 +514,26 @@ class AudioGuide {
     });
 
     if (this.voiceEnabled && state.settings.voiceGuide) {
-      setTimeout(() => this.speak('Bravo, session terminee'), 1000);
+      setTimeout(() => this.speak(getTranslation('complete')), 1000);
     }
   }
 
-  // Synthese vocale - utilise la voix selectionnee
+  // Synthese vocale - utilise la voix selectionnee avec la bonne langue
   speak(text) {
     if (!('speechSynthesis' in window)) return;
 
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.lang = 'fr-FR';
-    utterance.rate = 0.85;
-    utterance.pitch = 1.05;
-    utterance.volume = 0.75;
-
     const voices = speechSynthesis.getVoices();
+    const utterance = new SpeechSynthesisUtterance(text);
 
     // Utiliser la voix selectionnee dans les settings
     if (state.settings.selectedVoice) {
       const savedVoice = voices.find(v => v.name === state.settings.selectedVoice);
       if (savedVoice) {
         utterance.voice = savedVoice;
+        utterance.lang = savedVoice.lang; // Utiliser la langue de la voix
+        utterance.rate = 0.85;
+        utterance.pitch = 1.05;
+        utterance.volume = 0.75;
         // Ajuster selon le type de voix
         if (savedVoice.name.toLowerCase().includes('google')) {
           utterance.rate = 0.8;
@@ -545,6 +544,11 @@ class AudioGuide {
     }
 
     // Fallback: chercher la meilleure voix francaise
+    utterance.lang = 'fr-FR';
+    utterance.rate = 0.85;
+    utterance.pitch = 1.05;
+    utterance.volume = 0.75;
+
     let selectedVoice = voices.find(v => v.lang.startsWith('fr'));
     if (selectedVoice) {
       utterance.voice = selectedVoice;
@@ -578,6 +582,104 @@ class AudioGuide {
 
 // Instance globale du guide audio
 const audioGuide = new AudioGuide();
+
+// ===== Traductions des instructions vocales =====
+const voiceTranslations = {
+  fr: {
+    inhaleNose: 'Inspire par le nez',
+    inhaleMouth: 'Inspire par la bouche',
+    exhaleNose: 'Expire par le nez',
+    exhaleMouth: 'Expire par la bouche',
+    hold: 'Retiens',
+    holdEmpty: 'Retiens poumons vides',
+    rapid: 'Respirations rapides',
+    complete: 'Bravo, session terminée',
+    prepare: 'Prépare-toi',
+    relax: 'Détends-toi'
+  },
+  en: {
+    inhaleNose: 'Breathe in through your nose',
+    inhaleMouth: 'Breathe in through your mouth',
+    exhaleNose: 'Breathe out through your nose',
+    exhaleMouth: 'Breathe out through your mouth',
+    hold: 'Hold',
+    holdEmpty: 'Hold with empty lungs',
+    rapid: 'Rapid breathing',
+    complete: 'Well done, session complete',
+    prepare: 'Get ready',
+    relax: 'Relax'
+  },
+  es: {
+    inhaleNose: 'Inspira por la nariz',
+    inhaleMouth: 'Inspira por la boca',
+    exhaleNose: 'Exhala por la nariz',
+    exhaleMouth: 'Exhala por la boca',
+    hold: 'Mantén',
+    holdEmpty: 'Mantén con pulmones vacíos',
+    rapid: 'Respiraciones rápidas',
+    complete: 'Muy bien, sesión completada',
+    prepare: 'Prepárate',
+    relax: 'Relájate'
+  },
+  de: {
+    inhaleNose: 'Atme durch die Nase ein',
+    inhaleMouth: 'Atme durch den Mund ein',
+    exhaleNose: 'Atme durch die Nase aus',
+    exhaleMouth: 'Atme durch den Mund aus',
+    hold: 'Halten',
+    holdEmpty: 'Mit leeren Lungen halten',
+    rapid: 'Schnelles Atmen',
+    complete: 'Gut gemacht, Sitzung beendet',
+    prepare: 'Mach dich bereit',
+    relax: 'Entspanne dich'
+  },
+  it: {
+    inhaleNose: 'Inspira dal naso',
+    inhaleMouth: 'Inspira dalla bocca',
+    exhaleNose: 'Espira dal naso',
+    exhaleMouth: 'Espira dalla bocca',
+    hold: 'Trattieni',
+    holdEmpty: 'Trattieni a polmoni vuoti',
+    rapid: 'Respirazioni rapide',
+    complete: 'Bravo, sessione completata',
+    prepare: 'Preparati',
+    relax: 'Rilassati'
+  },
+  pt: {
+    inhaleNose: 'Inspire pelo nariz',
+    inhaleMouth: 'Inspire pela boca',
+    exhaleNose: 'Expire pelo nariz',
+    exhaleMouth: 'Expire pela boca',
+    hold: 'Segure',
+    holdEmpty: 'Segure com pulmões vazios',
+    rapid: 'Respirações rápidas',
+    complete: 'Parabéns, sessão concluída',
+    prepare: 'Prepare-se',
+    relax: 'Relaxe'
+  }
+};
+
+// Obtenir la langue de la voix selectionnee
+function getVoiceLanguage() {
+  const voices = speechSynthesis.getVoices();
+  const selectedVoiceName = state.settings.selectedVoice;
+
+  if (selectedVoiceName) {
+    const voice = voices.find(v => v.name === selectedVoiceName);
+    if (voice) {
+      const langCode = voice.lang.substring(0, 2).toLowerCase();
+      return langCode;
+    }
+  }
+  return 'fr'; // Default
+}
+
+// Obtenir une traduction
+function getTranslation(key) {
+  const lang = getVoiceLanguage();
+  const translations = voiceTranslations[lang] || voiceTranslations.en;
+  return translations[key] || voiceTranslations.fr[key];
+}
 
 // URLs de musiques categorisees (Archive.org - stables et libres de droits)
 const musicTracks = {
@@ -843,11 +945,9 @@ function loadData() {
       state.workouts = JSON.parse(savedWorkouts);
     }
 
-    // Appliquer le thème
-    if (state.settings.darkMode) {
-      document.documentElement.setAttribute('data-theme', 'dark');
-      document.getElementById('dark-mode-toggle').checked = true;
-    }
+    // Appliquer le thème (dark par defaut)
+    document.documentElement.setAttribute('data-theme', state.settings.darkMode ? 'dark' : 'light');
+    document.getElementById('dark-mode-toggle').checked = state.settings.darkMode;
 
     // Appliquer les settings audio
     audioGuide.isEnabled = state.settings.audioGuide;
@@ -1589,14 +1689,14 @@ function initSettings() {
 
   darkModeToggle.addEventListener('change', () => {
     state.settings.darkMode = darkModeToggle.checked;
-    document.documentElement.setAttribute('data-theme', state.settings.darkMode ? 'dark' : '');
+    document.documentElement.setAttribute('data-theme', state.settings.darkMode ? 'dark' : 'light');
     saveData();
   });
 
   themeBtn.addEventListener('click', () => {
     state.settings.darkMode = !state.settings.darkMode;
     darkModeToggle.checked = state.settings.darkMode;
-    document.documentElement.setAttribute('data-theme', state.settings.darkMode ? 'dark' : '');
+    document.documentElement.setAttribute('data-theme', state.settings.darkMode ? 'dark' : 'light');
     saveData();
   });
 

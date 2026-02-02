@@ -44,7 +44,53 @@
   --focus-color: var(--neon-magenta);
 }
 
-/* Dark mode = meme chose (deja sombre) */
+/* Light mode futuriste */
+[data-theme="light"] {
+  --bg-primary: #f0f4ff;
+  --bg-secondary: rgba(255, 255, 255, 0.9);
+  --bg-tertiary: rgba(230, 235, 250, 0.8);
+  --text-primary: #1a1a2e;
+  --text-secondary: #4a4a6a;
+  --text-muted: #8a8aa0;
+  --border-color: rgba(100, 100, 200, 0.2);
+
+  --glass-bg: rgba(255, 255, 255, 0.7);
+  --glass-border: rgba(100, 100, 200, 0.2);
+
+  /* Neon plus visible sur fond clair */
+  --neon-cyan: #0099cc;
+  --neon-magenta: #cc0099;
+  --neon-purple: #6633cc;
+
+  --accent: var(--neon-cyan);
+  --accent-glow: 0 0 15px rgba(0, 153, 204, 0.4), 0 0 30px rgba(0, 153, 204, 0.2);
+}
+
+[data-theme="light"] body {
+  background:
+    radial-gradient(ellipse at 20% 20%, rgba(99, 51, 204, 0.1) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 80%, rgba(0, 153, 204, 0.08) 0%, transparent 50%),
+    var(--bg-primary);
+}
+
+[data-theme="light"] #app::before {
+  background-image:
+    linear-gradient(rgba(0, 100, 200, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 100, 200, 0.05) 1px, transparent 1px);
+}
+
+[data-theme="light"] .breath-circle {
+  background: radial-gradient(circle at 30% 30%,
+    rgba(0, 153, 204, 0.5),
+    rgba(102, 51, 204, 0.4) 50%,
+    rgba(204, 0, 153, 0.3) 100%);
+  box-shadow:
+    0 0 30px rgba(0, 153, 204, 0.4),
+    0 0 60px rgba(0, 153, 204, 0.2),
+    inset 0 0 30px rgba(255, 255, 255, 0.3);
+}
+
+/* Dark mode (defaut) */
 [data-theme="dark"] {
   --bg-primary: #050508;
   --bg-secondary: rgba(15, 15, 25, 0.9);
