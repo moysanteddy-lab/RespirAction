@@ -2488,6 +2488,8 @@ const coldShowerState = {
 };
 
 function initColdShower() {
+  console.log('=== initColdShower() ===');
+
   // Charger les stats sauvegardées
   const savedStats = localStorage.getItem('breathflow_coldshower');
   if (savedStats) {
@@ -2497,8 +2499,11 @@ function initColdShower() {
 
   // Boutons de durée
   const levelBtns = document.querySelectorAll('.level-btn');
+  console.log('Level buttons found:', levelBtns.length);
+
   levelBtns.forEach(btn => {
     btn.addEventListener('click', () => {
+      console.log('Level btn clicked:', btn.dataset.duration);
       if (coldShowerState.isRunning) return;
 
       levelBtns.forEach(b => b.classList.remove('active'));
@@ -2515,11 +2520,20 @@ function initColdShower() {
   const startBtn = document.getElementById('cold-start-btn');
   const stopBtn = document.getElementById('cold-stop-btn');
 
+  console.log('Start btn found:', !!startBtn);
+  console.log('Stop btn found:', !!stopBtn);
+
   if (startBtn) {
-    startBtn.addEventListener('click', startColdShower);
+    startBtn.addEventListener('click', () => {
+      console.log('=== START BUTTON CLICKED ===');
+      startColdShower();
+    });
   }
   if (stopBtn) {
-    stopBtn.addEventListener('click', stopColdShower);
+    stopBtn.addEventListener('click', () => {
+      console.log('=== STOP BUTTON CLICKED ===');
+      stopColdShower();
+    });
   }
 
   updateColdTimerDisplay();
@@ -2581,14 +2595,24 @@ function updateColdShowerStats() {
 }
 
 function startColdShower() {
-  if (coldShowerState.isRunning) return;
+  console.log('startColdShower() called, isRunning:', coldShowerState.isRunning);
+
+  if (coldShowerState.isRunning) {
+    console.log('Already running, returning');
+    return;
+  }
 
   coldShowerState.isRunning = true;
   coldShowerState.timeLeft = coldShowerState.duration;
+  console.log('Duration:', coldShowerState.duration, 'TimeLeft:', coldShowerState.timeLeft);
 
   // Update UI
-  document.getElementById('cold-start-btn').classList.add('hidden');
-  document.getElementById('cold-stop-btn').classList.remove('hidden');
+  const startBtn = document.getElementById('cold-start-btn');
+  const stopBtn = document.getElementById('cold-stop-btn');
+  console.log('Hiding start, showing stop');
+
+  if (startBtn) startBtn.classList.add('hidden');
+  if (stopBtn) stopBtn.classList.remove('hidden');
 
   // Premier encouragement immédiat
   showEncouragement();

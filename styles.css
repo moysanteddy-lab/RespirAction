@@ -1792,8 +1792,10 @@ main {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 1.5rem;
+  gap: 2rem;
   padding: 1rem;
+  max-width: 400px;
+  margin: 0 auto;
 }
 
 .coldshower-stats {
@@ -1809,14 +1811,18 @@ main {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  width: 250px;
-  height: 250px;
+  width: 240px;
+  height: 240px;
+  margin: 1rem 0;
 }
 
 .coldshower-progress-ring {
   position: absolute;
+  top: 0;
+  left: 0;
   width: 100%;
   height: 100%;
+  pointer-events: none;
 }
 
 .coldshower-progress-ring svg {
@@ -1826,44 +1832,43 @@ main {
 }
 
 #cold-progress-ring {
-  transition: stroke-dashoffset 0.5s ease;
+  transition: stroke-dashoffset 1s linear;
 }
 
 .coldshower-level {
-  font-size: 0.85rem;
+  font-size: 0.75rem;
   font-weight: 700;
-  letter-spacing: 0.2em;
+  letter-spacing: 0.15em;
   color: var(--neon-cyan);
   text-shadow: 0 0 20px var(--neon-cyan);
-  margin-bottom: 0.25rem;
-  z-index: 1;
+  text-align: center;
+  z-index: 2;
 }
 
 .coldshower-timer {
-  font-size: 4rem;
+  font-size: 3.5rem;
   font-weight: 800;
   color: var(--text-primary);
   text-shadow: 0 0 30px rgba(0, 200, 255, 0.5);
   font-variant-numeric: tabular-nums;
-  z-index: 1;
+  line-height: 1;
+  z-index: 2;
 }
 
 .coldshower-encouragement {
-  position: absolute;
-  bottom: 30px;
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   font-weight: 700;
   color: var(--neon-orange);
   text-shadow: 0 0 15px var(--neon-orange);
   text-align: center;
-  max-width: 200px;
-  z-index: 1;
+  min-height: 1.5em;
+  z-index: 2;
   animation: pulse-text 0.5s ease-in-out;
 }
 
 @keyframes pulse-text {
   0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.1); }
+  50% { transform: scale(1.15); }
 }
 
 .coldshower-levels {
@@ -1871,11 +1876,13 @@ main {
   flex-direction: column;
   align-items: center;
   gap: 0.75rem;
+  width: 100%;
 }
 
 .coldshower-levels label {
   font-size: 0.9rem;
   color: var(--text-secondary);
+  font-weight: 500;
 }
 
 .level-buttons {
@@ -1886,11 +1893,11 @@ main {
 }
 
 .level-btn {
-  padding: 0.6rem 1rem;
+  padding: 0.6rem 1.1rem;
   border: 1px solid var(--glass-border);
   background: var(--glass-bg);
   color: var(--text-secondary);
-  border-radius: 10px;
+  border-radius: 12px;
   font-size: 0.9rem;
   font-weight: 600;
   cursor: pointer;
@@ -1913,6 +1920,12 @@ main {
   display: flex;
   gap: 1rem;
   justify-content: center;
+  width: 100%;
+}
+
+.coldshower-controls .control-btn {
+  flex: 1;
+  max-width: 200px;
 }
 
 .coldshower-tips {
@@ -1921,7 +1934,7 @@ main {
   background: rgba(0, 200, 255, 0.1);
   border: 1px dashed var(--neon-cyan);
   border-radius: 12px;
-  max-width: 320px;
+  width: 100%;
 }
 
 .coldshower-tips p {
