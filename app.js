@@ -8,7 +8,9 @@ const state = {
   settings: {
     darkMode: false,
     vibration: true,
-    sounds: true
+    sounds: true,
+    audioGuide: true,
+    voiceGuide: false
   },
   stats: {
     breathingSessions: 0,
@@ -19,7 +21,9 @@ const state = {
   workouts: []
 };
 
-// Techniques de respiration
+// Techniques de respiration avec métadonnées audio
+// throughNose: true = nez, false = bouche
+// intensity: 'normal', 'strong', 'gentle'
 const techniques = {
   // Sinus
   bhastrika: {
@@ -28,10 +32,10 @@ const techniques = {
     description: 'Souffle du forgeron. Respirations rapides et puissantes par le nez. Décongestionnant puissant pour les sinus.',
     instructions: 'Inspire et expire rapidement par le nez (1 sec chaque). Garde le ventre actif.',
     phases: [
-      { type: 'rapid', duration: 30, breaths: 30, instruction: 'Respirations rapides' },
-      { type: 'inhale', duration: 4, instruction: 'Inspire profond' },
+      { type: 'rapid', duration: 30, breaths: 30, instruction: 'Respirations rapides', throughNose: true, intensity: 'strong' },
+      { type: 'inhale', duration: 4, instruction: 'Inspire profond', throughNose: true, intensity: 'strong' },
       { type: 'hold', duration: 15, instruction: 'Rétention' },
-      { type: 'exhale', duration: 8, instruction: 'Expire lentement' }
+      { type: 'exhale', duration: 8, instruction: 'Expire lentement', throughNose: true, intensity: 'gentle' }
     ],
     rounds: 3
   },
@@ -41,10 +45,10 @@ const techniques = {
     description: 'Crâne brillant. Expirations courtes et actives, inspirations passives. Nettoie les voies nasales.',
     instructions: 'Expire fortement par le nez en contractant le ventre. L\'inspiration est passive.',
     phases: [
-      { type: 'rapid', duration: 60, breaths: 60, instruction: 'Expire actif / Inspire passif' },
-      { type: 'inhale', duration: 4, instruction: 'Inspire profond' },
+      { type: 'rapid', duration: 60, breaths: 60, instruction: 'Expire actif / Inspire passif', throughNose: true, intensity: 'strong' },
+      { type: 'inhale', duration: 4, instruction: 'Inspire profond', throughNose: true },
       { type: 'hold', duration: 20, instruction: 'Rétention' },
-      { type: 'exhale', duration: 6, instruction: 'Expire' }
+      { type: 'exhale', duration: 6, instruction: 'Expire', throughNose: true }
     ],
     rounds: 3
   },
@@ -54,12 +58,12 @@ const techniques = {
     description: 'Respiration alternée. Équilibre les deux narines et apaise l\'inflammation.',
     instructions: 'Alterne entre narine droite et gauche. Bouche fermée.',
     phases: [
-      { type: 'inhale', duration: 4, instruction: 'Inspire narine gauche' },
+      { type: 'inhale', duration: 4, instruction: 'Inspire narine gauche', throughNose: true, intensity: 'gentle' },
       { type: 'hold', duration: 4, instruction: 'Rétention' },
-      { type: 'exhale', duration: 4, instruction: 'Expire narine droite' },
-      { type: 'inhale', duration: 4, instruction: 'Inspire narine droite' },
+      { type: 'exhale', duration: 4, instruction: 'Expire narine droite', throughNose: true, intensity: 'gentle' },
+      { type: 'inhale', duration: 4, instruction: 'Inspire narine droite', throughNose: true, intensity: 'gentle' },
       { type: 'hold', duration: 4, instruction: 'Rétention' },
-      { type: 'exhale', duration: 4, instruction: 'Expire narine gauche' }
+      { type: 'exhale', duration: 4, instruction: 'Expire narine gauche', throughNose: true, intensity: 'gentle' }
     ],
     rounds: 6
   },
@@ -70,9 +74,9 @@ const techniques = {
     description: 'Respiration abdominale profonde. Renforce le diaphragme et améliore la capacité pulmonaire.',
     instructions: 'Place une main sur le ventre. Le ventre se gonfle à l\'inspiration, rentre à l\'expiration.',
     phases: [
-      { type: 'inhale', duration: 4, instruction: 'Inspire - gonfle le ventre' },
+      { type: 'inhale', duration: 4, instruction: 'Inspire - gonfle le ventre', throughNose: true },
       { type: 'hold', duration: 2, instruction: 'Pause' },
-      { type: 'exhale', duration: 6, instruction: 'Expire - rentre le ventre' },
+      { type: 'exhale', duration: 6, instruction: 'Expire - rentre le ventre', throughNose: true },
       { type: 'hold', duration: 2, instruction: 'Pause' }
     ],
     rounds: 8
@@ -83,8 +87,8 @@ const techniques = {
     description: 'Souffle océanique victorieux. Renforce les poumons et crée de la chaleur interne.',
     instructions: 'Contracte légèrement la gorge pour créer un son d\'océan. Bouche fermée.',
     phases: [
-      { type: 'inhale', duration: 5, instruction: 'Inspire - son d\'océan' },
-      { type: 'exhale', duration: 5, instruction: 'Expire - son d\'océan' }
+      { type: 'inhale', duration: 5, instruction: 'Inspire - son d\'océan', throughNose: true, intensity: 'strong' },
+      { type: 'exhale', duration: 5, instruction: 'Expire - son d\'océan', throughNose: true, intensity: 'strong' }
     ],
     rounds: 12
   },
@@ -94,8 +98,8 @@ const techniques = {
     description: 'Expire par les lèvres pincées. Aide à vider complètement les poumons.',
     instructions: 'Inspire par le nez, expire lentement par les lèvres pincées (comme souffler une bougie).',
     phases: [
-      { type: 'inhale', duration: 3, instruction: 'Inspire par le nez' },
-      { type: 'exhale', duration: 6, instruction: 'Expire lèvres pincées' }
+      { type: 'inhale', duration: 3, instruction: 'Inspire par le nez', throughNose: true },
+      { type: 'exhale', duration: 6, instruction: 'Expire lèvres pincées', throughNose: false, intensity: 'gentle' }
     ],
     rounds: 10
   },
@@ -106,9 +110,9 @@ const techniques = {
     description: 'Technique Dr. Andrew Weil. Induit naturellement le sommeil en quelques minutes.',
     instructions: 'Langue contre le palais. Cette technique ralentit le système nerveux.',
     phases: [
-      { type: 'inhale', duration: 4, instruction: 'Inspire par le nez' },
+      { type: 'inhale', duration: 4, instruction: 'Inspire par le nez', throughNose: true, intensity: 'gentle' },
       { type: 'hold', duration: 7, instruction: 'Rétention' },
-      { type: 'exhale', duration: 8, instruction: 'Expire par la bouche' }
+      { type: 'exhale', duration: 8, instruction: 'Expire par la bouche', throughNose: false, intensity: 'gentle' }
     ],
     rounds: 4
   },
@@ -118,8 +122,8 @@ const techniques = {
     description: '5.5 secondes inspire / 5.5 secondes expire. Synchronise coeur et respiration.',
     instructions: 'Respiration régulière et fluide. Pas de pause entre les phases.',
     phases: [
-      { type: 'inhale', duration: 5.5, instruction: 'Inspire' },
-      { type: 'exhale', duration: 5.5, instruction: 'Expire' }
+      { type: 'inhale', duration: 5.5, instruction: 'Inspire', throughNose: true, intensity: 'gentle' },
+      { type: 'exhale', duration: 5.5, instruction: 'Expire', throughNose: true, intensity: 'gentle' }
     ],
     rounds: 30
   },
@@ -129,9 +133,9 @@ const techniques = {
     description: 'Chandra Bhedana. Respirer uniquement par la narine gauche calme et refroidit.',
     instructions: 'Bouche la narine droite avec le pouce. Respire uniquement par la gauche.',
     phases: [
-      { type: 'inhale', duration: 4, instruction: 'Inspire narine gauche' },
+      { type: 'inhale', duration: 4, instruction: 'Inspire narine gauche', throughNose: true, intensity: 'gentle' },
       { type: 'hold', duration: 2, instruction: 'Pause' },
-      { type: 'exhale', duration: 6, instruction: 'Expire narine gauche' }
+      { type: 'exhale', duration: 6, instruction: 'Expire narine gauche', throughNose: true, intensity: 'gentle' }
     ],
     rounds: 10
   },
@@ -142,10 +146,10 @@ const techniques = {
     description: 'Méthode scientifiquement prouvée. Booste le système immunitaire et l\'énergie.',
     instructions: '30 respirations profondes, puis rétention poumons vides, puis récupération.',
     phases: [
-      { type: 'rapid', duration: 90, breaths: 30, instruction: '30 respirations profondes' },
-      { type: 'exhale', duration: 3, instruction: 'Expire tout l\'air' },
+      { type: 'rapid', duration: 90, breaths: 30, instruction: '30 respirations profondes', throughNose: false, intensity: 'strong' },
+      { type: 'exhale', duration: 3, instruction: 'Expire tout l\'air', throughNose: false, intensity: 'strong' },
       { type: 'holdEmpty', duration: 90, instruction: 'Rétention poumons VIDES' },
-      { type: 'inhale', duration: 3, instruction: 'Inspire profond' },
+      { type: 'inhale', duration: 3, instruction: 'Inspire profond', throughNose: false, intensity: 'strong' },
       { type: 'hold', duration: 15, instruction: 'Rétention poumons pleins' }
     ],
     rounds: 3
@@ -156,9 +160,9 @@ const techniques = {
     description: 'Technique tibétaine de chaleur intérieure. Active le système immunitaire.',
     instructions: 'Visualise une flamme au niveau du nombril qui grandit à chaque inspiration.',
     phases: [
-      { type: 'inhale', duration: 5, instruction: 'Inspire - nourris la flamme' },
+      { type: 'inhale', duration: 5, instruction: 'Inspire - nourris la flamme', throughNose: true, intensity: 'strong' },
       { type: 'hold', duration: 10, instruction: 'Rétention - chaleur monte' },
-      { type: 'exhale', duration: 5, instruction: 'Expire - flamme se stabilise' }
+      { type: 'exhale', duration: 5, instruction: 'Expire - flamme se stabilise', throughNose: true }
     ],
     rounds: 7
   },
@@ -169,9 +173,9 @@ const techniques = {
     description: 'Technique Navy SEALs. 4-4-4-4. Calme instantané sous pression.',
     instructions: 'Respiration carrée : inspire, tiens, expire, tiens. Chaque phase = 4 secondes.',
     phases: [
-      { type: 'inhale', duration: 4, instruction: 'Inspire' },
+      { type: 'inhale', duration: 4, instruction: 'Inspire', throughNose: true },
       { type: 'hold', duration: 4, instruction: 'Tiens' },
-      { type: 'exhale', duration: 4, instruction: 'Expire' },
+      { type: 'exhale', duration: 4, instruction: 'Expire', throughNose: true },
       { type: 'hold', duration: 4, instruction: 'Tiens' }
     ],
     rounds: 6
@@ -182,13 +186,310 @@ const techniques = {
     description: 'Découvert par Stanford. Le moyen le plus rapide de calmer le stress.',
     instructions: 'Double inspiration nasale, puis longue expiration par la bouche.',
     phases: [
-      { type: 'inhale', duration: 2, instruction: 'Inspire 1' },
-      { type: 'inhale', duration: 1, instruction: 'Inspire 2 (petit)' },
-      { type: 'exhale', duration: 6, instruction: 'Longue expire bouche' }
+      { type: 'inhale', duration: 2, instruction: 'Inspire 1', throughNose: true },
+      { type: 'inhale', duration: 1, instruction: 'Inspire 2 (petit)', throughNose: true, intensity: 'gentle' },
+      { type: 'exhale', duration: 6, instruction: 'Longue expire bouche', throughNose: false, intensity: 'gentle' }
     ],
     rounds: 6
   }
 };
+
+// ===== Systeme Audio Guide =====
+class AudioGuide {
+  constructor() {
+    this.audioCtx = null;
+    this.isEnabled = true;
+    this.voiceEnabled = false;
+    this.currentOscillator = null;
+    this.currentGain = null;
+  }
+
+  init() {
+    if (!this.audioCtx) {
+      this.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    }
+    if (this.audioCtx.state === 'suspended') {
+      this.audioCtx.resume();
+    }
+  }
+
+  // Son d'inspiration - tonalite montante douce
+  playInhale(duration, throughNose = true, intensity = 'normal') {
+    if (!this.isEnabled || !state.settings.audioGuide) return;
+    this.init();
+    this.stopCurrent();
+
+    const ctx = this.audioCtx;
+    const now = ctx.currentTime;
+
+    // Oscillateur principal (bruit filtre pour effet de souffle)
+    const oscillator = ctx.createOscillator();
+    const gainNode = ctx.createGain();
+    const filter = ctx.createBiquadFilter();
+
+    // Son different selon nez ou bouche
+    if (throughNose) {
+      // Nez: son plus aigu, plus "sifflant"
+      oscillator.type = 'sine';
+      oscillator.frequency.setValueAtTime(280, now);
+      oscillator.frequency.linearRampToValueAtTime(420, now + duration);
+      filter.type = 'bandpass';
+      filter.frequency.value = 800;
+      filter.Q.value = 2;
+    } else {
+      // Bouche: son plus grave, plus "ouvert"
+      oscillator.type = 'triangle';
+      oscillator.frequency.setValueAtTime(180, now);
+      oscillator.frequency.linearRampToValueAtTime(320, now + duration);
+      filter.type = 'lowpass';
+      filter.frequency.value = 600;
+    }
+
+    // Intensite selon le type
+    const maxGain = intensity === 'strong' ? 0.25 : 0.12;
+
+    // Envelope montante (inspire = son qui monte en volume)
+    gainNode.gain.setValueAtTime(0.01, now);
+    gainNode.gain.linearRampToValueAtTime(maxGain, now + duration * 0.3);
+    gainNode.gain.linearRampToValueAtTime(maxGain * 0.7, now + duration * 0.8);
+    gainNode.gain.linearRampToValueAtTime(0.01, now + duration);
+
+    oscillator.connect(filter);
+    filter.connect(gainNode);
+    gainNode.connect(ctx.destination);
+
+    oscillator.start(now);
+    oscillator.stop(now + duration);
+
+    this.currentOscillator = oscillator;
+    this.currentGain = gainNode;
+
+    // Voix optionnelle
+    if (this.voiceEnabled && state.settings.voiceGuide) {
+      this.speak(throughNose ? 'Inspire par le nez' : 'Inspire par la bouche');
+    }
+  }
+
+  // Son d'expiration - tonalite descendante
+  playExhale(duration, throughNose = true, intensity = 'normal') {
+    if (!this.isEnabled || !state.settings.audioGuide) return;
+    this.init();
+    this.stopCurrent();
+
+    const ctx = this.audioCtx;
+    const now = ctx.currentTime;
+
+    const oscillator = ctx.createOscillator();
+    const gainNode = ctx.createGain();
+    const filter = ctx.createBiquadFilter();
+
+    if (throughNose) {
+      // Nez: son descendant doux
+      oscillator.type = 'sine';
+      oscillator.frequency.setValueAtTime(380, now);
+      oscillator.frequency.linearRampToValueAtTime(220, now + duration);
+      filter.type = 'bandpass';
+      filter.frequency.value = 600;
+      filter.Q.value = 1.5;
+    } else {
+      // Bouche: "whoosh" descendant plus prononce
+      oscillator.type = 'sawtooth';
+      oscillator.frequency.setValueAtTime(300, now);
+      oscillator.frequency.exponentialRampToValueAtTime(80, now + duration);
+      filter.type = 'lowpass';
+      filter.frequency.setValueAtTime(1200, now);
+      filter.frequency.exponentialRampToValueAtTime(200, now + duration);
+    }
+
+    const maxGain = intensity === 'strong' ? 0.2 : 0.1;
+
+    // Envelope descendante (expire = volume qui descend)
+    gainNode.gain.setValueAtTime(maxGain, now);
+    gainNode.gain.linearRampToValueAtTime(maxGain * 0.8, now + duration * 0.5);
+    gainNode.gain.exponentialRampToValueAtTime(0.01, now + duration);
+
+    oscillator.connect(filter);
+    filter.connect(gainNode);
+    gainNode.connect(ctx.destination);
+
+    oscillator.start(now);
+    oscillator.stop(now + duration);
+
+    this.currentOscillator = oscillator;
+    this.currentGain = gainNode;
+
+    if (this.voiceEnabled && state.settings.voiceGuide) {
+      this.speak(throughNose ? 'Expire par le nez' : 'Expire par la bouche');
+    }
+  }
+
+  // Son de retention - bip statique doux
+  playHold(duration, isEmpty = false) {
+    if (!this.isEnabled || !state.settings.audioGuide) return;
+    this.init();
+    this.stopCurrent();
+
+    const ctx = this.audioCtx;
+    const now = ctx.currentTime;
+
+    // Bip doux toutes les 2 secondes pour indiquer qu'on retient
+    const beepInterval = 2;
+    const numBeeps = Math.floor(duration / beepInterval);
+
+    for (let i = 0; i < numBeeps; i++) {
+      const beepTime = now + i * beepInterval;
+      this.scheduleBeep(beepTime, isEmpty ? 280 : 350, 0.15);
+    }
+
+    if (this.voiceEnabled && state.settings.voiceGuide) {
+      this.speak(isEmpty ? 'Retiens poumons vides' : 'Retiens');
+    }
+  }
+
+  scheduleBeep(time, freq, duration) {
+    const ctx = this.audioCtx;
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+
+    osc.type = 'sine';
+    osc.frequency.value = freq;
+
+    gain.gain.setValueAtTime(0, time);
+    gain.gain.linearRampToValueAtTime(0.08, time + 0.05);
+    gain.gain.linearRampToValueAtTime(0, time + duration);
+
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+
+    osc.start(time);
+    osc.stop(time + duration);
+  }
+
+  // Son de respirations rapides - ticks rythmiques
+  playRapidBreathing(duration, breaths) {
+    if (!this.isEnabled || !state.settings.audioGuide) return;
+    this.init();
+
+    const ctx = this.audioCtx;
+    const now = ctx.currentTime;
+    const interval = duration / breaths;
+
+    for (let i = 0; i < breaths; i++) {
+      const time = now + i * interval;
+      const isInhale = i % 2 === 0;
+
+      // Son court alternant haut/bas pour inspire/expire rapide
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      const filter = ctx.createBiquadFilter();
+
+      osc.type = 'sine';
+      osc.frequency.value = isInhale ? 400 : 280;
+
+      filter.type = 'bandpass';
+      filter.frequency.value = isInhale ? 600 : 400;
+
+      gain.gain.setValueAtTime(0, time);
+      gain.gain.linearRampToValueAtTime(isInhale ? 0.12 : 0.08, time + 0.05);
+      gain.gain.linearRampToValueAtTime(0, time + interval * 0.8);
+
+      osc.connect(filter);
+      filter.connect(gain);
+      gain.connect(ctx.destination);
+
+      osc.start(time);
+      osc.stop(time + interval);
+    }
+
+    if (this.voiceEnabled && state.settings.voiceGuide) {
+      this.speak('Respirations rapides');
+    }
+  }
+
+  // Signal de fin de phase
+  playPhaseEnd() {
+    if (!this.isEnabled || !state.settings.sounds) return;
+    this.init();
+
+    const ctx = this.audioCtx;
+    const now = ctx.currentTime;
+
+    // Double bip court
+    this.scheduleBeep(now, 520, 0.08);
+    this.scheduleBeep(now + 0.12, 620, 0.08);
+  }
+
+  // Signal de fin de round
+  playRoundEnd() {
+    if (!this.isEnabled || !state.settings.sounds) return;
+    this.init();
+
+    const ctx = this.audioCtx;
+    const now = ctx.currentTime;
+
+    // Triple bip melodique
+    this.scheduleBeep(now, 440, 0.1);
+    this.scheduleBeep(now + 0.15, 550, 0.1);
+    this.scheduleBeep(now + 0.3, 660, 0.15);
+  }
+
+  // Signal de fin de session
+  playSessionEnd() {
+    if (!this.isEnabled || !state.settings.sounds) return;
+    this.init();
+
+    const ctx = this.audioCtx;
+    const now = ctx.currentTime;
+
+    // Melodie de completion
+    const notes = [523, 659, 784, 1047]; // Do Mi Sol Do (octave)
+    notes.forEach((freq, i) => {
+      this.scheduleBeep(now + i * 0.2, freq, 0.25);
+    });
+
+    if (this.voiceEnabled && state.settings.voiceGuide) {
+      setTimeout(() => this.speak('Bravo, session terminee'), 1000);
+    }
+  }
+
+  // Synthese vocale
+  speak(text) {
+    if (!('speechSynthesis' in window)) return;
+
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = 'fr-FR';
+    utterance.rate = 0.9;
+    utterance.volume = 0.8;
+
+    // Chercher une voix francaise
+    const voices = speechSynthesis.getVoices();
+    const frenchVoice = voices.find(v => v.lang.startsWith('fr'));
+    if (frenchVoice) {
+      utterance.voice = frenchVoice;
+    }
+
+    speechSynthesis.speak(utterance);
+  }
+
+  stopCurrent() {
+    if (this.currentOscillator) {
+      try {
+        this.currentOscillator.stop();
+      } catch (e) {}
+      this.currentOscillator = null;
+    }
+  }
+
+  stop() {
+    this.stopCurrent();
+    if ('speechSynthesis' in window) {
+      speechSynthesis.cancel();
+    }
+  }
+}
+
+// Instance globale du guide audio
+const audioGuide = new AudioGuide();
 
 // URLs de musiques (samples libres de droits / placeholders)
 const musicTracks = {
@@ -215,6 +516,12 @@ document.addEventListener('DOMContentLoaded', () => {
   initSettings();
   initMusic();
   updateStats();
+
+  // Precharger les voix pour la synthese vocale
+  if ('speechSynthesis' in window) {
+    speechSynthesis.getVoices();
+    speechSynthesis.onvoiceschanged = () => speechSynthesis.getVoices();
+  }
 });
 
 // ===== Chargement/Sauvegarde données =====
@@ -240,6 +547,10 @@ function loadData() {
       document.documentElement.setAttribute('data-theme', 'dark');
       document.getElementById('dark-mode-toggle').checked = true;
     }
+
+    // Appliquer les settings audio
+    audioGuide.isEnabled = state.settings.audioGuide;
+    audioGuide.voiceEnabled = state.settings.voiceGuide;
   } catch (e) {
     console.error('Erreur chargement données:', e);
   }
@@ -398,6 +709,9 @@ function showBreathingSession(techniqueId) {
 function startSession() {
   if (!state.breathingSession) return;
 
+  // Initialiser le contexte audio (doit etre fait apres une interaction utilisateur)
+  audioGuide.init();
+
   const session = state.breathingSession;
   session.isRunning = true;
   session.startTime = Date.now();
@@ -419,6 +733,11 @@ function togglePause() {
   const session = state.breathingSession;
   session.isPaused = !session.isPaused;
 
+  // Arreter les sons si on met en pause
+  if (session.isPaused) {
+    audioGuide.stop();
+  }
+
   const pauseBtn = document.getElementById('pause-btn');
   pauseBtn.innerHTML = session.isPaused
     ? '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg> Reprendre'
@@ -433,6 +752,9 @@ function stopSession() {
   if (session.timer) clearInterval(session.timer);
   if (session.phaseTimer) clearTimeout(session.phaseTimer);
   if (session.countdownInterval) clearInterval(session.countdownInterval);
+
+  // Arreter les sons
+  audioGuide.stop();
 
   // Si session terminée correctement, incrémenter stats
   if (session.isRunning && session.currentRound >= session.technique.rounds) {
@@ -482,10 +804,15 @@ function runPhase() {
     if (state.settings.vibration && navigator.vibrate) {
       navigator.vibrate([100, 50, 100]);
     }
+    audioGuide.playRoundEnd();
 
     session.phaseTimer = setTimeout(runPhase, 1000);
     return;
   }
+
+  // Extraire les parametres audio de la phase
+  const throughNose = phase.throughNose !== false; // Par defaut nez
+  const intensity = phase.intensity || 'normal';
 
   // Exécuter la phase
   const circle = document.getElementById('breath-circle');
@@ -498,6 +825,9 @@ function runPhase() {
     // Respirations rapides (Wim Hof, Bhastrika, etc.)
     instruction.textContent = phase.instruction;
     circle.classList.add('active');
+
+    // Jouer le son des respirations rapides
+    audioGuide.playRapidBreathing(phase.duration, phase.breaths);
 
     let breathCount = phase.breaths;
     const breathInterval = (phase.duration * 1000) / phase.breaths;
@@ -527,6 +857,7 @@ function runPhase() {
       circle.classList.remove('active');
       circle.style.transform = '';
       session.currentPhase++;
+      audioGuide.playPhaseEnd();
       runPhase();
     }, phase.duration * 1000);
 
@@ -534,6 +865,9 @@ function runPhase() {
     // Rétention poumons vides (spécial Wim Hof)
     instruction.textContent = phase.instruction;
     circle.classList.add('exhale');
+
+    // Son de retention poumons vides
+    audioGuide.playHold(phase.duration, true);
 
     let remaining = phase.duration;
     counter.textContent = remaining;
@@ -552,6 +886,7 @@ function runPhase() {
       if (state.settings.vibration && navigator.vibrate) {
         navigator.vibrate(200);
       }
+      audioGuide.playPhaseEnd();
       playBell();
 
       runPhase();
@@ -564,11 +899,17 @@ function runPhase() {
     if (phase.type === 'inhale') {
       circle.classList.add('inhale');
       circle.style.transitionDuration = `${phase.duration}s`;
+      // Jouer le son d'inspiration
+      audioGuide.playInhale(phase.duration, throughNose, intensity);
     } else if (phase.type === 'exhale') {
       circle.classList.add('exhale');
       circle.style.transitionDuration = `${phase.duration}s`;
+      // Jouer le son d'expiration
+      audioGuide.playExhale(phase.duration, throughNose, intensity);
     } else if (phase.type === 'hold') {
       circle.classList.add('hold');
+      // Jouer le son de retention
+      audioGuide.playHold(phase.duration, false);
     }
 
     // Countdown
@@ -585,6 +926,7 @@ function runPhase() {
     session.phaseTimer = setTimeout(() => {
       clearInterval(session.countdownInterval);
       session.currentPhase++;
+      audioGuide.playPhaseEnd();
       runPhase();
     }, phase.duration * 1000);
   }
@@ -614,6 +956,7 @@ function completeSession() {
   if (state.settings.vibration && navigator.vibrate) {
     navigator.vibrate([100, 100, 100, 100, 200]);
   }
+  audioGuide.playSessionEnd();
   playBell();
 
   session.isRunning = false;
@@ -906,6 +1249,8 @@ function initSettings() {
   const darkModeToggle = document.getElementById('dark-mode-toggle');
   const vibrationToggle = document.getElementById('vibration-toggle');
   const soundToggle = document.getElementById('sound-toggle');
+  const audioGuideToggle = document.getElementById('audio-guide-toggle');
+  const voiceGuideToggle = document.getElementById('voice-guide-toggle');
   const themeBtn = document.getElementById('theme-btn');
   const exportBtn = document.getElementById('export-btn');
   const importInput = document.getElementById('import-input');
@@ -914,6 +1259,8 @@ function initSettings() {
   // Load saved settings
   vibrationToggle.checked = state.settings.vibration;
   soundToggle.checked = state.settings.sounds;
+  if (audioGuideToggle) audioGuideToggle.checked = state.settings.audioGuide;
+  if (voiceGuideToggle) voiceGuideToggle.checked = state.settings.voiceGuide;
 
   darkModeToggle.addEventListener('change', () => {
     state.settings.darkMode = darkModeToggle.checked;
@@ -937,6 +1284,22 @@ function initSettings() {
     state.settings.sounds = soundToggle.checked;
     saveData();
   });
+
+  if (audioGuideToggle) {
+    audioGuideToggle.addEventListener('change', () => {
+      state.settings.audioGuide = audioGuideToggle.checked;
+      audioGuide.isEnabled = audioGuideToggle.checked;
+      saveData();
+    });
+  }
+
+  if (voiceGuideToggle) {
+    voiceGuideToggle.addEventListener('change', () => {
+      state.settings.voiceGuide = voiceGuideToggle.checked;
+      audioGuide.voiceEnabled = voiceGuideToggle.checked;
+      saveData();
+    });
+  }
 
   exportBtn.addEventListener('click', exportData);
   importInput.addEventListener('change', importData);
