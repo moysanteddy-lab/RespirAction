@@ -1,0 +1,13 @@
+{
+  "name": "breathflow",
+  "version": "1.0.0",
+  "description": "App de respiration guidée et journal calisthénie",
+  "main": "app.js",
+  "scripts": {
+    "start": "npx serve .",
+    "dev": "npx serve . -l 3000"
+  },
+  "keywords": ["breathing", "meditation", "calisthenics", "pwa"],
+  "author": "Ted",
+  "license": "MIT"
+}

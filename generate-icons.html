@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Générateur d'icônes</title>
+</head>
+<body>
+  <h1>Génère les icônes puis télécharge-les</h1>
+  <canvas id="canvas192" width="192" height="192"></canvas>
+  <canvas id="canvas512" width="512" height="512"></canvas>
+  <br><br>
+  <a id="link192" download="icon-192.png">Télécharger 192x192</a>
+  <a id="link512" download="icon-512.png">Télécharger 512x512</a>
+
+  <script>
+    function drawIcon(ctx, size) {
+      // Gradient background
+      const grad = ctx.createLinearGradient(0, 0, size, size);
+      grad.addColorStop(0, '#6366f1');
+      grad.addColorStop(1, '#818cf8');
+
+      // Rounded rect
+      const radius = size * 0.2;
+      ctx.beginPath();
+      ctx.moveTo(radius, 0);
+      ctx.lineTo(size - radius, 0);
+      ctx.quadraticCurveTo(size, 0, size, radius);
+      ctx.lineTo(size, size - radius);
+      ctx.quadraticCurveTo(size, size, size - radius, size);
+      ctx.lineTo(radius, size);
+      ctx.quadraticCurveTo(0, size, 0, size - radius);
+      ctx.lineTo(0, radius);
+      ctx.quadraticCurveTo(0, 0, radius, 0);
+      ctx.closePath();
+      ctx.fillStyle = grad;
+      ctx.fill();
+
+      // Outer circle
+      ctx.beginPath();
+      ctx.arc(size/2, size/2, size * 0.23, 0, Math.PI * 2);
+      ctx.strokeStyle = 'rgba(255,255,255,0.9)';
+      ctx.lineWidth = size * 0.04;
+      ctx.stroke();
+
+      // Inner circle
+      ctx.beginPath();
+      ctx.arc(size/2, size/2, size * 0.12, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(255,255,255,0.9)';
+      ctx.fill();
+
+      // Rays
+      ctx.strokeStyle = 'rgba(255,255,255,0.6)';
+      ctx.lineWidth = size * 0.025;
+      ctx.lineCap = 'round';
+
+      const rayLength = size * 0.07;
+      const rayDist = size * 0.32;
+
+      [[0,-1],[0,1],[-1,0],[1,0]].forEach(([dx, dy]) => {
+        ctx.beginPath();
+        ctx.moveTo(size/2 + dx * rayDist, size/2 + dy * rayDist);
+        ctx.lineTo(size/2 + dx * (rayDist + rayLength), size/2 + dy * (rayDist + rayLength));
+        ctx.stroke();
+      });
+    }
+
+    const c192 = document.getElementById('canvas192');
+    const c512 = document.getElementById('canvas512');
+
+    drawIcon(c192.getContext('2d'), 192);
+    drawIcon(c512.getContext('2d'), 512);
+
+    document.getElementById('link192').href = c192.toDataURL('image/png');
+    document.getElementById('link512').href = c512.toDataURL('image/png');
+  </script>
+</body>
+</html>
