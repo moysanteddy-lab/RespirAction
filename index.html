@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
   <meta name="theme-color" content="#6366f1">
   <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <link rel="manifest" href="manifest.json">
   <link rel="icon" type="image/png" href="icon-192.png">
@@ -695,25 +696,12 @@
             </div>
           </div>
 
-          <!-- Musique Epic -->
-          <div class="coldshower-music">
-            <label>Musique Epic :</label>
-            <div class="music-selector">
-              <select id="cold-music-select">
-                <option value="">Pas de musique</option>
-                <option value="epicCinematic">Cinematic Epic</option>
-                <option value="epicMotivation">Epic Motivation</option>
-                <option value="epicAction">Action Hero</option>
-                <option value="epicPower">Power & Glory</option>
-                <option value="epicRising">Rising Warrior</option>
-                <option value="epicVictor">Victorious</option>
-              </select>
-              <button id="cold-music-toggle" class="music-btn" title="Play/Pause">
-                <svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20">
-                  <path d="M8 5v14l11-7z"/>
-                </svg>
-              </button>
-            </div>
+          <!-- Son Epic -->
+          <div class="coldshower-epic">
+            <label class="toggle-label">
+              <input type="checkbox" id="cold-epic-toggle" checked>
+              <span class="toggle-text">Son Epic (Tambours)</span>
+            </label>
           </div>
 
           <!-- Contrôles -->

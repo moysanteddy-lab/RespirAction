@@ -609,6 +609,113 @@ class AudioGuide {
 // Instance globale du guide audio
 const audioGuide = new AudioGuide();
 
+// ===== Sons de Méditation (Web Audio API) =====
+class MeditationSounds {
+  constructor() {
+    this.audioCtx = null;
+    this.isPlaying = false;
+    this.nodes = [];
+    this.bowlInterval = null;
+  }
+
+  init() {
+    if (!this.audioCtx) {
+      this.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    }
+    if (this.audioCtx.state === 'suspended') {
+      this.audioCtx.resume();
+    }
+  }
+
+  // Son de bol tibétain (cloche résonnante)
+  playBowl() {
+    this.init();
+    const ctx = this.audioCtx;
+    const now = ctx.currentTime;
+
+    // Fréquences harmoniques du bol tibétain
+    const frequencies = [220, 440, 660, 880];
+    const duration = 8;
+
+    frequencies.forEach((freq, i) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+
+      osc.type = 'sine';
+      osc.frequency.value = freq;
+
+      // Attaque rapide, décroissance lente
+      const vol = 0.15 / (i + 1);
+      gain.gain.setValueAtTime(0, now);
+      gain.gain.linearRampToValueAtTime(vol, now + 0.05);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + duration);
+
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+
+      osc.start(now);
+      osc.stop(now + duration);
+    });
+  }
+
+  // Drone d'ambiance relaxant
+  startAmbience() {
+    this.init();
+    this.isPlaying = true;
+    const ctx = this.audioCtx;
+
+    // Drone basse fréquence
+    const droneOsc = ctx.createOscillator();
+    const droneGain = ctx.createGain();
+    droneOsc.type = 'sine';
+    droneOsc.frequency.value = 110; // La grave
+    droneGain.gain.value = 0.08;
+    droneOsc.connect(droneGain);
+    droneGain.connect(ctx.destination);
+    droneOsc.start();
+    this.nodes.push({ osc: droneOsc, gain: droneGain });
+
+    // Harmonique douce
+    const harmOsc = ctx.createOscillator();
+    const harmGain = ctx.createGain();
+    harmOsc.type = 'sine';
+    harmOsc.frequency.value = 165; // Quinte
+    harmGain.gain.value = 0.04;
+    harmOsc.connect(harmGain);
+    harmGain.connect(ctx.destination);
+    harmOsc.start();
+    this.nodes.push({ osc: harmOsc, gain: harmGain });
+
+    // Bol tibétain périodique
+    this.playBowl();
+    this.bowlInterval = setInterval(() => {
+      if (this.isPlaying) this.playBowl();
+    }, 15000); // Toutes les 15 secondes
+  }
+
+  stop() {
+    this.isPlaying = false;
+
+    // Arrêter le bol périodique
+    if (this.bowlInterval) {
+      clearInterval(this.bowlInterval);
+      this.bowlInterval = null;
+    }
+
+    // Fade out et arrêt des oscillateurs
+    this.nodes.forEach(node => {
+      try {
+        const now = this.audioCtx.currentTime;
+        node.gain.gain.linearRampToValueAtTime(0, now + 0.5);
+        setTimeout(() => node.osc.stop(), 600);
+      } catch(e) {}
+    });
+    this.nodes = [];
+  }
+}
+
+const meditationSounds = new MeditationSounds();
+
 // ===== Traductions des instructions vocales =====
 const voiceTranslations = {
   fr: {
@@ -877,54 +984,146 @@ const musicTracks = {
     url: 'https://archive.org/download/meditation-music-for-focus/Super%20Intelligence.mp3',
     category: 'active'
   },
-  // === EPIC - Pour douches froides, défis, motivation ===
-  epicCinematic: {
-    name: 'Epic Cinematic - Douche Froide',
-    url: 'https://archive.org/download/epic-motivational-music/Epic%20Cinematic%20Adventure.mp3',
-    category: 'epic'
-  },
-  epicMotivation: {
-    name: 'Epic Motivation - Douche Froide',
-    url: 'https://archive.org/download/epic-motivational-music/Motivational%20Epic%20Music.mp3',
-    category: 'epic'
-  },
-  epicAction: {
-    name: 'Action Hero - Douche Froide',
-    url: 'https://archive.org/download/epic-motivational-music/Action%20Trailer%20Music.mp3',
-    category: 'epic'
-  },
-  epicPower: {
-    name: 'Power & Glory - Douche Froide',
-    url: 'https://archive.org/download/epic-motivational-music/Power%20And%20Glory.mp3',
-    category: 'epic'
-  },
-  epicRising: {
-    name: 'Rising Warrior - Douche Froide',
-    url: 'https://archive.org/download/epic-motivational-music/Rising%20Warrior.mp3',
-    category: 'epic'
-  },
-  epicVictor: {
-    name: 'Victorious - Douche Froide',
-    url: 'https://archive.org/download/epic-motivational-music/Victorious%20Triumph.mp3',
-    category: 'epic'
-  },
-  // === MEDITATION - Bol tibétain et ambiance ===
-  tibetanBowl: {
-    name: 'Bol Tibétain - Méditation',
-    url: 'https://archive.org/download/meditation-music/Tibetan%20Singing%20Bowls.mp3',
-    category: 'meditation'
-  },
-  omChanting: {
-    name: 'Om Chanting - Méditation',
-    url: 'https://archive.org/download/meditation-music/Om%20Chanting%20Meditation.mp3',
-    category: 'meditation'
-  },
-  zenAmbient: {
-    name: 'Zen Ambient - Méditation',
-    url: 'https://archive.org/download/meditation-music/Zen%20Garden%20Ambient.mp3',
-    category: 'meditation'
+  // === HANGDRUM - Pour méditation et relaxation ===
+  hangdrum1: {
+    name: 'Handpan Meditation',
+    url: 'https://archive.org/download/meditation-music/Handpan%20Meditation%20Music.mp3',
+    category: 'neutre'
   }
 };
+
+// ===== Son Épique Synthétique (Web Audio API) =====
+class EpicSound {
+  constructor() {
+    this.audioCtx = null;
+    this.isPlaying = false;
+    this.nodes = [];
+    this.beatInterval = null;
+  }
+
+  init() {
+    if (!this.audioCtx) {
+      this.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    }
+    if (this.audioCtx.state === 'suspended') {
+      this.audioCtx.resume();
+    }
+  }
+
+  // Kick drum épique
+  playKick() {
+    const ctx = this.audioCtx;
+    const now = ctx.currentTime;
+
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(150, now);
+    osc.frequency.exponentialRampToValueAtTime(40, now + 0.15);
+
+    gain.gain.setValueAtTime(0.8, now);
+    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
+
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+
+    osc.start(now);
+    osc.stop(now + 0.3);
+  }
+
+  // Snare/caisse claire
+  playSnare() {
+    const ctx = this.audioCtx;
+    const now = ctx.currentTime;
+
+    // Noise burst
+    const bufferSize = ctx.sampleRate * 0.1;
+    const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+    const data = buffer.getChannelData(0);
+    for (let i = 0; i < bufferSize; i++) {
+      data[i] = Math.random() * 2 - 1;
+    }
+
+    const noise = ctx.createBufferSource();
+    noise.buffer = buffer;
+
+    const noiseGain = ctx.createGain();
+    const filter = ctx.createBiquadFilter();
+    filter.type = 'highpass';
+    filter.frequency.value = 1000;
+
+    noiseGain.gain.setValueAtTime(0.5, now);
+    noiseGain.gain.exponentialRampToValueAtTime(0.01, now + 0.15);
+
+    noise.connect(filter);
+    filter.connect(noiseGain);
+    noiseGain.connect(ctx.destination);
+
+    noise.start(now);
+  }
+
+  // Note de cuivre synthétique (power chord)
+  playBrass() {
+    const ctx = this.audioCtx;
+    const now = ctx.currentTime;
+
+    const notes = [110, 165, 220]; // La, Mi, La (power chord)
+    notes.forEach(freq => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+
+      osc.type = 'sawtooth';
+      osc.frequency.value = freq;
+
+      gain.gain.setValueAtTime(0, now);
+      gain.gain.linearRampToValueAtTime(0.15, now + 0.1);
+      gain.gain.setValueAtTime(0.15, now + 0.3);
+      gain.gain.linearRampToValueAtTime(0, now + 0.5);
+
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+
+      osc.start(now);
+      osc.stop(now + 0.5);
+    });
+  }
+
+  // Démarrer le beat épique
+  start() {
+    this.init();
+    this.isPlaying = true;
+
+    let beat = 0;
+    const bpm = 140;
+    const interval = 60000 / bpm / 2; // Demi-temps
+
+    // Pattern épique: KICK - - SNARE - KICK - SNARE -
+    const pattern = () => {
+      if (!this.isPlaying) return;
+
+      const pos = beat % 8;
+      if (pos === 0 || pos === 5) this.playKick();
+      if (pos === 3 || pos === 7) this.playSnare();
+      if (pos === 0 && beat % 16 === 0) this.playBrass();
+
+      beat++;
+    };
+
+    pattern();
+    this.beatInterval = setInterval(pattern, interval);
+  }
+
+  stop() {
+    this.isPlaying = false;
+    if (this.beatInterval) {
+      clearInterval(this.beatInterval);
+      this.beatInterval = null;
+    }
+  }
+}
+
+const epicSound = new EpicSound();
 
 // ===== Systeme de Particules Futuriste =====
 class ParticleSystem {
@@ -1685,15 +1884,15 @@ function initMusic() {
 // ===== Module Calisthénie =====
 // Exercices pré-définis calisthénie
 const presetExercises = {
-  'Pompes': '3x15',
-  'Tractions': '3x8',
-  'Dips': '3x10',
-  'Drapeau': '3x10s',
-  'Reverse Planche': '3x10s',
-  'Reverse Tractions': '3x8',
-  'Pistols': '3x5',
-  'Squat Sautés': '3x12',
-  'Squat': '3x20'
+  'Pompes': '10',
+  'Tractions': '5',
+  'Dips': '10',
+  'Drapeau': '10',
+  'Reverse Planche': '10',
+  'Reverse Tractions': '5',
+  'Pistols': '10',
+  'Squat Sautés': '10',
+  'Squat': '10'
 };
 
 function initCalisthenics() {
@@ -2663,50 +2862,6 @@ function initColdShower() {
   updateColdTimerDisplay();
   updateColdLevel();
 
-  // Musique épique pour la douche froide
-  const musicSelect = document.getElementById('cold-music-select');
-  const musicToggle = document.getElementById('cold-music-toggle');
-
-  if (musicSelect && musicToggle) {
-    musicToggle.addEventListener('click', () => {
-      const trackId = musicSelect.value;
-      if (!trackId) return;
-
-      const audioPlayer = document.getElementById('audio-player');
-      const track = musicTracks[trackId];
-
-      if (!track) return;
-
-      if (coldShowerState.musicPlaying) {
-        // Arrêter
-        audioPlayer.pause();
-        coldShowerState.musicPlaying = false;
-        musicToggle.classList.remove('playing');
-        musicToggle.innerHTML = '<svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20"><path d="M8 5v14l11-7z"/></svg>';
-      } else {
-        // Jouer
-        audioPlayer.src = track.url;
-        audioPlayer.loop = true;
-        audioPlayer.volume = 0.7;
-        audioPlayer.play().catch(() => {});
-        coldShowerState.musicPlaying = true;
-        musicToggle.classList.add('playing');
-        musicToggle.innerHTML = '<svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>';
-      }
-    });
-
-    musicSelect.addEventListener('change', () => {
-      // Si musique en cours, changer la piste
-      if (coldShowerState.musicPlaying) {
-        const trackId = musicSelect.value;
-        if (trackId && musicTracks[trackId]) {
-          const audioPlayer = document.getElementById('audio-player');
-          audioPlayer.src = musicTracks[trackId].url;
-          audioPlayer.play().catch(() => {});
-        }
-      }
-    });
-  }
 }
 
 function updateColdLevel() {
@@ -2786,20 +2941,11 @@ function startColdShower() {
   if (startBtn) startBtn.classList.add('hidden');
   if (stopBtn) stopBtn.classList.remove('hidden');
 
-  // Démarrer la musique épique si sélectionnée
-  const musicSelect = document.getElementById('cold-music-select');
-  const musicToggle = document.getElementById('cold-music-toggle');
-  if (musicSelect && musicSelect.value && musicTracks[musicSelect.value]) {
-    const audioPlayer = document.getElementById('audio-player');
-    audioPlayer.src = musicTracks[musicSelect.value].url;
-    audioPlayer.loop = true;
-    audioPlayer.volume = 0.7;
-    audioPlayer.play().catch(() => {});
+  // Démarrer le son épique si activé
+  const epicToggle = document.getElementById('cold-epic-toggle');
+  if (epicToggle && epicToggle.checked) {
+    epicSound.start();
     coldShowerState.musicPlaying = true;
-    if (musicToggle) {
-      musicToggle.classList.add('playing');
-      musicToggle.innerHTML = '<svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>';
-    }
   }
 
   // Premier encouragement immédiat
@@ -2896,15 +3042,8 @@ function stopColdShower() {
 
 function stopColdShowerMusic() {
   if (coldShowerState.musicPlaying) {
-    const audioPlayer = document.getElementById('audio-player');
-    audioPlayer.pause();
+    epicSound.stop();
     coldShowerState.musicPlaying = false;
-
-    const musicToggle = document.getElementById('cold-music-toggle');
-    if (musicToggle) {
-      musicToggle.classList.remove('playing');
-      musicToggle.innerHTML = '<svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20"><path d="M8 5v14l11-7z"/></svg>';
-    }
   }
 }
 
@@ -3861,14 +4000,8 @@ function startMeditation(type) {
   // Update UI
   document.getElementById('meditation-instruction').textContent = langScript.intro;
 
-  // Démarrer musique d'ambiance (bol tibétain)
-  const audioPlayer = document.getElementById('audio-player');
-  if (audioPlayer && musicTracks.tibetanBowl) {
-    audioPlayer.src = musicTracks.tibetanBowl.url;
-    audioPlayer.volume = 0.3;
-    audioPlayer.loop = true;
-    audioPlayer.play().catch(e => console.log('Audio autoplay blocked'));
-  }
+  // Démarrer sons d'ambiance méditation (Web Audio API)
+  meditationSounds.startAmbience();
 
   // Speak intro
   voicePlayer.speak(langScript.intro, lang);
@@ -3953,12 +4086,8 @@ function stopMeditation() {
     meditationState.timer = null;
   }
 
-  // Arrêter musique d'ambiance
-  const audioPlayer = document.getElementById('audio-player');
-  if (audioPlayer) {
-    audioPlayer.pause();
-    audioPlayer.currentTime = 0;
-  }
+  // Arrêter sons d'ambiance méditation
+  meditationSounds.stop();
 
   voicePlayer.stop();
   meditationState.currentMeditation = null;
