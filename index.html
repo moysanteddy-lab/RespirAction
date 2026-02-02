@@ -265,6 +265,61 @@
               </button>
             </div>
           </div>
+
+          <div class="category-section">
+            <h3 class="category-title">Focus & Cognitif</h3>
+            <div class="technique-grid">
+              <button class="technique-card" data-technique="focusBreath">
+                <div class="technique-icon focus">
+                  <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
+                </div>
+                <div class="technique-info">
+                  <span class="technique-name">Focus Breath 4-4-4</span>
+                  <span class="technique-desc">Active le cortex préfrontal</span>
+                </div>
+              </button>
+
+              <button class="technique-card" data-technique="brainBoost">
+                <div class="technique-icon focus">
+                  <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
+                </div>
+                <div class="technique-info">
+                  <span class="technique-name">Brain Boost</span>
+                  <span class="technique-desc">Boost d'oxygène au cerveau</span>
+                </div>
+              </button>
+
+              <button class="technique-card" data-technique="energize">
+                <div class="technique-icon focus">
+                  <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
+                </div>
+                <div class="technique-info">
+                  <span class="technique-name">Energize Express</span>
+                  <span class="technique-desc">Réveille en 2 minutes sans café</span>
+                </div>
+              </button>
+
+              <button class="technique-card" data-technique="pomodoroPre">
+                <div class="technique-icon focus">
+                  <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
+                </div>
+                <div class="technique-info">
+                  <span class="technique-name">Pomodoro Prep (2min)</span>
+                  <span class="technique-desc">Avant 25min de travail</span>
+                </div>
+              </button>
+
+              <button class="technique-card" data-technique="pomodoroBreak">
+                <div class="technique-icon focus">
+                  <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
+                </div>
+                <div class="technique-info">
+                  <span class="technique-name">Pomodoro Pause (5min)</span>
+                  <span class="technique-desc">Récupération entre sessions</span>
+                </div>
+              </button>
+            </div>
+          </div>
         </div>
 
         <!-- Session de respiration -->
@@ -279,17 +334,37 @@
           <h2 id="technique-title" class="technique-title">Technique</h2>
           <p id="technique-description" class="technique-instructions"></p>
 
-          <!-- Cercle de respiration animé -->
-          <div class="breath-circle-container">
+          <!-- Cercle de respiration animé - Futuriste -->
+          <div class="breath-circle-container" id="breath-container">
+            <!-- Canvas pour les particules -->
+            <canvas id="particles-canvas"></canvas>
+
+            <!-- Ondes concentriques -->
+            <div class="breath-waves">
+              <div class="breath-wave"></div>
+              <div class="breath-wave"></div>
+              <div class="breath-wave"></div>
+            </div>
+
+            <!-- Cercle principal -->
             <div id="breath-circle" class="breath-circle">
               <div class="breath-inner">
                 <span id="breath-instruction">Prêt ?</span>
                 <span id="breath-counter" class="breath-counter"></span>
               </div>
             </div>
+
+            <!-- Progress ring -->
             <svg class="breath-progress" viewBox="0 0 200 200">
-              <circle cx="100" cy="100" r="90" fill="none" stroke="rgba(99, 102, 241, 0.2)" stroke-width="4"/>
-              <circle id="progress-ring" cx="100" cy="100" r="90" fill="none" stroke="#6366f1" stroke-width="4" stroke-dasharray="565.48" stroke-dashoffset="565.48" transform="rotate(-90 100 100)"/>
+              <circle cx="100" cy="100" r="90" fill="none" stroke="rgba(0, 245, 255, 0.1)" stroke-width="2"/>
+              <circle id="progress-ring" cx="100" cy="100" r="90" fill="none" stroke="url(#neonGradient)" stroke-width="3" stroke-dasharray="565.48" stroke-dashoffset="565.48" transform="rotate(-90 100 100)" stroke-linecap="round"/>
+              <defs>
+                <linearGradient id="neonGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" style="stop-color:#00f5ff"/>
+                  <stop offset="50%" style="stop-color:#8b5cf6"/>
+                  <stop offset="100%" style="stop-color:#ff00ff"/>
+                </linearGradient>
+              </defs>
             </svg>
           </div>
 
@@ -342,21 +417,26 @@
             <select id="music-select" class="music-select">
               <option value="">Aucune musique</option>
               <optgroup label="Calme - Relaxation, Sommeil">
-                <option value="calmAmbient">Ambient Nature - Calme</option>
-                <option value="calmPiano">Piano Doux - Calme</option>
-                <option value="calmMeditation">Meditation Zen - Calme</option>
-                <option value="calmSleep">Deep Sleep - Calme</option>
-                <option value="calmLofi">Lofi Chill - Calme</option>
+                <option value="calmBamboo">Bamboo Flute Zen - Calme</option>
+                <option value="calmJapanese">Japanese Garden - Calme</option>
+                <option value="calmPiano">Piano Relaxant - Calme</option>
+                <option value="calmNature">Ambient Nature - Calme</option>
               </optgroup>
-              <optgroup label="Neutre - Equilibre, Focus">
-                <option value="neutralBowls">Tibetan Bowls - Neutre</option>
-                <option value="neutralSpa">Spa Relaxation - Neutre</option>
-                <option value="neutralNature">Forest Stream - Neutre</option>
+              <optgroup label="Focus - Concentration, Travail">
+                <option value="focusAlpha">Alpha Waves - Focus</option>
+                <option value="focusDeep">Deep Concentration - Focus</option>
+                <option value="focusBrain">Brain Stimulation - Focus</option>
+                <option value="focusAmbient">Ambient Study - Focus</option>
+              </optgroup>
+              <optgroup label="Neutre - Equilibre, Meditation">
+                <option value="neutralBuddhist">Buddhist Meditation - Neutre</option>
+                <option value="neutralSamurai">Samurai Zen - Neutre</option>
+                <option value="neutralForest">Forest Stream - Neutre</option>
               </optgroup>
               <optgroup label="Active - Energie, Wim Hof">
-                <option value="activeEpic">Epic Rise - Active</option>
-                <option value="activeDrums">Tribal Drums - Active</option>
-                <option value="activeEnergy">Energy Flow - Active</option>
+                <option value="activeChi">Chi Activation - Active</option>
+                <option value="activeBinaural">Binaural Power - Active</option>
+                <option value="activeIntelligence">Super Intelligence - Active</option>
               </optgroup>
               <option value="custom">Ma musique...</option>
             </select>
@@ -496,6 +576,16 @@
                 <span class="toggle-slider"></span>
               </label>
             </div>
+          </div>
+
+          <div class="setting-item">
+            <div class="setting-info">
+              <span class="setting-name">Choix de la voix</span>
+              <span class="setting-desc">Sélectionne ta voix préférée</span>
+            </div>
+            <select id="voice-select" class="voice-select">
+              <option value="">Chargement des voix...</option>
+            </select>
           </div>
 
           <div class="setting-item">

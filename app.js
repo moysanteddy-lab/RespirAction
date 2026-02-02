@@ -10,7 +10,8 @@ const state = {
     vibration: true,
     sounds: true,
     audioGuide: true,
-    voiceGuide: false
+    voiceGuide: false,
+    selectedVoice: ''
   },
   stats: {
     breathingSessions: 0,
@@ -191,6 +192,71 @@ const techniques = {
       { type: 'exhale', duration: 6, instruction: 'Longue expire bouche', throughNose: false, intensity: 'gentle' }
     ],
     rounds: 6
+  },
+  // === FOCUS COGNITIF - Pour concentration, travail, Pomodoro ===
+  focusBreath: {
+    name: 'Focus Breath 4-4-4',
+    category: 'focus',
+    description: 'Active le cortex préfrontal. Idéal avant une session de travail intense.',
+    instructions: 'Respiration équilibrée qui prépare le cerveau à la concentration.',
+    phases: [
+      { type: 'inhale', duration: 4, instruction: 'Inspire - active', throughNose: true },
+      { type: 'hold', duration: 4, instruction: 'Retiens - prépare' },
+      { type: 'exhale', duration: 4, instruction: 'Expire - focus', throughNose: true }
+    ],
+    rounds: 6
+  },
+  brainBoost: {
+    name: 'Brain Boost',
+    category: 'focus',
+    description: 'Boost rapide d\'oxygène au cerveau. Parfait pour un coup de mou.',
+    instructions: 'Respirations profondes suivies de rétention. Augmente la vigilance.',
+    phases: [
+      { type: 'inhale', duration: 3, instruction: 'Inspire profond', throughNose: true, intensity: 'strong' },
+      { type: 'hold', duration: 3, instruction: 'Retiens' },
+      { type: 'exhale', duration: 3, instruction: 'Expire', throughNose: true },
+      { type: 'inhale', duration: 3, instruction: 'Inspire profond', throughNose: true, intensity: 'strong' },
+      { type: 'hold', duration: 6, instruction: 'Retiens longtemps' },
+      { type: 'exhale', duration: 4, instruction: 'Expire lentement', throughNose: true }
+    ],
+    rounds: 4
+  },
+  energize: {
+    name: 'Energize Express',
+    category: 'focus',
+    description: 'Respiration énergisante rapide. Réveille le corps et l\'esprit en 2 minutes.',
+    instructions: 'Respirations dynamiques pour booster l\'énergie sans café.',
+    phases: [
+      { type: 'rapid', duration: 20, breaths: 20, instruction: 'Respirations rapides', throughNose: true, intensity: 'strong' },
+      { type: 'inhale', duration: 4, instruction: 'Grande inspire', throughNose: true, intensity: 'strong' },
+      { type: 'hold', duration: 10, instruction: 'Retiens - énergie' },
+      { type: 'exhale', duration: 4, instruction: 'Expire puissant', throughNose: false, intensity: 'strong' }
+    ],
+    rounds: 3
+  },
+  pomodoroPre: {
+    name: 'Pomodoro Prep (2min)',
+    category: 'focus',
+    description: 'Préparation mentale avant 25min de travail. Calme + focus.',
+    instructions: 'À faire avant chaque session Pomodoro pour maximiser ta concentration.',
+    phases: [
+      { type: 'inhale', duration: 4, instruction: 'Inspire - intention', throughNose: true },
+      { type: 'hold', duration: 4, instruction: 'Visualise ton objectif' },
+      { type: 'exhale', duration: 6, instruction: 'Expire le stress', throughNose: true, intensity: 'gentle' },
+      { type: 'hold', duration: 2, instruction: 'Pause' }
+    ],
+    rounds: 8
+  },
+  pomodoroBreak: {
+    name: 'Pomodoro Pause (5min)',
+    category: 'focus',
+    description: 'Récupération entre deux sessions Pomodoro. Recharge les batteries.',
+    instructions: 'Respiration de récupération pour tes pauses de 5 minutes.',
+    phases: [
+      { type: 'inhale', duration: 5, instruction: 'Inspire - détends', throughNose: true, intensity: 'gentle' },
+      { type: 'exhale', duration: 7, instruction: 'Expire - relâche', throughNose: true, intensity: 'gentle' }
+    ],
+    rounds: 25
   }
 };
 
@@ -452,65 +518,45 @@ class AudioGuide {
     }
   }
 
-  // Synthese vocale - voix douce et feminine
+  // Synthese vocale - utilise la voix selectionnee
   speak(text) {
     if (!('speechSynthesis' in window)) return;
 
     const utterance = new SpeechSynthesisUtterance(text);
     utterance.lang = 'fr-FR';
-    utterance.rate = 0.85;  // Plus lent = plus doux
-    utterance.pitch = 1.1;  // Legèrement plus aigu = plus feminin
+    utterance.rate = 0.85;
+    utterance.pitch = 1.05;
     utterance.volume = 0.75;
 
-    // Chercher la meilleure voix feminine francaise
     const voices = speechSynthesis.getVoices();
 
-    // Priorite aux voix de haute qualite (Google, Microsoft, Apple)
-    const preferredVoiceNames = [
-      'Google français',      // Google - très naturelle
-      'Microsoft Denise',     // Microsoft - feminine douce
-      'Microsoft Julie',      // Microsoft - feminine
-      'Amelie',               // Apple macOS - feminine
-      'Audrey',               // Apple - feminine premium
-      'Thomas',               // Si pas de feminine, voix douce
-      'Google',               // Fallback Google
-      'Microsoft',            // Fallback Microsoft
-    ];
-
-    let selectedVoice = null;
-
-    // Chercher d'abord une voix feminine francaise de qualite
-    for (const prefName of preferredVoiceNames) {
-      selectedVoice = voices.find(v =>
-        v.lang.startsWith('fr') &&
-        v.name.toLowerCase().includes(prefName.toLowerCase())
-      );
-      if (selectedVoice) break;
-    }
-
-    // Si pas trouve, chercher n'importe quelle voix feminine francaise
-    if (!selectedVoice) {
-      const feminineKeywords = ['female', 'femme', 'amelie', 'julie', 'denise', 'audrey', 'marie', 'chloe', 'lea'];
-      selectedVoice = voices.find(v =>
-        v.lang.startsWith('fr') &&
-        feminineKeywords.some(kw => v.name.toLowerCase().includes(kw))
-      );
-    }
-
-    // Fallback: premiere voix francaise disponible
-    if (!selectedVoice) {
-      selectedVoice = voices.find(v => v.lang.startsWith('fr'));
-    }
-
-    if (selectedVoice) {
-      utterance.voice = selectedVoice;
-      // Ajuster selon le type de voix
-      if (selectedVoice.name.toLowerCase().includes('google')) {
-        utterance.rate = 0.8;  // Google est un peu rapide
+    // Utiliser la voix selectionnee dans les settings
+    if (state.settings.selectedVoice) {
+      const savedVoice = voices.find(v => v.name === state.settings.selectedVoice);
+      if (savedVoice) {
+        utterance.voice = savedVoice;
+        // Ajuster selon le type de voix
+        if (savedVoice.name.toLowerCase().includes('google')) {
+          utterance.rate = 0.8;
+        }
+        speechSynthesis.speak(utterance);
+        return;
       }
     }
 
+    // Fallback: chercher la meilleure voix francaise
+    let selectedVoice = voices.find(v => v.lang.startsWith('fr'));
+    if (selectedVoice) {
+      utterance.voice = selectedVoice;
+    }
+
     speechSynthesis.speak(utterance);
+  }
+
+  // Obtenir la liste des voix disponibles
+  getAvailableVoices() {
+    if (!('speechSynthesis' in window)) return [];
+    return speechSynthesis.getVoices();
   }
 
   stopCurrent() {
@@ -533,67 +579,231 @@ class AudioGuide {
 // Instance globale du guide audio
 const audioGuide = new AudioGuide();
 
-// URLs de musiques categorisees (libres de droits)
+// URLs de musiques categorisees (Archive.org - stables et libres de droits)
 const musicTracks = {
   // === CALME - Pour relaxation, sommeil, coherence cardiaque ===
-  calmAmbient: {
+  calmBamboo: {
+    name: 'Bamboo Flute Zen - Calme',
+    url: 'https://archive.org/download/sleepingmusicz/sleeping%20music/1%20HOUR%20of%20The%20Best%20Relaxing%20Music%20Bamboo%20Flute%20-%20Meditation%20-%20Healing%20-%20Sleep%20-%20Zen%20-%20Peace.mp3',
+    category: 'calme'
+  },
+  calmJapanese: {
+    name: 'Japanese Garden - Calme',
+    url: 'https://archive.org/download/meditation-music/Japanese%20Garden%20Relaxing%20Music.mp3',
+    category: 'calme'
+  },
+  calmPiano: {
+    name: 'Piano Relaxant - Calme',
+    url: 'https://archive.org/download/meditation-music-for-focus/Soft%20Piano%20Music.mp3',
+    category: 'calme'
+  },
+  calmNature: {
     name: 'Ambient Nature - Calme',
     url: 'https://cdn.pixabay.com/audio/2022/08/02/audio_884fe92c21.mp3',
     category: 'calme'
   },
-  calmPiano: {
-    name: 'Piano Doux - Calme',
-    url: 'https://cdn.pixabay.com/audio/2022/12/13/audio_3ffb7e4b9a.mp3',
-    category: 'calme'
+  // === FOCUS - Pour concentration, travail, Pomodoro ===
+  focusAlpha: {
+    name: 'Alpha Waves - Focus',
+    url: 'https://archive.org/download/meditation-music-for-focus/Study%20Music%20Alpha%20Waves.mp3',
+    category: 'focus'
   },
-  calmMeditation: {
-    name: 'Meditation Zen - Calme',
-    url: 'https://cdn.pixabay.com/audio/2023/09/04/audio_4b3e86a256.mp3',
-    category: 'calme'
+  focusDeep: {
+    name: 'Deep Concentration - Focus',
+    url: 'https://archive.org/download/meditation-music-for-focus/Music%20for%20Deep%20Focus%20and%20Concentration.mp3',
+    category: 'focus'
   },
-  calmSleep: {
-    name: 'Deep Sleep - Calme',
-    url: 'https://cdn.pixabay.com/audio/2023/07/19/audio_e9e846e0b3.mp3',
-    category: 'calme'
+  focusBrain: {
+    name: 'Brain Stimulation - Focus',
+    url: 'https://archive.org/download/meditation-music-for-focus/Deep%20Brain%20Stimulation%20Music.mp3',
+    category: 'focus'
   },
-  calmLofi: {
-    name: 'Lofi Chill - Calme',
-    url: 'https://cdn.pixabay.com/audio/2024/01/10/audio_fb77e09de8.mp3',
-    category: 'calme'
+  focusAmbient: {
+    name: 'Ambient Study - Focus',
+    url: 'https://archive.org/download/meditation-music-for-focus/Ambient%20Study%20Music%20To%20Concentrate.mp3',
+    category: 'focus'
   },
   // === NEUTRE - Pour box breathing, exercices equilibres ===
-  neutralBowls: {
-    name: 'Tibetan Bowls - Neutre',
-    url: 'https://cdn.pixabay.com/audio/2022/03/24/audio_811c4f7c86.mp3',
+  neutralBuddhist: {
+    name: 'Buddhist Meditation - Neutre',
+    url: 'https://archive.org/download/meditation-music/Buddhist%20Meditation%20Music%20for%20Positive%20Energy.mp3',
     category: 'neutre'
   },
-  neutralSpa: {
-    name: 'Spa Relaxation - Neutre',
-    url: 'https://cdn.pixabay.com/audio/2023/05/16/audio_168a3a1558.mp3',
+  neutralSamurai: {
+    name: 'Samurai Zen - Neutre',
+    url: 'https://archive.org/download/meditation-music/Samurai%20Relax%20Meditation%20Music.mp3',
     category: 'neutre'
   },
-  neutralNature: {
+  neutralForest: {
     name: 'Forest Stream - Neutre',
     url: 'https://cdn.pixabay.com/audio/2022/06/07/audio_b9bd4170e4.mp3',
     category: 'neutre'
   },
   // === ACTIVE - Pour Wim Hof, Bhastrika, Tummo ===
-  activeEpic: {
-    name: 'Epic Rise - Active',
-    url: 'https://cdn.pixabay.com/audio/2023/10/03/audio_11e7e33e47.mp3',
+  activeChi: {
+    name: 'Chi Activation - Active',
+    url: 'https://archive.org/download/meditation-music-for-focus/3%20Hours%20Chi%20Activation%20Music.mp3',
     category: 'active'
   },
-  activeDrums: {
-    name: 'Tribal Drums - Active',
-    url: 'https://cdn.pixabay.com/audio/2022/01/18/audio_d0c29e8398.mp3',
+  activeBinaural: {
+    name: 'Binaural Power - Active',
+    url: 'https://archive.org/download/meditation-music-for-focus/Extremely%20Powerful%20Brainwave%20Binaural.mp3',
     category: 'active'
   },
-  activeEnergy: {
-    name: 'Energy Flow - Active',
-    url: 'https://cdn.pixabay.com/audio/2023/08/10/audio_dc39bde808.mp3',
+  activeIntelligence: {
+    name: 'Super Intelligence - Active',
+    url: 'https://archive.org/download/meditation-music-for-focus/Super%20Intelligence.mp3',
     category: 'active'
   }
 };
+
+// ===== Systeme de Particules Futuriste =====
+class ParticleSystem {
+  constructor(canvasId) {
+    this.canvas = document.getElementById(canvasId);
+    if (!this.canvas) return;
+
+    this.ctx = this.canvas.getContext('2d');
+    this.particles = [];
+    this.isActive = false;
+    this.breathPhase = 'idle'; // idle, inhale, hold, exhale
+    this.animationId = null;
+
+    this.resize();
+    window.addEventListener('resize', () => this.resize());
+  }
+
+  resize() {
+    if (!this.canvas) return;
+    this.canvas.width = 400;
+    this.canvas.height = 400;
+    this.centerX = this.canvas.width / 2;
+    this.centerY = this.canvas.height / 2;
+  }
+
+  start() {
+    this.isActive = true;
+    this.particles = [];
+    this.animate();
+  }
+
+  stop() {
+    this.isActive = false;
+    if (this.animationId) {
+      cancelAnimationFrame(this.animationId);
+    }
+    if (this.ctx) {
+      this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+    }
+  }
+
+  setPhase(phase) {
+    this.breathPhase = phase;
+  }
+
+  createParticle() {
+    const angle = Math.random() * Math.PI * 2;
+    const colors = ['#00f5ff', '#8b5cf6', '#ff00ff', '#00ff88'];
+
+    if (this.breathPhase === 'inhale') {
+      // Particules venant de l'exterieur vers le centre
+      const distance = 150 + Math.random() * 50;
+      return {
+        x: this.centerX + Math.cos(angle) * distance,
+        y: this.centerY + Math.sin(angle) * distance,
+        vx: -Math.cos(angle) * (1 + Math.random()),
+        vy: -Math.sin(angle) * (1 + Math.random()),
+        size: 2 + Math.random() * 3,
+        color: colors[0],
+        alpha: 0.8,
+        life: 1
+      };
+    } else if (this.breathPhase === 'exhale') {
+      // Particules du centre vers l'exterieur
+      const distance = 30 + Math.random() * 20;
+      return {
+        x: this.centerX + Math.cos(angle) * distance,
+        y: this.centerY + Math.sin(angle) * distance,
+        vx: Math.cos(angle) * (1.5 + Math.random()),
+        vy: Math.sin(angle) * (1.5 + Math.random()),
+        size: 2 + Math.random() * 3,
+        color: colors[2],
+        alpha: 0.8,
+        life: 1
+      };
+    } else if (this.breathPhase === 'hold') {
+      // Particules orbitant autour du centre
+      const distance = 70 + Math.random() * 30;
+      return {
+        x: this.centerX + Math.cos(angle) * distance,
+        y: this.centerY + Math.sin(angle) * distance,
+        angle: angle,
+        distance: distance,
+        speed: 0.01 + Math.random() * 0.02,
+        size: 1 + Math.random() * 2,
+        color: colors[1],
+        alpha: 0.6,
+        life: 1,
+        orbit: true
+      };
+    }
+    return null;
+  }
+
+  animate() {
+    if (!this.isActive || !this.ctx) return;
+
+    this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+
+    // Creer de nouvelles particules
+    if (this.breathPhase !== 'idle' && Math.random() > 0.7) {
+      const p = this.createParticle();
+      if (p) this.particles.push(p);
+    }
+
+    // Limiter le nombre de particules
+    if (this.particles.length > 100) {
+      this.particles = this.particles.slice(-100);
+    }
+
+    // Mettre a jour et dessiner les particules
+    this.particles = this.particles.filter(p => {
+      // Mise a jour position
+      if (p.orbit) {
+        p.angle += p.speed;
+        p.x = this.centerX + Math.cos(p.angle) * p.distance;
+        p.y = this.centerY + Math.sin(p.angle) * p.distance;
+      } else {
+        p.x += p.vx;
+        p.y += p.vy;
+      }
+
+      p.life -= 0.01;
+      p.alpha = p.life * 0.8;
+
+      // Dessiner
+      this.ctx.beginPath();
+      this.ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+      this.ctx.fillStyle = p.color;
+      this.ctx.globalAlpha = p.alpha;
+      this.ctx.fill();
+
+      // Effet de glow
+      this.ctx.shadowColor = p.color;
+      this.ctx.shadowBlur = 10;
+
+      return p.life > 0;
+    });
+
+    this.ctx.globalAlpha = 1;
+    this.ctx.shadowBlur = 0;
+
+    this.animationId = requestAnimationFrame(() => this.animate());
+  }
+}
+
+// Instance globale
+let particleSystem = null;
 
 // ===== Initialisation =====
 document.addEventListener('DOMContentLoaded', () => {
@@ -604,6 +814,9 @@ document.addEventListener('DOMContentLoaded', () => {
   initSettings();
   initMusic();
   updateStats();
+
+  // Initialiser le systeme de particules
+  particleSystem = new ParticleSystem('particles-canvas');
 
   // Precharger les voix pour la synthese vocale
   if ('speechSynthesis' in window) {
@@ -800,6 +1013,15 @@ function startSession() {
   // Initialiser le contexte audio (doit etre fait apres une interaction utilisateur)
   audioGuide.init();
 
+  // Demarrer les particules
+  if (particleSystem) {
+    particleSystem.start();
+  }
+
+  // Activer les animations du container
+  const container = document.getElementById('breath-container');
+  if (container) container.classList.add('breathing');
+
   const session = state.breathingSession;
   session.isRunning = true;
   session.startTime = Date.now();
@@ -843,6 +1065,15 @@ function stopSession() {
 
   // Arreter les sons
   audioGuide.stop();
+
+  // Arreter les particules
+  if (particleSystem) {
+    particleSystem.stop();
+  }
+
+  // Desactiver les animations du container
+  const container = document.getElementById('breath-container');
+  if (container) container.classList.remove('breathing');
 
   // Si session terminée correctement, incrémenter stats
   if (session.isRunning && session.currentRound >= session.technique.rounds) {
@@ -989,15 +1220,21 @@ function runPhase() {
       circle.style.transitionDuration = `${phase.duration}s`;
       // Jouer le son d'inspiration
       audioGuide.playInhale(phase.duration, throughNose, intensity);
+      // Particules vers le centre
+      if (particleSystem) particleSystem.setPhase('inhale');
     } else if (phase.type === 'exhale') {
       circle.classList.add('exhale');
       circle.style.transitionDuration = `${phase.duration}s`;
       // Jouer le son d'expiration
       audioGuide.playExhale(phase.duration, throughNose, intensity);
+      // Particules vers l'exterieur
+      if (particleSystem) particleSystem.setPhase('exhale');
     } else if (phase.type === 'hold') {
       circle.classList.add('hold');
       // Jouer le son de retention
       audioGuide.playHold(phase.duration, false);
+      // Particules en orbite
+      if (particleSystem) particleSystem.setPhase('hold');
     }
 
     // Countdown
@@ -1393,7 +1630,69 @@ function initSettings() {
   const testVoiceBtn = document.getElementById('test-voice-btn');
   if (testVoiceBtn) {
     testVoiceBtn.addEventListener('click', () => {
-      audioGuide.speak('Inspire doucement par le nez... Expire lentement...');
+      audioGuide.speak('Inspire doucement... Expire lentement... Tu te sens bien.');
+    });
+  }
+
+  // Selecteur de voix
+  const voiceSelect = document.getElementById('voice-select');
+  if (voiceSelect) {
+    // Fonction pour populer les voix
+    const populateVoices = () => {
+      const voices = speechSynthesis.getVoices();
+      voiceSelect.innerHTML = '';
+
+      // Filtrer les voix francaises et anglaises
+      const frenchVoices = voices.filter(v => v.lang.startsWith('fr'));
+      const englishVoices = voices.filter(v => v.lang.startsWith('en'));
+      const otherVoices = voices.filter(v => !v.lang.startsWith('fr') && !v.lang.startsWith('en'));
+
+      // Option par defaut
+      const defaultOpt = document.createElement('option');
+      defaultOpt.value = '';
+      defaultOpt.textContent = 'Auto (meilleure voix)';
+      voiceSelect.appendChild(defaultOpt);
+
+      // Groupe francais
+      if (frenchVoices.length > 0) {
+        const frGroup = document.createElement('optgroup');
+        frGroup.label = 'Francais';
+        frenchVoices.forEach(voice => {
+          const opt = document.createElement('option');
+          opt.value = voice.name;
+          opt.textContent = voice.name.replace('Microsoft ', '').replace('Google ', '');
+          if (voice.name === state.settings.selectedVoice) opt.selected = true;
+          frGroup.appendChild(opt);
+        });
+        voiceSelect.appendChild(frGroup);
+      }
+
+      // Groupe anglais
+      if (englishVoices.length > 0) {
+        const enGroup = document.createElement('optgroup');
+        enGroup.label = 'English';
+        englishVoices.slice(0, 10).forEach(voice => { // Limiter a 10
+          const opt = document.createElement('option');
+          opt.value = voice.name;
+          opt.textContent = voice.name.replace('Microsoft ', '').replace('Google ', '');
+          if (voice.name === state.settings.selectedVoice) opt.selected = true;
+          enGroup.appendChild(opt);
+        });
+        voiceSelect.appendChild(enGroup);
+      }
+    };
+
+    // Les voix peuvent charger de maniere asynchrone
+    populateVoices();
+    if (speechSynthesis.onvoiceschanged !== undefined) {
+      speechSynthesis.onvoiceschanged = populateVoices;
+    }
+
+    voiceSelect.addEventListener('change', () => {
+      state.settings.selectedVoice = voiceSelect.value;
+      saveData();
+      // Test immediat de la nouvelle voix
+      audioGuide.speak('Voix selectionnee');
     });
   }
 
