@@ -526,13 +526,15 @@ class AudioGuide {
 
   // Synthese vocale - utilise Google TTS via VoicePlayer
   speak(text) {
-    if (!this.voiceEnabled || !state.settings.voiceGuide) return;
+    console.log('speak() called, voiceGuide:', state.settings.voiceGuide);
+    if (!state.settings.voiceGuide) return;
     voicePlayer.speak(text);
   }
 
   // Joue une instruction par cle (inhaleNose, exhaleNose, etc.)
   playVoiceInstruction(key) {
-    if (!this.voiceEnabled || !state.settings.voiceGuide) return;
+    console.log('playVoiceInstruction() called, key:', key, 'voiceGuide:', state.settings.voiceGuide);
+    if (!state.settings.voiceGuide) return;
     voicePlayer.play(key);
   }
 
@@ -639,97 +641,94 @@ const voiceTranslations = {
   }
 };
 
-// ===== Systeme de voix via Google Translate TTS =====
+// ===== Systeme de voix simplifie avec speechSynthesis =====
 class VoicePlayer {
   constructor() {
-    this.audioCache = {};
-    this.currentAudio = null;
     this.selectedLang = 'fr';
-    this.isEnabled = true;
+    this.isSpeaking = false;
   }
 
-  // Genere l'URL Google TTS pour un texte
-  getTTSUrl(text, lang = 'fr') {
-    const encodedText = encodeURIComponent(text);
-    return `https://translate.google.com/translate_tts?ie=UTF-8&tl=${lang}&client=tw-ob&q=${encodedText}`;
+  // Mapping des codes langue vers les codes BCP 47
+  getLangCode(lang) {
+    const codes = {
+      'fr': 'fr-FR',
+      'en': 'en-US',
+      'es': 'es-ES',
+      'de': 'de-DE',
+      'it': 'it-IT',
+      'pt': 'pt-BR'
+    };
+    return codes[lang] || 'fr-FR';
   }
 
-  // Precharge un son
-  preload(key, text, lang = 'fr') {
-    const url = this.getTTSUrl(text, lang);
-    const audio = new Audio();
-    audio.src = url;
-    audio.preload = 'auto';
-    this.audioCache[`${lang}_${key}`] = audio;
-  }
-
-  // Precharge toutes les instructions pour une langue
-  preloadLanguage(lang) {
-    const translations = voiceTranslations[lang];
-    if (!translations) return;
-
-    Object.keys(translations).forEach(key => {
-      this.preload(key, translations[key], lang);
-    });
-    console.log(`Voix ${lang} prechargees`);
-  }
-
-  // Joue une instruction
+  // Joue une instruction par cle
   play(key) {
-    if (!this.isEnabled) return;
+    const translations = voiceTranslations[this.selectedLang] || voiceTranslations.fr;
+    const text = translations[key];
+    if (text) {
+      this.speak(text, this.selectedLang);
+    }
+  }
 
-    const lang = this.selectedLang;
-    const cacheKey = `${lang}_${key}`;
-
-    // Stop le son actuel
-    this.stop();
-
-    // Essayer le cache d'abord
-    if (this.audioCache[cacheKey]) {
-      this.currentAudio = this.audioCache[cacheKey];
-      this.currentAudio.currentTime = 0;
-      this.currentAudio.play().catch(e => console.log('Audio play error:', e));
+  // Parle un texte
+  speak(text, lang = null) {
+    if (!('speechSynthesis' in window)) {
+      console.log('speechSynthesis not supported');
       return;
     }
 
-    // Sinon charger a la volee
-    const translations = voiceTranslations[lang] || voiceTranslations.fr;
-    const text = translations[key];
-    if (!text) return;
-
-    const audio = new Audio(this.getTTSUrl(text, lang));
-    audio.play().catch(e => console.log('Audio play error:', e));
-    this.currentAudio = audio;
-
-    // Mettre en cache pour la prochaine fois
-    this.audioCache[cacheKey] = audio;
-  }
-
-  // Joue un texte personnalise
-  speak(text, lang = null) {
-    if (!this.isEnabled) return;
-
+    // Arreter tout son en cours
     this.stop();
+
     const useLang = lang || this.selectedLang;
-    const audio = new Audio(this.getTTSUrl(text, useLang));
-    audio.play().catch(e => console.log('Audio play error:', e));
-    this.currentAudio = audio;
+    const langCode = this.getLangCode(useLang);
+
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = langCode;
+    utterance.rate = 0.9;
+    utterance.pitch = 1.0;
+    utterance.volume = 1.0;
+
+    // Essayer de trouver une voix pour cette langue
+    const voices = speechSynthesis.getVoices();
+    const matchingVoice = voices.find(v => v.lang.startsWith(useLang));
+    if (matchingVoice) {
+      utterance.voice = matchingVoice;
+    }
+
+    utterance.onstart = () => {
+      this.isSpeaking = true;
+      console.log('Voice started:', text);
+    };
+    utterance.onend = () => {
+      this.isSpeaking = false;
+    };
+    utterance.onerror = (e) => {
+      console.log('Voice error:', e.error);
+      this.isSpeaking = false;
+    };
+
+    // Petit hack pour Android - parfois il faut un delai
+    setTimeout(() => {
+      speechSynthesis.speak(utterance);
+    }, 50);
   }
 
   stop() {
-    if (this.currentAudio) {
-      this.currentAudio.pause();
-      this.currentAudio.currentTime = 0;
-      this.currentAudio = null;
+    if ('speechSynthesis' in window) {
+      speechSynthesis.cancel();
     }
+    this.isSpeaking = false;
   }
 
   setLanguage(lang) {
     this.selectedLang = lang;
-    // Precharger la nouvelle langue si pas deja fait
-    if (!this.audioCache[`${lang}_inhaleNose`]) {
-      this.preloadLanguage(lang);
-    }
+    console.log('Voice language set to:', lang);
+  }
+
+  preloadLanguage(lang) {
+    // Pas besoin de precharger avec speechSynthesis
+    console.log('Voice ready for:', lang);
   }
 }
 
