@@ -11,7 +11,7 @@ const state = {
     sounds: true,
     audioGuide: true,
     voiceGuide: false,
-    selectedVoice: ''
+    voiceLang: 'fr'  // Langue du guidage vocal
   },
   stats: {
     breathingSessions: 0,
@@ -343,9 +343,7 @@ class AudioGuide {
     this.currentGain = gainNode;
 
     // Voix optionnelle
-    if (this.voiceEnabled && state.settings.voiceGuide) {
-      this.speak(throughNose ? getTranslation('inhaleNose') : getTranslation('inhaleMouth'));
-    }
+    this.playVoiceInstruction(throughNose ? 'inhaleNose' : 'inhaleMouth');
   }
 
   // Son d'expiration - tonalite descendante
@@ -396,9 +394,8 @@ class AudioGuide {
     this.currentOscillator = oscillator;
     this.currentGain = gainNode;
 
-    if (this.voiceEnabled && state.settings.voiceGuide) {
-      this.speak(throughNose ? getTranslation('exhaleNose') : getTranslation('exhaleMouth'));
-    }
+    // Voix optionnelle
+    this.playVoiceInstruction(throughNose ? 'exhaleNose' : 'exhaleMouth');
   }
 
   // Son de retention - bip statique doux
@@ -419,9 +416,8 @@ class AudioGuide {
       this.scheduleBeep(beepTime, isEmpty ? 280 : 350, 0.15);
     }
 
-    if (this.voiceEnabled && state.settings.voiceGuide) {
-      this.speak(isEmpty ? getTranslation('holdEmpty') : getTranslation('hold'));
-    }
+    // Voix optionnelle
+    this.playVoiceInstruction(isEmpty ? 'holdEmpty' : 'hold');
   }
 
   scheduleBeep(time, freq, duration) {
@@ -479,9 +475,8 @@ class AudioGuide {
       osc.stop(time + interval);
     }
 
-    if (this.voiceEnabled && state.settings.voiceGuide) {
-      this.speak(getTranslation('rapid'));
-    }
+    // Voix optionnelle
+    this.playVoiceInstruction('rapid');
   }
 
   // Signal de fin de phase
@@ -525,48 +520,20 @@ class AudioGuide {
       this.scheduleBeep(now + i * 0.2, freq, 0.25);
     });
 
-    if (this.voiceEnabled && state.settings.voiceGuide) {
-      setTimeout(() => this.speak(getTranslation('complete')), 1000);
-    }
+    // Voix optionnelle
+    setTimeout(() => this.playVoiceInstruction('complete'), 1000);
   }
 
-  // Synthese vocale - utilise la voix selectionnee avec la bonne langue
+  // Synthese vocale - utilise Google TTS via VoicePlayer
   speak(text) {
-    if (!('speechSynthesis' in window)) return;
+    if (!this.voiceEnabled || !state.settings.voiceGuide) return;
+    voicePlayer.speak(text);
+  }
 
-    const voices = speechSynthesis.getVoices();
-    const utterance = new SpeechSynthesisUtterance(text);
-
-    // Utiliser la voix selectionnee dans les settings
-    if (state.settings.selectedVoice) {
-      const savedVoice = voices.find(v => v.name === state.settings.selectedVoice);
-      if (savedVoice) {
-        utterance.voice = savedVoice;
-        utterance.lang = savedVoice.lang; // Utiliser la langue de la voix
-        utterance.rate = 0.85;
-        utterance.pitch = 1.05;
-        utterance.volume = 0.75;
-        // Ajuster selon le type de voix
-        if (savedVoice.name.toLowerCase().includes('google')) {
-          utterance.rate = 0.8;
-        }
-        speechSynthesis.speak(utterance);
-        return;
-      }
-    }
-
-    // Fallback: chercher la meilleure voix francaise
-    utterance.lang = 'fr-FR';
-    utterance.rate = 0.85;
-    utterance.pitch = 1.05;
-    utterance.volume = 0.75;
-
-    let selectedVoice = voices.find(v => v.lang.startsWith('fr'));
-    if (selectedVoice) {
-      utterance.voice = selectedVoice;
-    }
-
-    speechSynthesis.speak(utterance);
+  // Joue une instruction par cle (inhaleNose, exhaleNose, etc.)
+  playVoiceInstruction(key) {
+    if (!this.voiceEnabled || !state.settings.voiceGuide) return;
+    voicePlayer.play(key);
   }
 
   // Obtenir la liste des voix disponibles
@@ -586,6 +553,7 @@ class AudioGuide {
 
   stop() {
     this.stopCurrent();
+    voicePlayer.stop();
     if ('speechSynthesis' in window) {
       speechSynthesis.cancel();
     }
@@ -670,6 +638,103 @@ const voiceTranslations = {
     relax: 'Relaxe'
   }
 };
+
+// ===== Systeme de voix via Google Translate TTS =====
+class VoicePlayer {
+  constructor() {
+    this.audioCache = {};
+    this.currentAudio = null;
+    this.selectedLang = 'fr';
+    this.isEnabled = true;
+  }
+
+  // Genere l'URL Google TTS pour un texte
+  getTTSUrl(text, lang = 'fr') {
+    const encodedText = encodeURIComponent(text);
+    return `https://translate.google.com/translate_tts?ie=UTF-8&tl=${lang}&client=tw-ob&q=${encodedText}`;
+  }
+
+  // Precharge un son
+  preload(key, text, lang = 'fr') {
+    const url = this.getTTSUrl(text, lang);
+    const audio = new Audio();
+    audio.src = url;
+    audio.preload = 'auto';
+    this.audioCache[`${lang}_${key}`] = audio;
+  }
+
+  // Precharge toutes les instructions pour une langue
+  preloadLanguage(lang) {
+    const translations = voiceTranslations[lang];
+    if (!translations) return;
+
+    Object.keys(translations).forEach(key => {
+      this.preload(key, translations[key], lang);
+    });
+    console.log(`Voix ${lang} prechargees`);
+  }
+
+  // Joue une instruction
+  play(key) {
+    if (!this.isEnabled) return;
+
+    const lang = this.selectedLang;
+    const cacheKey = `${lang}_${key}`;
+
+    // Stop le son actuel
+    this.stop();
+
+    // Essayer le cache d'abord
+    if (this.audioCache[cacheKey]) {
+      this.currentAudio = this.audioCache[cacheKey];
+      this.currentAudio.currentTime = 0;
+      this.currentAudio.play().catch(e => console.log('Audio play error:', e));
+      return;
+    }
+
+    // Sinon charger a la volee
+    const translations = voiceTranslations[lang] || voiceTranslations.fr;
+    const text = translations[key];
+    if (!text) return;
+
+    const audio = new Audio(this.getTTSUrl(text, lang));
+    audio.play().catch(e => console.log('Audio play error:', e));
+    this.currentAudio = audio;
+
+    // Mettre en cache pour la prochaine fois
+    this.audioCache[cacheKey] = audio;
+  }
+
+  // Joue un texte personnalise
+  speak(text, lang = null) {
+    if (!this.isEnabled) return;
+
+    this.stop();
+    const useLang = lang || this.selectedLang;
+    const audio = new Audio(this.getTTSUrl(text, useLang));
+    audio.play().catch(e => console.log('Audio play error:', e));
+    this.currentAudio = audio;
+  }
+
+  stop() {
+    if (this.currentAudio) {
+      this.currentAudio.pause();
+      this.currentAudio.currentTime = 0;
+      this.currentAudio = null;
+    }
+  }
+
+  setLanguage(lang) {
+    this.selectedLang = lang;
+    // Precharger la nouvelle langue si pas deja fait
+    if (!this.audioCache[`${lang}_inhaleNose`]) {
+      this.preloadLanguage(lang);
+    }
+  }
+}
+
+// Instance globale
+const voicePlayer = new VoicePlayer();
 
 // Obtenir la langue de la voix selectionnee
 function getVoiceLanguage() {
@@ -936,11 +1001,9 @@ document.addEventListener('DOMContentLoaded', () => {
   // Initialiser le systeme de particules
   particleSystem = new ParticleSystem('particles-canvas');
 
-  // Precharger les voix pour la synthese vocale
-  if ('speechSynthesis' in window) {
-    speechSynthesis.getVoices();
-    speechSynthesis.onvoiceschanged = () => speechSynthesis.getVoices();
-  }
+  // Initialiser le systeme de voix Google TTS
+  voicePlayer.setLanguage(state.settings.voiceLang || 'fr');
+  voicePlayer.preloadLanguage(state.settings.voiceLang || 'fr');
 });
 
 // ===== Chargement/Sauvegarde données =====
@@ -1776,98 +1839,42 @@ function initSettings() {
     });
   }
 
-  // Bouton test voix
+  // Bouton test voix (ancien, garde pour compatibilite)
   const testVoiceBtn = document.getElementById('test-voice-btn');
   if (testVoiceBtn) {
     testVoiceBtn.addEventListener('click', () => {
-      audioGuide.speak('Inspire doucement... Expire lentement... Tu te sens bien.');
+      voicePlayer.speak('Inspire doucement. Expire lentement.', state.settings.voiceLang || 'fr');
     });
   }
 
-  // Selecteur de voix
-  const voiceSelect = document.getElementById('voice-select');
-  const voiceCountEl = document.getElementById('voice-count');
-  const refreshVoicesBtn = document.getElementById('refresh-voices-btn');
+  // Selecteur de langue pour le guidage vocal
+  const voiceLangSelect = document.getElementById('voice-lang-select');
+  const testVoiceLangBtn = document.getElementById('test-voice-lang-btn');
 
-  if (voiceSelect) {
-    // Fonction pour populer les voix
-    const populateVoices = () => {
-      const voices = speechSynthesis.getVoices();
-      voiceSelect.innerHTML = '';
+  if (voiceLangSelect) {
+    // Charger la langue sauvegardee
+    voiceLangSelect.value = state.settings.voiceLang || 'fr';
+    voicePlayer.setLanguage(state.settings.voiceLang || 'fr');
 
-      // Afficher le nombre de voix detectees
-      if (voiceCountEl) {
-        voiceCountEl.textContent = `${voices.length} voix détectées`;
-      }
-
-      // Filtrer les voix par langue
-      const frenchVoices = voices.filter(v => v.lang.startsWith('fr'));
-      const englishVoices = voices.filter(v => v.lang.startsWith('en'));
-      const spanishVoices = voices.filter(v => v.lang.startsWith('es'));
-      const germanVoices = voices.filter(v => v.lang.startsWith('de'));
-      const italianVoices = voices.filter(v => v.lang.startsWith('it'));
-      const portugueseVoices = voices.filter(v => v.lang.startsWith('pt'));
-
-      // Option par defaut
-      const defaultOpt = document.createElement('option');
-      defaultOpt.value = '';
-      defaultOpt.textContent = 'Auto (meilleure voix)';
-      voiceSelect.appendChild(defaultOpt);
-
-      // Fonction helper pour creer un groupe
-      const addGroup = (label, voiceList, maxCount = 8) => {
-        if (voiceList.length > 0) {
-          const group = document.createElement('optgroup');
-          group.label = `${label} (${voiceList.length})`;
-          voiceList.slice(0, maxCount).forEach(voice => {
-            const opt = document.createElement('option');
-            opt.value = voice.name;
-            opt.textContent = voice.name.replace('Microsoft ', '').replace('Google ', '').replace(' Online (Natural)', '');
-            if (voice.name === state.settings.selectedVoice) opt.selected = true;
-            group.appendChild(opt);
-          });
-          voiceSelect.appendChild(group);
-        }
-      };
-
-      // Ajouter les groupes par langue
-      addGroup('Français', frenchVoices);
-      addGroup('English', englishVoices);
-      addGroup('Español', spanishVoices);
-      addGroup('Deutsch', germanVoices);
-      addGroup('Italiano', italianVoices);
-      addGroup('Português', portugueseVoices);
-
-      console.log('Voix chargées:', voices.length, voices.map(v => v.name + ' (' + v.lang + ')'));
-    };
-
-    // Les voix peuvent charger de maniere asynchrone
-    populateVoices();
-    if (speechSynthesis.onvoiceschanged !== undefined) {
-      speechSynthesis.onvoiceschanged = populateVoices;
-    }
-
-    // Bouton rafraichir les voix
-    if (refreshVoicesBtn) {
-      refreshVoicesBtn.addEventListener('click', () => {
-        // Forcer le rechargement des voix
-        speechSynthesis.cancel();
-        setTimeout(() => {
-          populateVoices();
-          // Feedback visuel
-          refreshVoicesBtn.textContent = 'OK !';
-          setTimeout(() => {
-            refreshVoicesBtn.textContent = 'Rafraîchir';
-          }, 1000);
-        }, 100);
-      });
-    }
-
-    voiceSelect.addEventListener('change', () => {
-      state.settings.selectedVoice = voiceSelect.value;
+    voiceLangSelect.addEventListener('change', () => {
+      state.settings.voiceLang = voiceLangSelect.value;
+      voicePlayer.setLanguage(voiceLangSelect.value);
       saveData();
-      // Test immediat de la nouvelle voix
-      audioGuide.speak('Voix sélectionnée');
+    });
+  }
+
+  if (testVoiceLangBtn) {
+    testVoiceLangBtn.addEventListener('click', () => {
+      const lang = state.settings.voiceLang || 'fr';
+      const testPhrases = {
+        fr: 'Inspire par le nez, expire par la bouche',
+        en: 'Breathe in through your nose, breathe out through your mouth',
+        es: 'Inspira por la nariz, exhala por la boca',
+        de: 'Atme durch die Nase ein, atme durch den Mund aus',
+        it: 'Inspira dal naso, espira dalla bocca',
+        pt: 'Inspire pelo nariz, expire pela boca'
+      };
+      voicePlayer.speak(testPhrases[lang] || testPhrases.fr, lang);
     });
   }
 

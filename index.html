@@ -667,33 +667,20 @@
 
           <div class="setting-item">
             <div class="setting-info">
-              <span class="setting-name">Choix de la voix</span>
-              <span class="setting-desc" id="voice-count">Sélectionne ta voix préférée</span>
+              <span class="setting-name">Langue du guidage vocal</span>
+              <span class="setting-desc">Choisis la langue des instructions</span>
             </div>
             <div class="setting-actions">
-              <button id="refresh-voices-btn" class="btn secondary small">Rafraîchir</button>
-              <select id="voice-select" class="voice-select">
-                <option value="">Chargement des voix...</option>
+              <button id="test-voice-lang-btn" class="btn secondary small">Test</button>
+              <select id="voice-lang-select" class="voice-select">
+                <option value="fr">Français</option>
+                <option value="en">English</option>
+                <option value="es">Español</option>
+                <option value="de">Deutsch</option>
+                <option value="it">Italiano</option>
+                <option value="pt">Português</option>
               </select>
             </div>
-          </div>
-
-          <div class="voice-help-box" id="voice-help">
-            <p><strong>Une seule voix ?</strong> Voici comment en ajouter :</p>
-            <p style="margin-top: 0.5rem; font-weight: 600; color: var(--neon-magenta);">Étape 1 : Installer Google TTS</p>
-            <ol>
-              <li>Va sur le <a href="https://play.google.com/store/apps/details?id=com.google.android.tts" target="_blank" style="color: var(--neon-cyan);">Play Store → Google TTS</a></li>
-              <li>Installe l'app "Synthèse vocale Google"</li>
-            </ol>
-            <p style="margin-top: 0.75rem; font-weight: 600; color: var(--neon-magenta);">Étape 2 : Ajouter des langues</p>
-            <ol>
-              <li>Paramètres Android → cherche "<strong>Synthèse vocale</strong>"</li>
-              <li>Sélectionne <strong>Moteur Google</strong> comme moteur par défaut</li>
-              <li>Clique sur l'engrenage ⚙️ à côté de Google</li>
-              <li>→ <strong>Installer des données vocales</strong></li>
-              <li>Télécharge : Français, English, Español, etc.</li>
-            </ol>
-            <p style="margin-top: 0.5rem; font-size: 0.8rem; color: var(--text-muted);">💡 Après installation, rafraîchis cette page !</p>
           </div>
 
           <div class="setting-item">
