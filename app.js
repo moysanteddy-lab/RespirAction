@@ -29,7 +29,8 @@ const state = {
   },
   reminders: {
     enabled: false,
-    times: ['08:00', '12:00', '18:00']  // Heures de rappel par defaut
+    times: ['08:00', '12:00', '18:00'],  // Heures de rappel par defaut
+    customMessage: ''  // Message personnalise optionnel
   }
 };
 
@@ -1888,6 +1889,19 @@ function initSettings() {
     });
   }
 
+  // Message personnalise pour les rappels
+  const customMessageInput = document.getElementById('custom-reminder-message');
+  if (customMessageInput) {
+    // Charger le message sauvegarde
+    customMessageInput.value = state.reminders.customMessage || '';
+
+    // Sauvegarder quand l'utilisateur tape
+    customMessageInput.addEventListener('input', () => {
+      state.reminders.customMessage = customMessageInput.value.trim();
+      saveData();
+    });
+  }
+
   exportBtn.addEventListener('click', exportData);
   importInput.addEventListener('change', importData);
   resetBtn.addEventListener('click', resetData);
@@ -2174,10 +2188,10 @@ function checkReminders() {
   const currentTime = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
 
   if (state.reminders.times.includes(currentTime)) {
-    sendNotification(
-      'C\'est l\'heure de respirer !',
-      'Prends quelques minutes pour toi. Une session de respiration t\'attend.'
-    );
+    // Utiliser le message personnalise s'il existe
+    const title = 'C\'est l\'heure de respirer !';
+    const body = state.reminders.customMessage || 'Prends quelques minutes pour toi. Une session de respiration t\'attend.';
+    sendNotification(title, body);
   }
 }
 

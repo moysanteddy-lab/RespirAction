@@ -675,6 +675,17 @@
             </select>
           </div>
 
+          <div class="voice-help-box" id="voice-help">
+            <p><strong>Une seule voix ?</strong> Installe-en plus :</p>
+            <ol>
+              <li>Paramètres Android > <strong>Langue</strong> ou <strong>Accessibilité</strong></li>
+              <li>Cherche <strong>Synthèse vocale</strong> (Text-to-Speech)</li>
+              <li>Clique sur <strong>Google TTS</strong> > Installer des voix</li>
+              <li>Télécharge : English, Español, Deutsch, etc.</li>
+              <li>Reviens ici et rafraîchis la page !</li>
+            </ol>
+          </div>
+
           <div class="setting-item">
             <div class="setting-info">
               <span class="setting-name">Rappels quotidiens</span>
@@ -695,6 +706,10 @@
             <div class="add-reminder">
               <input type="time" id="new-reminder-time" value="12:00">
               <button id="add-reminder-btn" class="btn secondary small">Ajouter</button>
+            </div>
+            <div class="custom-message-input">
+              <label for="custom-reminder-message">Message personnalisé (optionnel)</label>
+              <input type="text" id="custom-reminder-message" placeholder="Ex: Hey ! C'est l'heure de ta pause bien-être" maxlength="100">
             </div>
           </div>
 

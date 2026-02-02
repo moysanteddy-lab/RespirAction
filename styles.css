@@ -1508,6 +1508,70 @@ main {
   font-size: 0.9rem;
 }
 
+/* Voice help box */
+.voice-help-box {
+  margin: 0.5rem 0 1rem;
+  padding: 1rem;
+  background: linear-gradient(135deg, rgba(139, 92, 246, 0.1), rgba(0, 245, 255, 0.1));
+  border: 1px dashed var(--neon-purple);
+  border-radius: 12px;
+  font-size: 0.85rem;
+}
+
+.voice-help-box p {
+  margin-bottom: 0.75rem;
+  color: var(--text-primary);
+}
+
+.voice-help-box strong {
+  color: var(--neon-cyan);
+}
+
+.voice-help-box ol {
+  margin: 0;
+  padding-left: 1.25rem;
+  color: var(--text-secondary);
+}
+
+.voice-help-box li {
+  margin-bottom: 0.4rem;
+  line-height: 1.4;
+}
+
+/* Custom reminder message */
+.custom-message-input {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--glass-border);
+}
+
+.custom-message-input label {
+  display: block;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  margin-bottom: 0.5rem;
+}
+
+.custom-message-input input {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid var(--glass-border);
+  border-radius: 10px;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-size: 0.9rem;
+}
+
+.custom-message-input input:focus {
+  outline: none;
+  border-color: var(--neon-cyan);
+  box-shadow: 0 0 10px rgba(0, 245, 255, 0.2);
+}
+
+.custom-message-input input::placeholder {
+  color: var(--text-muted);
+}
+
 .app-info {
   text-align: center;
   margin-top: 2rem;

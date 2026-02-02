@@ -1,4 +1,4 @@
-const CACHE_NAME = 'breathflow-v6';
+const CACHE_NAME = 'breathflow-v7';
 const urlsToCache = [
   '/',
   '/index.html',
