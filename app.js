@@ -19,7 +19,18 @@ const state = {
     lastActiveDate: null,
     streak: 0
   },
-  workouts: []
+  workouts: [],
+  history: [],  // Historique des sessions de respiration
+  pomodoro: {
+    isRunning: false,
+    timeLeft: 25 * 60,
+    mode: 'work', // work, break, longBreak
+    sessionsCompleted: 0
+  },
+  reminders: {
+    enabled: false,
+    times: ['08:00', '12:00', '18:00']  // Heures de rappel par defaut
+  }
 };
 
 // Techniques de respiration avec métadonnées audio
@@ -913,9 +924,13 @@ document.addEventListener('DOMContentLoaded', () => {
   initNavigation();
   initBreathing();
   initCalisthenics();
+  initPomodoro();
   initSettings();
   initMusic();
+  initReminders();
   updateStats();
+  renderHistory();
+  updateHistoryStats();
 
   // Initialiser le systeme de particules
   particleSystem = new ParticleSystem('particles-canvas');
@@ -945,6 +960,16 @@ function loadData() {
       state.workouts = JSON.parse(savedWorkouts);
     }
 
+    const savedHistory = localStorage.getItem('breathflow_history');
+    if (savedHistory) {
+      state.history = JSON.parse(savedHistory);
+    }
+
+    const savedReminders = localStorage.getItem('breathflow_reminders');
+    if (savedReminders) {
+      state.reminders = { ...state.reminders, ...JSON.parse(savedReminders) };
+    }
+
     // Appliquer le thème (dark par defaut)
     document.documentElement.setAttribute('data-theme', state.settings.darkMode ? 'dark' : 'light');
     document.getElementById('dark-mode-toggle').checked = state.settings.darkMode;
@@ -962,6 +987,8 @@ function saveData() {
     localStorage.setItem('breathflow_settings', JSON.stringify(state.settings));
     localStorage.setItem('breathflow_stats', JSON.stringify(state.stats));
     localStorage.setItem('breathflow_workouts', JSON.stringify(state.workouts));
+    localStorage.setItem('breathflow_history', JSON.stringify(state.history));
+    localStorage.setItem('breathflow_reminders', JSON.stringify(state.reminders));
   } catch (e) {
     console.error('Erreur sauvegarde données:', e);
   }
@@ -1023,6 +1050,8 @@ function navigateTo(pageName) {
     const titles = {
       home: 'BreathFlow',
       breathing: 'Respiration',
+      pomodoro: 'Pomodoro',
+      history: 'Historique',
       calisthenics: 'Calisthénie',
       settings: 'Réglages'
     };
@@ -1365,10 +1394,30 @@ function runPhase() {
 function completeSession() {
   const session = state.breathingSession;
 
+  // Calculer la duree de la session
+  const duration = Math.floor((Date.now() - session.startTime) / 1000);
+
+  // Ajouter a l'historique
+  state.history.unshift({
+    id: Date.now(),
+    date: new Date().toISOString(),
+    technique: session.technique.name,
+    techniqueId: session.techniqueId,
+    category: session.technique.category,
+    duration: duration,
+    rounds: session.technique.rounds
+  });
+
+  // Garder seulement les 50 dernieres sessions
+  if (state.history.length > 50) {
+    state.history = state.history.slice(0, 50);
+  }
+
   state.stats.breathingSessions++;
   updateStreak();
   saveData();
   updateStats();
+  renderHistory();
 
   if (session.timer) clearInterval(session.timer);
 
@@ -1796,10 +1845,74 @@ function initSettings() {
     });
   }
 
+  // Rappels
+  const remindersToggle = document.getElementById('reminders-toggle');
+  const remindersConfig = document.getElementById('reminders-times');
+  const addReminderBtn = document.getElementById('add-reminder-btn');
+
+  if (remindersToggle) {
+    remindersToggle.checked = state.reminders.enabled;
+    if (state.reminders.enabled) {
+      remindersConfig.classList.remove('hidden');
+    }
+
+    remindersToggle.addEventListener('change', async () => {
+      // Demander permission notifications si pas encore fait
+      if (remindersToggle.checked && 'Notification' in window) {
+        const permission = await Notification.requestPermission();
+        if (permission !== 'granted') {
+          remindersToggle.checked = false;
+          alert('Tu dois autoriser les notifications pour activer les rappels.');
+          return;
+        }
+      }
+
+      state.reminders.enabled = remindersToggle.checked;
+      remindersConfig.classList.toggle('hidden', !remindersToggle.checked);
+      saveData();
+    });
+
+    renderReminderTimes();
+  }
+
+  if (addReminderBtn) {
+    addReminderBtn.addEventListener('click', () => {
+      const timeInput = document.getElementById('new-reminder-time');
+      const time = timeInput.value;
+      if (time && !state.reminders.times.includes(time)) {
+        state.reminders.times.push(time);
+        state.reminders.times.sort();
+        saveData();
+        renderReminderTimes();
+      }
+    });
+  }
+
   exportBtn.addEventListener('click', exportData);
   importInput.addEventListener('change', importData);
   resetBtn.addEventListener('click', resetData);
 }
+
+function renderReminderTimes() {
+  const container = document.getElementById('reminder-times-list');
+  if (!container) return;
+
+  container.innerHTML = state.reminders.times.map(time => `
+    <span class="reminder-time-tag">
+      ${time}
+      <button onclick="removeReminderTime('${time}')">&times;</button>
+    </span>
+  `).join('');
+}
+
+function removeReminderTime(time) {
+  state.reminders.times = state.reminders.times.filter(t => t !== time);
+  saveData();
+  renderReminderTimes();
+}
+
+// Rendre accessible globalement
+window.removeReminderTime = removeReminderTime;
 
 function exportData() {
   const data = {
@@ -1847,6 +1960,311 @@ function resetData() {
   localStorage.removeItem('breathflow_stats');
   localStorage.removeItem('breathflow_workouts');
   location.reload();
+}
+
+// ===== Module Pomodoro =====
+let pomodoroTimer = null;
+let pomodoroSettings = {
+  workDuration: 25,
+  breakDuration: 5,
+  longBreakDuration: 15
+};
+
+function initPomodoro() {
+  const startBtn = document.getElementById('pomodoro-start');
+  const pauseBtn = document.getElementById('pomodoro-pause');
+  const resetBtn = document.getElementById('pomodoro-reset');
+  const breathBtn = document.getElementById('pomodoro-breath-btn');
+
+  if (!startBtn) return;
+
+  startBtn.addEventListener('click', startPomodoro);
+  pauseBtn.addEventListener('click', pausePomodoro);
+  resetBtn.addEventListener('click', resetPomodoro);
+
+  if (breathBtn) {
+    breathBtn.addEventListener('click', () => {
+      navigateTo('breathing');
+      setTimeout(() => {
+        showBreathingSession('pomodoroPre');
+      }, 100);
+    });
+  }
+
+  // Time adjustment buttons
+  document.querySelectorAll('.time-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const action = btn.dataset.action;
+      const workEl = document.getElementById('work-duration');
+      const breakEl = document.getElementById('break-duration');
+
+      if (action === 'work-plus' && pomodoroSettings.workDuration < 60) {
+        pomodoroSettings.workDuration += 5;
+      } else if (action === 'work-minus' && pomodoroSettings.workDuration > 5) {
+        pomodoroSettings.workDuration -= 5;
+      } else if (action === 'break-plus' && pomodoroSettings.breakDuration < 30) {
+        pomodoroSettings.breakDuration += 1;
+      } else if (action === 'break-minus' && pomodoroSettings.breakDuration > 1) {
+        pomodoroSettings.breakDuration -= 1;
+      }
+
+      workEl.textContent = pomodoroSettings.workDuration;
+      breakEl.textContent = pomodoroSettings.breakDuration;
+
+      if (!state.pomodoro.isRunning) {
+        state.pomodoro.timeLeft = pomodoroSettings.workDuration * 60;
+        updatePomodoroDisplay();
+      }
+    });
+  });
+
+  updatePomodoroDisplay();
+}
+
+function startPomodoro() {
+  state.pomodoro.isRunning = true;
+
+  document.getElementById('pomodoro-start').classList.add('hidden');
+  document.getElementById('pomodoro-pause').classList.remove('hidden');
+
+  pomodoroTimer = setInterval(() => {
+    state.pomodoro.timeLeft--;
+
+    if (state.pomodoro.timeLeft <= 0) {
+      pomodoroPhaseComplete();
+    }
+
+    updatePomodoroDisplay();
+  }, 1000);
+}
+
+function pausePomodoro() {
+  state.pomodoro.isRunning = false;
+  clearInterval(pomodoroTimer);
+
+  document.getElementById('pomodoro-start').classList.remove('hidden');
+  document.getElementById('pomodoro-pause').classList.add('hidden');
+  document.getElementById('pomodoro-start').innerHTML = `
+    <svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20">
+      <path d="M8 5v14l11-7z"/>
+    </svg>
+    Reprendre
+  `;
+}
+
+function resetPomodoro() {
+  state.pomodoro.isRunning = false;
+  state.pomodoro.mode = 'work';
+  state.pomodoro.timeLeft = pomodoroSettings.workDuration * 60;
+  state.pomodoro.sessionsCompleted = 0;
+  clearInterval(pomodoroTimer);
+
+  document.getElementById('pomodoro-start').classList.remove('hidden');
+  document.getElementById('pomodoro-pause').classList.add('hidden');
+  document.getElementById('pomodoro-start').innerHTML = `
+    <svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20">
+      <path d="M8 5v14l11-7z"/>
+    </svg>
+    Démarrer
+  `;
+
+  updatePomodoroDisplay();
+}
+
+function pomodoroPhaseComplete() {
+  clearInterval(pomodoroTimer);
+  state.pomodoro.isRunning = false;
+
+  // Notification
+  sendNotification(
+    state.pomodoro.mode === 'work' ? 'Pause !' : 'Au travail !',
+    state.pomodoro.mode === 'work'
+      ? 'Bravo ! Prends une pause de ' + pomodoroSettings.breakDuration + ' minutes.'
+      : 'La pause est terminée. C\'est reparti !'
+  );
+
+  // Vibration
+  if (state.settings.vibration && navigator.vibrate) {
+    navigator.vibrate([200, 100, 200, 100, 200]);
+  }
+
+  // Son
+  audioGuide.playSessionEnd();
+
+  if (state.pomodoro.mode === 'work') {
+    state.pomodoro.sessionsCompleted++;
+    // Longue pause apres 4 sessions
+    if (state.pomodoro.sessionsCompleted % 4 === 0) {
+      state.pomodoro.mode = 'longBreak';
+      state.pomodoro.timeLeft = pomodoroSettings.longBreakDuration * 60;
+    } else {
+      state.pomodoro.mode = 'break';
+      state.pomodoro.timeLeft = pomodoroSettings.breakDuration * 60;
+    }
+  } else {
+    state.pomodoro.mode = 'work';
+    state.pomodoro.timeLeft = pomodoroSettings.workDuration * 60;
+  }
+
+  document.getElementById('pomodoro-start').classList.remove('hidden');
+  document.getElementById('pomodoro-pause').classList.add('hidden');
+  document.getElementById('pomodoro-start').innerHTML = `
+    <svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20">
+      <path d="M8 5v14l11-7z"/>
+    </svg>
+    ${state.pomodoro.mode === 'work' ? 'Démarrer' : 'Commencer la pause'}
+  `;
+
+  updatePomodoroDisplay();
+}
+
+function updatePomodoroDisplay() {
+  const minutes = Math.floor(state.pomodoro.timeLeft / 60);
+  const seconds = state.pomodoro.timeLeft % 60;
+
+  const timeEl = document.getElementById('pomodoro-time');
+  const modeEl = document.getElementById('pomodoro-mode');
+  const sessionsEl = document.getElementById('pomodoro-sessions');
+
+  if (timeEl) {
+    timeEl.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+  }
+
+  if (modeEl) {
+    const modeLabels = {
+      work: 'TRAVAIL',
+      break: 'PAUSE',
+      longBreak: 'LONGUE PAUSE'
+    };
+    modeEl.textContent = modeLabels[state.pomodoro.mode];
+    modeEl.className = 'pomodoro-mode' + (state.pomodoro.mode !== 'work' ? ' break' : '');
+  }
+
+  if (sessionsEl) {
+    sessionsEl.textContent = state.pomodoro.sessionsCompleted;
+  }
+}
+
+// ===== Notifications & Rappels =====
+function sendNotification(title, body) {
+  if ('Notification' in window && Notification.permission === 'granted') {
+    new Notification(title, {
+      body: body,
+      icon: 'icon-192.png',
+      badge: 'icon-192.png',
+      vibrate: [200, 100, 200]
+    });
+  }
+}
+
+function initReminders() {
+  // Demander la permission pour les notifications
+  if ('Notification' in window && Notification.permission === 'default') {
+    // On demandera quand l'utilisateur active les rappels
+  }
+
+  // Verifier les rappels toutes les minutes
+  setInterval(checkReminders, 60000);
+}
+
+function checkReminders() {
+  if (!state.reminders.enabled) return;
+
+  const now = new Date();
+  const currentTime = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+
+  if (state.reminders.times.includes(currentTime)) {
+    sendNotification(
+      'C\'est l\'heure de respirer !',
+      'Prends quelques minutes pour toi. Une session de respiration t\'attend.'
+    );
+  }
+}
+
+function updateHistoryStats() {
+  const totalEl = document.getElementById('history-total');
+  const weekEl = document.getElementById('history-week');
+  const timeEl = document.getElementById('history-time');
+
+  if (!totalEl) return;
+
+  totalEl.textContent = state.history.length;
+
+  // Sessions cette semaine
+  const oneWeekAgo = new Date();
+  oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+  const weekSessions = state.history.filter(s => new Date(s.date) > oneWeekAgo);
+  weekEl.textContent = weekSessions.length;
+
+  // Temps total en minutes
+  const totalSeconds = state.history.reduce((acc, s) => acc + s.duration, 0);
+  timeEl.textContent = Math.floor(totalSeconds / 60);
+}
+
+// ===== Historique =====
+function renderHistory() {
+  const container = document.getElementById('history-list');
+  if (!container) return;
+
+  if (state.history.length === 0) {
+    container.innerHTML = '<p class="empty-state">Aucune session enregistrée.<br>Commence ta première session de respiration !</p>';
+    return;
+  }
+
+  // Grouper par date
+  const grouped = {};
+  state.history.forEach(session => {
+    const date = new Date(session.date).toLocaleDateString('fr-FR', {
+      weekday: 'long',
+      day: 'numeric',
+      month: 'long'
+    });
+    if (!grouped[date]) grouped[date] = [];
+    grouped[date].push(session);
+  });
+
+  let html = '';
+  for (const [date, sessions] of Object.entries(grouped)) {
+    html += `<div class="history-date-group">
+      <h3 class="history-date">${date}</h3>
+      <div class="history-sessions">`;
+
+    sessions.forEach(session => {
+      const minutes = Math.floor(session.duration / 60);
+      const seconds = session.duration % 60;
+      const time = new Date(session.date).toLocaleTimeString('fr-FR', {
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+
+      const categoryColors = {
+        sinus: 'var(--neon-cyan)',
+        bronches: 'var(--neon-purple)',
+        sleep: 'var(--neon-blue)',
+        immune: 'var(--neon-green)',
+        stress: 'var(--neon-orange)',
+        focus: 'var(--neon-magenta)'
+      };
+      const color = categoryColors[session.category] || 'var(--accent)';
+
+      html += `
+        <div class="history-item" style="--category-color: ${color}">
+          <div class="history-icon" style="border-color: ${color}; color: ${color}">
+            <svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20">
+              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+            </svg>
+          </div>
+          <div class="history-info">
+            <span class="history-technique">${session.technique}</span>
+            <span class="history-meta">${time} • ${minutes}:${seconds.toString().padStart(2, '0')} • ${session.rounds} rounds</span>
+          </div>
+        </div>`;
+    });
+
+    html += '</div></div>';
+  }
+
+  container.innerHTML = html;
 }
 
 // ===== Stats & Streak =====

@@ -46,6 +46,8 @@
       <ul class="nav-list">
         <li><a href="#" data-page="home" class="nav-link active">Accueil</a></li>
         <li><a href="#" data-page="breathing" class="nav-link">Respiration</a></li>
+        <li><a href="#" data-page="pomodoro" class="nav-link">Pomodoro</a></li>
+        <li><a href="#" data-page="history" class="nav-link">Historique</a></li>
         <li><a href="#" data-page="calisthenics" class="nav-link">Calisthénie</a></li>
         <li><a href="#" data-page="settings" class="nav-link">Réglages</a></li>
       </ul>
@@ -515,6 +517,91 @@
         </div>
       </section>
 
+      <!-- Page Historique -->
+      <section id="page-history" class="page">
+        <h2 class="section-title">Historique</h2>
+        <div class="history-stats">
+          <div class="stat-card">
+            <span class="stat-value" id="history-total">0</span>
+            <span class="stat-label">Sessions totales</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-value" id="history-week">0</span>
+            <span class="stat-label">Cette semaine</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-value" id="history-time">0</span>
+            <span class="stat-label">Minutes totales</span>
+          </div>
+        </div>
+        <div id="history-list" class="history-list">
+          <p class="empty-state">Aucune session enregistrée.<br>Commence ta première session de respiration !</p>
+        </div>
+      </section>
+
+      <!-- Page Pomodoro -->
+      <section id="page-pomodoro" class="page">
+        <h2 class="section-title">Timer Pomodoro</h2>
+
+        <div class="pomodoro-container">
+          <!-- Timer display -->
+          <div class="pomodoro-timer">
+            <div class="pomodoro-mode" id="pomodoro-mode">TRAVAIL</div>
+            <div class="pomodoro-time" id="pomodoro-time">25:00</div>
+            <div class="pomodoro-sessions">
+              <span id="pomodoro-sessions">0</span>/4 sessions
+            </div>
+          </div>
+
+          <!-- Controls -->
+          <div class="pomodoro-controls">
+            <button id="pomodoro-start" class="control-btn primary">
+              <svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20">
+                <path d="M8 5v14l11-7z"/>
+              </svg>
+              Démarrer
+            </button>
+            <button id="pomodoro-pause" class="control-btn secondary hidden">
+              <svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20">
+                <path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>
+              </svg>
+              Pause
+            </button>
+            <button id="pomodoro-reset" class="control-btn danger">
+              <svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20">
+                <path d="M17.65 6.35A7.958 7.958 0 0012 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08A5.99 5.99 0 0112 18c-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/>
+              </svg>
+            </button>
+          </div>
+
+          <!-- Settings -->
+          <div class="pomodoro-settings">
+            <div class="pomodoro-setting">
+              <label>Travail</label>
+              <div class="time-input">
+                <button class="time-btn" data-action="work-minus">-</button>
+                <span id="work-duration">25</span> min
+                <button class="time-btn" data-action="work-plus">+</button>
+              </div>
+            </div>
+            <div class="pomodoro-setting">
+              <label>Pause</label>
+              <div class="time-input">
+                <button class="time-btn" data-action="break-minus">-</button>
+                <span id="break-duration">5</span> min
+                <button class="time-btn" data-action="break-plus">+</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Breathing suggestion -->
+          <div class="pomodoro-breath-tip">
+            <p>Conseil : Fais <strong>Pomodoro Prep</strong> (2min) avant de démarrer pour maximiser ta concentration !</p>
+            <button id="pomodoro-breath-btn" class="btn secondary small">Faire la respiration</button>
+          </div>
+        </div>
+      </section>
+
       <!-- Page Réglages -->
       <section id="page-settings" class="page">
         <h2 class="section-title">Réglages</h2>
@@ -586,6 +673,29 @@
             <select id="voice-select" class="voice-select">
               <option value="">Chargement des voix...</option>
             </select>
+          </div>
+
+          <div class="setting-item">
+            <div class="setting-info">
+              <span class="setting-name">Rappels quotidiens</span>
+              <span class="setting-desc">Notifications pour ne pas oublier</span>
+            </div>
+            <label class="toggle">
+              <input type="checkbox" id="reminders-toggle">
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+
+          <div id="reminders-times" class="reminders-config hidden">
+            <div class="setting-info" style="margin-bottom: 0.75rem;">
+              <span class="setting-name">Heures de rappel</span>
+              <span class="setting-desc">Ajoute ou retire des heures</span>
+            </div>
+            <div class="reminder-times-list" id="reminder-times-list"></div>
+            <div class="add-reminder">
+              <input type="time" id="new-reminder-time" value="12:00">
+              <button id="add-reminder-btn" class="btn secondary small">Ajouter</button>
+            </div>
           </div>
 
           <div class="setting-item">
