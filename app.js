@@ -1541,10 +1541,14 @@ document.addEventListener('DOMContentLoaded', () => {
   initReminders();
   initMeditation();
   initBiofeedback();
+  initPoetry();
+  initSleepTracker();
   initDashboard();
   updateStats();
   renderHistory();
   updateHistoryStats();
+  showStartupQuote();
+  updateHolisticScore();
 
   // Initialiser le systeme de particules
   particleSystem = new ParticleSystem('particles-canvas');
@@ -1684,6 +1688,7 @@ function navigateTo(pageName) {
       biofeedback: 'Biofeedback',
       pomodoro: 'Pomodoro',
       history: 'Historique',
+      poetry: 'Poésie',
       calisthenics: 'Calisthénie',
       settings: 'Réglages'
     };
@@ -5274,6 +5279,496 @@ function saveDashboardData() {
     globalStreak: dashboardState.globalStreak
   }));
 }
+
+// ===== Citations & Poésie =====
+const inspirationalQuotes = [
+  { text: "La respiration est le pont qui relie la vie à la conscience, qui unit le corps à vos pensées.", author: "Thich Nhat Hanh" },
+  { text: "Inspirer le futur, expirer le passé.", author: "Proverbe Zen" },
+  { text: "Le calme est la clé de toute réponse créatrice.", author: "Deepak Chopra" },
+  { text: "Le souffle est le roi de l'esprit.", author: "B.K.S. Iyengar" },
+  { text: "Dans le moment présent, il n'y a pas de problème.", author: "Eckhart Tolle" },
+  { text: "Le silence est l'élément dans lequel se forment les grandes choses.", author: "Thomas Carlyle" },
+  { text: "La paix vient de l'intérieur. Ne la cherchez pas à l'extérieur.", author: "Bouddha" },
+  { text: "Chaque matin nous naissons de nouveau. Ce que nous faisons aujourd'hui est ce qui compte le plus.", author: "Bouddha" },
+  { text: "Le plus grand voyageur n'est pas celui qui a fait dix fois le tour du monde, mais celui qui a fait une seule fois le tour de lui-même.", author: "Gandhi" },
+  { text: "Là où tu te trouves, creuse profondément ! En-dessous, c'est la source !", author: "Nietzsche" },
+  { text: "Ce n'est pas la montagne que nous conquérons mais nous-mêmes.", author: "Edmund Hillary" },
+  { text: "Le bonheur n'est pas quelque chose de tout fait. Il vient de vos propres actions.", author: "Dalaï Lama" },
+  { text: "L'âme se teint de la couleur de ses pensées.", author: "Marc Aurèle" },
+  { text: "La plus grande gloire n'est pas de ne jamais tomber, mais de se relever à chaque chute.", author: "Confucius" },
+  { text: "On ne peut pas arrêter les vagues, mais on peut apprendre à surfer.", author: "Jon Kabat-Zinn" }
+];
+
+const poems = [
+  {
+    title: "Invictus",
+    author: "William Ernest Henley",
+    icon: "⚔️",
+    text: `Dans les ténèbres qui m'enserrent,
+Noires comme un puits où l'on se noie,
+Je rends grâce aux dieux quels qu'ils soient
+Pour mon âme inconquérable.
+
+Dans de cruelles circonstances,
+Je n'ai ni gémi ni pleuré.
+Meurtri par cette existence,
+Je suis debout bien que blessé.
+
+En ce lieu de colère et de pleurs,
+Se profile l'ombre de la mort.
+Je ne sais ce que me réserve le sort,
+Mais je suis et je reste sans peur.
+
+Aussi étroit soit le chemin,
+Nombreux les châtiments infâmes,
+Je suis le maître de mon destin,
+Je suis le capitaine de mon âme.`
+  },
+  {
+    title: "Si...",
+    author: "Rudyard Kipling",
+    icon: "🌟",
+    text: `Si tu peux voir détruit l'ouvrage de ta vie
+Et sans dire un seul mot te mettre à rebâtir,
+Ou perdre en un seul coup le gain de cent parties
+Sans un geste et sans un soupir ;
+
+Si tu peux être amant sans être fou d'amour,
+Si tu peux être fort sans cesser d'être tendre,
+Et, te sentant haï, sans haïr à ton tour,
+Pourtant lutter et te défendre ;
+
+Si tu peux rencontrer Triomphe après Défaite
+Et recevoir ces deux menteurs d'un même front,
+Si tu peux conserver ton courage et ta tête
+Quand tous les autres les perdront,
+
+Alors les Rois, les Dieux, la Chance et la Victoire
+Seront à tout jamais tes esclaves soumis,
+Et, ce qui vaut mieux que les Rois et la Gloire,
+Tu seras un homme, mon fils.`
+  },
+  {
+    title: "L'homme qui voulait",
+    author: "Edgar A. Guest",
+    icon: "🔥",
+    text: `Il y avait une fois un homme qui disait :
+"Je ne peux pas" et ne faisait jamais.
+Il y avait aussi un homme qui disait :
+"Je peux" et toujours il essayait.
+
+L'un s'arrêtait devant chaque colline,
+L'autre en faisait un tremplin.
+L'un voyait en tout une ruine,
+L'autre un nouveau chemin.
+
+L'un trouvait mille raisons de faillir,
+L'autre en trouvait une pour réussir.
+L'un craignait de faire erreur,
+L'autre apprenait de chaque douleur.
+
+Et quand la vie leur sourit enfin,
+Ce fut le courage qui traça leur destin.
+Car la seule différence entre les deux
+Fut celui qui croyait en ses vœux.`
+  },
+  {
+    title: "Le Lac",
+    author: "Alphonse de Lamartine",
+    icon: "🌊",
+    text: `Ô temps ! suspends ton vol, et vous, heures propices !
+Suspendez votre cours :
+Laissez-nous savourer les rapides délices
+Des plus beaux de nos jours !
+
+Assez de malheureux ici-bas vous implorent,
+Coulez, coulez pour eux ;
+Prenez avec leurs jours les soins qui les dévorent ;
+Oubliez les heureux.
+
+Mais je demande en vain quelques moments encore,
+Le temps m'échappe et fuit ;
+Je dis à cette nuit : Sois plus lente ; et l'aurore
+Va dissiper la nuit.
+
+Aimons donc, aimons donc ! de l'heure fugitive,
+Hâtons-nous, jouissons !
+L'homme n'a point de port, le temps n'a point de rive ;
+Il coule, et nous passons !`
+  },
+  {
+    title: "Desiderata",
+    author: "Max Ehrmann",
+    icon: "🕊️",
+    text: `Va paisiblement ton chemin à travers le bruit
+et la hâte, et souviens-toi de la paix
+qui peut exister dans le silence.
+
+Sans te renier, sois en bons termes avec tous.
+Exprime ta vérité calmement et clairement.
+Écoute les autres, même les plus ennuyeux :
+eux aussi ont quelque chose à dire.
+
+Si tu te compares aux autres,
+tu risques de devenir orgueilleux ou amer,
+car il y aura toujours quelqu'un
+de plus grand ou de moins grand que toi.
+
+Sois toi-même. Surtout, ne feins pas l'amitié.
+N'aborde pas non plus l'amour avec cynisme,
+car malgré les vicissitudes,
+il est aussi vivace que le brin d'herbe.
+
+Et quoi que tu en penses,
+le monde progresse comme il doit.
+Sois en paix avec Dieu, quelle que soit l'idée
+que tu te fais de Lui.
+
+Tu es un enfant de l'univers,
+tu as le droit d'être ici.
+Et que cela te soit clair ou non,
+l'univers se déploie comme il le doit.`
+  }
+];
+
+// État pour le sommeil et le score holistic
+const sleepState = {
+  bedtime: null,
+  wakeup: null,
+  quality: null,
+  date: null
+};
+
+function showStartupQuote() {
+  const modal = document.getElementById('startup-quote-modal');
+  const quoteText = document.getElementById('startup-quote-text');
+  const quoteAuthor = document.getElementById('startup-quote-author');
+  const closeBtn = document.getElementById('close-startup-quote');
+
+  if (!modal || !quoteText || !quoteAuthor) return;
+
+  // Vérifier si déjà affiché aujourd'hui
+  const today = new Date().toDateString();
+  const lastShown = localStorage.getItem('lastQuoteDate');
+
+  if (lastShown === today) {
+    modal.classList.add('hidden');
+    return;
+  }
+
+  // Sélectionner une citation aléatoire
+  const quote = inspirationalQuotes[Math.floor(Math.random() * inspirationalQuotes.length)];
+  quoteText.textContent = quote.text;
+  quoteAuthor.textContent = '— ' + quote.author;
+
+  modal.classList.remove('hidden');
+
+  closeBtn.addEventListener('click', () => {
+    modal.classList.add('hidden');
+    localStorage.setItem('lastQuoteDate', today);
+  });
+}
+
+function initPoetry() {
+  renderPoetryPage();
+
+  const refreshBtn = document.getElementById('refresh-quote-btn');
+  if (refreshBtn) {
+    refreshBtn.addEventListener('click', () => {
+      const quote = inspirationalQuotes[Math.floor(Math.random() * inspirationalQuotes.length)];
+      document.getElementById('poetry-quote-text').textContent = quote.text;
+      document.getElementById('poetry-quote-author').textContent = '— ' + quote.author;
+    });
+  }
+
+  const closeReader = document.getElementById('close-poem-reader');
+  if (closeReader) {
+    closeReader.addEventListener('click', () => {
+      document.getElementById('poem-reader').classList.add('hidden');
+    });
+  }
+}
+
+function renderPoetryPage() {
+  // Citation du jour
+  const quote = inspirationalQuotes[Math.floor(Math.random() * inspirationalQuotes.length)];
+  const quoteText = document.getElementById('poetry-quote-text');
+  const quoteAuthor = document.getElementById('poetry-quote-author');
+  if (quoteText) quoteText.textContent = quote.text;
+  if (quoteAuthor) quoteAuthor.textContent = '— ' + quote.author;
+
+  // Liste des poèmes
+  const poemsList = document.getElementById('poems-list');
+  if (!poemsList) return;
+
+  poemsList.innerHTML = poems.map((poem, index) => `
+    <div class="poem-card" data-poem-index="${index}">
+      <span class="poem-card-icon">${poem.icon}</span>
+      <div class="poem-card-info">
+        <span class="poem-card-title">${poem.title}</span>
+        <span class="poem-card-author">${poem.author}</span>
+      </div>
+      <span class="poem-card-arrow">→</span>
+    </div>
+  `).join('');
+
+  // Event listeners
+  poemsList.querySelectorAll('.poem-card').forEach(card => {
+    card.addEventListener('click', () => {
+      const index = parseInt(card.dataset.poemIndex);
+      openPoemReader(poems[index]);
+    });
+  });
+}
+
+function openPoemReader(poem) {
+  const reader = document.getElementById('poem-reader');
+  const title = document.getElementById('poem-reader-title');
+  const author = document.getElementById('poem-reader-author');
+  const text = document.getElementById('poem-reader-text');
+
+  if (!reader) return;
+
+  title.textContent = poem.title;
+  author.textContent = poem.author;
+  text.textContent = poem.text;
+
+  reader.classList.remove('hidden');
+}
+
+// ===== Sleep Tracker =====
+function initSleepTracker() {
+  loadSleepData();
+  updateSleepDisplay();
+
+  const editBtn = document.getElementById('edit-sleep-btn');
+  const modal = document.getElementById('sleep-modal');
+  const closeBtn = document.getElementById('close-sleep-modal');
+  const saveBtn = document.getElementById('save-sleep-btn');
+  const qualityBtns = document.querySelectorAll('.quality-btn');
+
+  if (editBtn) {
+    editBtn.addEventListener('click', () => {
+      modal.classList.remove('hidden');
+      // Pré-remplir avec les valeurs actuelles
+      if (sleepState.bedtime) {
+        document.getElementById('sleep-bedtime').value = sleepState.bedtime;
+      }
+      if (sleepState.wakeup) {
+        document.getElementById('sleep-wakeup').value = sleepState.wakeup;
+      }
+      if (sleepState.quality) {
+        qualityBtns.forEach(btn => {
+          btn.classList.toggle('active', parseInt(btn.dataset.quality) === sleepState.quality);
+        });
+      }
+    });
+  }
+
+  if (closeBtn) {
+    closeBtn.addEventListener('click', () => {
+      modal.classList.add('hidden');
+    });
+  }
+
+  qualityBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      qualityBtns.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+    });
+  });
+
+  if (saveBtn) {
+    saveBtn.addEventListener('click', saveSleepData);
+  }
+}
+
+function loadSleepData() {
+  const today = new Date().toDateString();
+  const saved = localStorage.getItem('breathflow_sleep');
+
+  if (saved) {
+    const data = JSON.parse(saved);
+    if (data.date === today) {
+      sleepState.bedtime = data.bedtime;
+      sleepState.wakeup = data.wakeup;
+      sleepState.quality = data.quality;
+      sleepState.date = data.date;
+    }
+  }
+}
+
+function saveSleepData() {
+  const bedtime = document.getElementById('sleep-bedtime').value;
+  const wakeup = document.getElementById('sleep-wakeup').value;
+  const qualityBtn = document.querySelector('.quality-btn.active');
+  const quality = qualityBtn ? parseInt(qualityBtn.dataset.quality) : 3;
+
+  sleepState.bedtime = bedtime;
+  sleepState.wakeup = wakeup;
+  sleepState.quality = quality;
+  sleepState.date = new Date().toDateString();
+
+  localStorage.setItem('breathflow_sleep', JSON.stringify(sleepState));
+
+  document.getElementById('sleep-modal').classList.add('hidden');
+  updateSleepDisplay();
+  updateHolisticScore();
+}
+
+function updateSleepDisplay() {
+  const durationEl = document.getElementById('sleep-duration');
+  const qualityEl = document.getElementById('sleep-quality-display');
+  const rangeEl = document.getElementById('sleep-time-range');
+
+  if (!sleepState.bedtime || !sleepState.wakeup) {
+    if (durationEl) durationEl.textContent = '--';
+    if (qualityEl) qualityEl.textContent = '--';
+    if (rangeEl) rangeEl.textContent = '--';
+    return;
+  }
+
+  // Calculer la durée
+  const [bedH, bedM] = sleepState.bedtime.split(':').map(Number);
+  const [wakeH, wakeM] = sleepState.wakeup.split(':').map(Number);
+
+  let bedMinutes = bedH * 60 + bedM;
+  let wakeMinutes = wakeH * 60 + wakeM;
+
+  if (wakeMinutes < bedMinutes) {
+    wakeMinutes += 24 * 60; // Nuit passée
+  }
+
+  const durationMinutes = wakeMinutes - bedMinutes;
+  const hours = Math.floor(durationMinutes / 60);
+  const mins = durationMinutes % 60;
+
+  if (durationEl) durationEl.textContent = hours + 'h' + (mins > 0 ? mins.toString().padStart(2, '0') : '');
+
+  // Qualité
+  const qualityEmojis = ['', '😫', '😕', '😐', '🙂', '😴'];
+  if (qualityEl) qualityEl.textContent = qualityEmojis[sleepState.quality] || '--';
+
+  // Plage horaire
+  if (rangeEl) rangeEl.textContent = sleepState.bedtime + '-' + sleepState.wakeup;
+}
+
+// ===== Score Holistic =====
+function updateHolisticScore() {
+  const today = new Date().toDateString();
+
+  // Score Sommeil (0-100)
+  let sleepScore = 0;
+  if (sleepState.bedtime && sleepState.wakeup && sleepState.date === today) {
+    const [bedH, bedM] = sleepState.bedtime.split(':').map(Number);
+    const [wakeH, wakeM] = sleepState.wakeup.split(':').map(Number);
+    let bedMinutes = bedH * 60 + bedM;
+    let wakeMinutes = wakeH * 60 + wakeM;
+    if (wakeMinutes < bedMinutes) wakeMinutes += 24 * 60;
+    const durationHours = (wakeMinutes - bedMinutes) / 60;
+
+    // Score basé sur durée (7-9h optimal)
+    if (durationHours >= 7 && durationHours <= 9) {
+      sleepScore = 80;
+    } else if (durationHours >= 6 && durationHours <= 10) {
+      sleepScore = 60;
+    } else {
+      sleepScore = 30;
+    }
+
+    // Bonus qualité
+    sleepScore += (sleepState.quality - 3) * 10;
+
+    // Bonus coucher tôt (avant 23h)
+    if (bedH < 23 || (bedH === 23 && bedM === 0)) {
+      sleepScore += 10;
+    }
+
+    sleepScore = Math.max(0, Math.min(100, sleepScore));
+  }
+
+  // Score Habitudes (basé sur les checkboxes du dashboard)
+  let habitsCompleted = 0;
+  const totalHabits = 9;
+  document.querySelectorAll('.habit-item input[type="checkbox"]').forEach(cb => {
+    if (cb.checked) habitsCompleted++;
+  });
+  const habitsScore = Math.round((habitsCompleted / totalHabits) * 100);
+
+  // Score Corps (douche froide + calisthenics + respiration)
+  let bodyScore = 0;
+  if (document.getElementById('habit-coldshower')?.checked) bodyScore += 35;
+  if (document.getElementById('habit-calisthenics')?.checked) bodyScore += 35;
+  if (document.getElementById('habit-breathing')?.checked) bodyScore += 30;
+
+  // Score Mental (méditation + lecture + gratitude)
+  let mindScore = 0;
+  if (document.getElementById('habit-meditation')?.checked) mindScore += 35;
+  if (document.getElementById('habit-reading')?.checked) mindScore += 35;
+  if (document.getElementById('habit-gratitude')?.checked) mindScore += 30;
+
+  // Score global (moyenne pondérée)
+  const weights = { sleep: 0.3, habits: 0.25, body: 0.25, mind: 0.2 };
+  const globalScore = Math.round(
+    sleepScore * weights.sleep +
+    habitsScore * weights.habits +
+    bodyScore * weights.body +
+    mindScore * weights.mind
+  );
+
+  // Mettre à jour l'UI
+  const scoreEl = document.getElementById('holistic-score');
+  const sleepEl = document.getElementById('holistic-sleep');
+  const habitsEl = document.getElementById('holistic-habits');
+  const bodyEl = document.getElementById('holistic-body');
+  const mindEl = document.getElementById('holistic-mind');
+  const ringEl = document.getElementById('holistic-progress-ring');
+  const insightEl = document.getElementById('holistic-insight');
+
+  if (scoreEl) scoreEl.textContent = globalScore || '--';
+  if (sleepEl) sleepEl.textContent = sleepScore || '--';
+  if (habitsEl) habitsEl.textContent = habitsScore;
+  if (bodyEl) bodyEl.textContent = bodyScore;
+  if (mindEl) mindEl.textContent = mindScore;
+
+  // Animer le cercle
+  if (ringEl) {
+    const circumference = 283; // 2 * PI * 45
+    const offset = circumference - (globalScore / 100) * circumference;
+    ringEl.style.strokeDashoffset = offset;
+  }
+
+  // Message insight
+  if (insightEl) {
+    if (globalScore >= 80) {
+      insightEl.textContent = "🔥 Excellente journée ! Tu es au top de ta forme.";
+    } else if (globalScore >= 60) {
+      insightEl.textContent = "👍 Bonne progression ! Continue comme ça.";
+    } else if (globalScore >= 40) {
+      insightEl.textContent = "💪 Pas mal ! Quelques habitudes de plus et tu y es.";
+    } else if (globalScore > 0) {
+      insightEl.textContent = "🌱 C'est un début. Chaque petit pas compte !";
+    } else {
+      insightEl.textContent = "Complète tes activités pour voir ton score !";
+    }
+  }
+
+  // Sauvegarder le score
+  localStorage.setItem('breathflow_holistic_' + today, JSON.stringify({
+    global: globalScore,
+    sleep: sleepScore,
+    habits: habitsScore,
+    body: bodyScore,
+    mind: mindScore
+  }));
+}
+
+// Mettre à jour le score holistic quand une habitude change
+document.addEventListener('change', (e) => {
+  if (e.target.closest('.habit-item')) {
+    setTimeout(updateHolisticScore, 100);
+  }
+});
 
 // ===== Biofeedback Cardiaque (PPG) =====
 const biofeedbackState = {
