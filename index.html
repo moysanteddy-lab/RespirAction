@@ -10,7 +10,7 @@
   <link rel="manifest" href="manifest.json">
   <link rel="icon" type="image/png" href="icon-192.png">
   <link rel="apple-touch-icon" href="icon-192.png">
-  <title>BreathFlow</title>
+  <title>Respir'Action</title>
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -24,7 +24,7 @@
           <line x1="3" y1="18" x2="21" y2="18"></line>
         </svg>
       </button>
-      <h1 id="page-title">BreathFlow</h1>
+      <h1 id="page-title" style="cursor: pointer;">Respir'Action</h1>
       <button id="theme-btn" class="icon-btn" aria-label="Thème">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <circle cx="12" cy="12" r="5"></circle>
@@ -50,6 +50,7 @@
         <li><a href="#" data-page="breathing" class="nav-link">Respiration</a></li>
         <li><a href="#" data-page="coldshower" class="nav-link">Douche Froide</a></li>
         <li><a href="#" data-page="meditation" class="nav-link">Méditation</a></li>
+        <li><a href="#" data-page="biofeedback" class="nav-link">Biofeedback</a></li>
         <li><a href="#" data-page="pomodoro" class="nav-link">Pomodoro</a></li>
         <li><a href="#" data-page="history" class="nav-link">Historique</a></li>
         <li><a href="#" data-page="calisthenics" class="nav-link">Calisthénie</a></li>
@@ -101,6 +102,16 @@
               </svg>
             </div>
             <span>Méditation</span>
+          </button>
+
+          <button class="home-card" data-goto="biofeedback">
+            <div class="card-icon biofeedback-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"></path>
+                <path d="M3 12h4l2-4 4 8 2-4h6"></path>
+              </svg>
+            </div>
+            <span>Biofeedback</span>
           </button>
 
           <button class="home-card" data-goto="calisthenics">
@@ -651,8 +662,11 @@
             </div>
           </div>
 
-          <!-- Contrôles -->
-          <div class="session-controls">
+          <!-- Texte d'aide cercle -->
+          <div id="breath-circle-hint" class="circle-hint">Appuie sur le cercle pour commencer</div>
+
+          <!-- Contrôles (masqués - interaction via cercle) -->
+          <div class="session-controls" style="display: none;">
             <button id="start-btn" class="control-btn primary">
               <svg viewBox="0 0 24 24" fill="currentColor">
                 <path d="M8 5v14l11-7z"/>
@@ -975,8 +989,11 @@
             </div>
           </div>
 
-          <!-- Contrôles -->
-          <div class="coldshower-controls">
+          <!-- Texte d'aide cercle -->
+          <div id="cold-circle-hint" class="circle-hint">Appuie sur le cercle pour commencer</div>
+
+          <!-- Contrôles (masqués - interaction via cercle) -->
+          <div class="coldshower-controls" style="display: none;">
             <button id="cold-start-btn" class="control-btn primary">
               <svg viewBox="0 0 24 24" fill="currentColor" width="24" height="24">
                 <path d="M8 5v14l11-7z"/>
@@ -1129,8 +1146,11 @@
             </div>
           </div>
 
-          <!-- Contrôles -->
-          <div class="meditation-controls">
+          <!-- Texte d'aide cercle -->
+          <div id="meditation-circle-hint" class="circle-hint">Appuie sur le cercle pour commencer</div>
+
+          <!-- Contrôles (masqués - interaction via cercle) -->
+          <div class="meditation-controls" style="display: none;">
             <button id="meditation-start-btn" class="control-btn primary">
               <svg viewBox="0 0 24 24" fill="currentColor">
                 <path d="M8 5v14l11-7z"/>
@@ -1149,6 +1169,141 @@
               </svg>
               Arrêter
             </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- Page Biofeedback -->
+      <section id="page-biofeedback" class="page">
+        <h2 class="section-title">Biofeedback Cardiaque</h2>
+
+        <div class="biofeedback-intro">
+          <div class="bio-intro-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"></path>
+              <path d="M3 12h4l2-4 4 8 2-4h6"></path>
+            </svg>
+          </div>
+          <p>Mesure ton rythme cardiaque et ta cohérence en temps réel via la caméra de ton téléphone.</p>
+        </div>
+
+        <!-- Instructions -->
+        <div class="bio-instructions" id="bio-instructions">
+          <h3>Comment ça marche ?</h3>
+          <ol>
+            <li>Pose ton <strong>doigt</strong> sur la caméra arrière</li>
+            <li>Couvre bien toute la lentille (+ flash si dispo)</li>
+            <li>Reste <strong>immobile</strong> pendant la mesure</li>
+            <li>Attends 10-15 secondes pour les premières données</li>
+          </ol>
+          <button id="start-biofeedback" class="btn primary">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:20px;height:20px;margin-right:8px;">
+              <path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"></path>
+              <circle cx="12" cy="13" r="4"></circle>
+            </svg>
+            Démarrer la mesure
+          </button>
+        </div>
+
+        <!-- Session de mesure -->
+        <div id="bio-session" class="bio-session hidden">
+          <!-- Aperçu caméra (petit) -->
+          <div class="bio-camera-container">
+            <video id="bio-video" autoplay playsinline muted></video>
+            <canvas id="bio-canvas" class="hidden"></canvas>
+            <div class="bio-camera-overlay" id="bio-camera-status">
+              <span class="pulse-dot"></span>
+              <span>Analyse en cours...</span>
+            </div>
+          </div>
+
+          <!-- Métriques principales -->
+          <div class="bio-metrics">
+            <div class="bio-metric-card bpm-card">
+              <div class="metric-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"></path>
+                </svg>
+              </div>
+              <div class="metric-value" id="bio-bpm">--</div>
+              <div class="metric-label">BPM</div>
+            </div>
+
+            <div class="bio-metric-card coherence-card">
+              <div class="metric-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M22 12h-4l-3 9L9 3l-3 9H2"></path>
+                </svg>
+              </div>
+              <div class="metric-value" id="bio-coherence">--</div>
+              <div class="metric-label">Cohérence</div>
+            </div>
+
+            <div class="bio-metric-card hrv-card">
+              <div class="metric-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M3 3v18h18"></path>
+                  <path d="M18 9l-5 5-4-4-3 3"></path>
+                </svg>
+              </div>
+              <div class="metric-value" id="bio-hrv">--</div>
+              <div class="metric-label">HRV (ms)</div>
+            </div>
+          </div>
+
+          <!-- Graphique du signal -->
+          <div class="bio-graph-container">
+            <canvas id="bio-graph" width="350" height="120"></canvas>
+            <div class="bio-graph-label">Signal PPG (variations de lumière)</div>
+          </div>
+
+          <!-- Indicateur de cohérence visuel -->
+          <div class="bio-coherence-visual">
+            <div class="coherence-bar-container">
+              <div class="coherence-zone low">Stress</div>
+              <div class="coherence-zone medium">Neutre</div>
+              <div class="coherence-zone high">Cohérence</div>
+            </div>
+            <div class="coherence-indicator" id="bio-coherence-indicator"></div>
+          </div>
+
+          <!-- Mode respiration guidée -->
+          <div class="bio-breathing-guide">
+            <label class="bio-toggle-option">
+              <input type="checkbox" id="bio-breathing-sync">
+              <span class="toggle-slider"></span>
+              <span>Respiration guidée (cohérence cardiaque 5s/5s)</span>
+            </label>
+            <div id="bio-breathing-circle" class="bio-breathing-circle hidden">
+              <div class="bio-breath-instruction" id="bio-breath-instruction">Inspire</div>
+            </div>
+          </div>
+
+          <!-- Contrôles -->
+          <div class="bio-controls">
+            <button id="stop-biofeedback" class="btn danger">
+              Arrêter
+            </button>
+          </div>
+
+          <!-- Résumé de session -->
+          <div id="bio-summary" class="bio-summary hidden">
+            <h3>Résumé de la session</h3>
+            <div class="bio-summary-stats">
+              <div class="summary-stat">
+                <span class="summary-value" id="summary-avg-bpm">--</span>
+                <span class="summary-label">BPM moyen</span>
+              </div>
+              <div class="summary-stat">
+                <span class="summary-value" id="summary-avg-coherence">--</span>
+                <span class="summary-label">Cohérence moy.</span>
+              </div>
+              <div class="summary-stat">
+                <span class="summary-value" id="summary-duration">--</span>
+                <span class="summary-label">Durée</span>
+              </div>
+            </div>
+            <button id="bio-new-session" class="btn primary">Nouvelle session</button>
           </div>
         </div>
       </section>
@@ -1200,6 +1355,19 @@
               <input type="checkbox" id="audio-guide-toggle" checked>
               <span class="toggle-slider"></span>
             </label>
+          </div>
+
+          <div class="setting-item">
+            <div class="setting-info">
+              <span class="setting-name">Type de sons respiratoires</span>
+              <span class="setting-desc">Choisir le style des sons</span>
+            </div>
+            <select id="breath-sound-type" class="voice-select">
+              <option value="synth">Synthétiques (actuels)</option>
+              <option value="wind">Naturels - Vent</option>
+              <option value="waves">Naturels - Vagues</option>
+              <option value="breath">Naturels - Souffle humain</option>
+            </select>
           </div>
 
           <div class="setting-item">
@@ -1290,7 +1458,7 @@
         </div>
 
         <div class="app-info">
-          <p>BreathFlow v1.0</p>
+          <p>Respir'Action v1.0</p>
           <p class="muted">Respiration guidée & Journal Calisthénie</p>
         </div>
       </section>

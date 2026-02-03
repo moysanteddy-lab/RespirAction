@@ -1,6 +1,6 @@
 {
-  "name": "BreathFlow",
-  "short_name": "BreathFlow",
+  "name": "Respir'Action",
+  "short_name": "Respir'Action",
   "description": "Respiration guidée & Journal Calisthénie",
   "start_url": "/",
   "display": "standalone",

@@ -10,6 +10,7 @@ const state = {
     vibration: true,
     sounds: true,
     audioGuide: true,
+    breathSoundType: 'synth',  // 'synth' ou 'natural'
     voiceGuide: false,
     voiceLang: 'fr'  // Langue du guidage vocal
   },
@@ -316,14 +317,33 @@ const techniques = {
   }
 };
 
+// ===== URLs des sons naturels (archive.org) =====
+const naturalSounds = {
+  wind: {
+    url: 'https://archive.org/download/GOLD_TAPE_55_56_Weather-Wind/G56-29-Light%20Wind.mp3',
+    buffer: null
+  },
+  waves: {
+    url: 'https://archive.org/download/WaveSoundEffects/oceanwave.mp3',
+    buffer: null
+  },
+  breath: {
+    url: 'https://archive.org/download/va-deep-meditation-50-tracks-healing-sounds-of-nature-2016/26.%20Rebirth%20Yoga%20Music%20Academy%20-%20Breathe%20In%20%26%20Breathe%20Out.mp3',
+    buffer: null
+  }
+};
+
 // ===== Systeme Audio Guide =====
 class AudioGuide {
   constructor() {
     this.audioCtx = null;
     this.isEnabled = true;
     this.voiceEnabled = false;
+    this.soundType = 'synth'; // 'synth', 'wind', 'waves', 'breath'
     this.currentOscillator = null;
     this.currentGain = null;
+    this.currentAudioSource = null;
+    this.soundsLoaded = false;
   }
 
   init() {
@@ -333,6 +353,84 @@ class AudioGuide {
     if (this.audioCtx.state === 'suspended') {
       this.audioCtx.resume();
     }
+    // Charger les sons naturels si pas déjà fait
+    if (!this.soundsLoaded) {
+      this.loadNaturalSounds();
+    }
+  }
+
+  // Charger les sons naturels depuis archive.org
+  async loadNaturalSounds() {
+    if (this.soundsLoaded) return;
+
+    for (const [key, sound] of Object.entries(naturalSounds)) {
+      try {
+        const response = await fetch(sound.url);
+        const arrayBuffer = await response.arrayBuffer();
+        sound.buffer = await this.audioCtx.decodeAudioData(arrayBuffer);
+        console.log(`Son "${key}" chargé avec succès`);
+      } catch (e) {
+        console.warn(`Impossible de charger le son "${key}":`, e);
+      }
+    }
+    this.soundsLoaded = true;
+  }
+
+  // Jouer un son naturel avec adaptation à la durée et intensité
+  playNaturalSound(type, duration, intensity = 'normal', isInhale = true) {
+    const sound = naturalSounds[type];
+    if (!sound || !sound.buffer) {
+      console.warn(`Son "${type}" non disponible, fallback synthétique`);
+      return false;
+    }
+
+    const ctx = this.audioCtx;
+    const now = ctx.currentTime;
+
+    // Créer la source
+    const source = ctx.createBufferSource();
+    source.buffer = sound.buffer;
+    source.loop = true; // Boucle pour adapter à la durée
+
+    // Créer les nodes
+    const gainNode = ctx.createGain();
+    const filter = ctx.createBiquadFilter();
+
+    // Configurer selon intensité
+    const maxGain = intensity === 'strong' ? 0.7 : (intensity === 'gentle' ? 0.25 : 0.45);
+
+    // Configurer le filtre selon inhale/exhale
+    filter.type = 'lowpass';
+    if (isInhale) {
+      // Inspiration : fréquence qui monte, volume qui monte
+      filter.frequency.setValueAtTime(400, now);
+      filter.frequency.linearRampToValueAtTime(2000, now + duration);
+      gainNode.gain.setValueAtTime(0.01, now);
+      gainNode.gain.linearRampToValueAtTime(maxGain, now + duration * 0.4);
+      gainNode.gain.setValueAtTime(maxGain, now + duration * 0.7);
+      gainNode.gain.linearRampToValueAtTime(0.01, now + duration);
+    } else {
+      // Expiration : fréquence qui descend, volume qui descend
+      filter.frequency.setValueAtTime(2000, now);
+      filter.frequency.linearRampToValueAtTime(400, now + duration);
+      gainNode.gain.setValueAtTime(maxGain, now);
+      gainNode.gain.setValueAtTime(maxGain * 0.8, now + duration * 0.3);
+      gainNode.gain.linearRampToValueAtTime(0.01, now + duration);
+    }
+
+    // Connecter
+    source.connect(filter);
+    filter.connect(gainNode);
+    gainNode.connect(ctx.destination);
+
+    // Jouer
+    source.start(now);
+    source.stop(now + duration);
+
+    this.currentAudioSource = source;
+    this.currentGain = gainNode;
+
+    return true;
   }
 
   // Son d'inspiration - tonalite montante douce
@@ -344,14 +442,32 @@ class AudioGuide {
     const ctx = this.audioCtx;
     const now = ctx.currentTime;
 
-    // Oscillateur principal (bruit filtre pour effet de souffle)
+    // Sons naturels (vent, vagues, souffle)
+    if (['wind', 'waves', 'breath'].includes(this.soundType)) {
+      const played = this.playNaturalSound(this.soundType, duration, intensity, true);
+      if (!played) {
+        // Fallback vers synthétique si le son n'est pas chargé
+        this.playSynthInhale(duration, throughNose, intensity);
+      }
+    } else {
+      // Sons synthétiques (actuels)
+      this.playSynthInhale(duration, throughNose, intensity);
+    }
+
+    // Voix optionnelle
+    this.playVoiceInstruction(throughNose ? 'inhaleNose' : 'inhaleMouth');
+  }
+
+  // Son synthétique d'inspiration
+  playSynthInhale(duration, throughNose, intensity) {
+    const ctx = this.audioCtx;
+    const now = ctx.currentTime;
+
     const oscillator = ctx.createOscillator();
     const gainNode = ctx.createGain();
     const filter = ctx.createBiquadFilter();
 
-    // Son different selon nez ou bouche
     if (throughNose) {
-      // Nez: son plus aigu, plus "sifflant"
       oscillator.type = 'sine';
       oscillator.frequency.setValueAtTime(280, now);
       oscillator.frequency.linearRampToValueAtTime(420, now + duration);
@@ -359,7 +475,6 @@ class AudioGuide {
       filter.frequency.value = 800;
       filter.Q.value = 2;
     } else {
-      // Bouche: son plus grave, plus "ouvert"
       oscillator.type = 'triangle';
       oscillator.frequency.setValueAtTime(180, now);
       oscillator.frequency.linearRampToValueAtTime(320, now + duration);
@@ -367,10 +482,8 @@ class AudioGuide {
       filter.frequency.value = 600;
     }
 
-    // Intensite selon le type
     const maxGain = intensity === 'strong' ? 0.25 : 0.12;
 
-    // Envelope montante (inspire = son qui monte en volume)
     gainNode.gain.setValueAtTime(0.01, now);
     gainNode.gain.linearRampToValueAtTime(maxGain, now + duration * 0.3);
     gainNode.gain.linearRampToValueAtTime(maxGain * 0.7, now + duration * 0.8);
@@ -385,9 +498,6 @@ class AudioGuide {
 
     this.currentOscillator = oscillator;
     this.currentGain = gainNode;
-
-    // Voix optionnelle
-    this.playVoiceInstruction(throughNose ? 'inhaleNose' : 'inhaleMouth');
   }
 
   // Son d'expiration - tonalite descendante
@@ -396,6 +506,24 @@ class AudioGuide {
     this.init();
     this.stopCurrent();
 
+    // Sons naturels (vent, vagues, souffle)
+    if (['wind', 'waves', 'breath'].includes(this.soundType)) {
+      const played = this.playNaturalSound(this.soundType, duration, intensity, false);
+      if (!played) {
+        // Fallback vers synthétique si le son n'est pas chargé
+        this.playSynthExhale(duration, throughNose, intensity);
+      }
+    } else {
+      // Sons synthétiques (actuels)
+      this.playSynthExhale(duration, throughNose, intensity);
+    }
+
+    // Voix optionnelle
+    this.playVoiceInstruction(throughNose ? 'exhaleNose' : 'exhaleMouth');
+  }
+
+  // Son synthétique d'expiration
+  playSynthExhale(duration, throughNose, intensity) {
     const ctx = this.audioCtx;
     const now = ctx.currentTime;
 
@@ -404,7 +532,6 @@ class AudioGuide {
     const filter = ctx.createBiquadFilter();
 
     if (throughNose) {
-      // Nez: son descendant doux
       oscillator.type = 'sine';
       oscillator.frequency.setValueAtTime(380, now);
       oscillator.frequency.linearRampToValueAtTime(220, now + duration);
@@ -412,7 +539,6 @@ class AudioGuide {
       filter.frequency.value = 600;
       filter.Q.value = 1.5;
     } else {
-      // Bouche: "whoosh" descendant plus prononce
       oscillator.type = 'sawtooth';
       oscillator.frequency.setValueAtTime(300, now);
       oscillator.frequency.exponentialRampToValueAtTime(80, now + duration);
@@ -423,7 +549,6 @@ class AudioGuide {
 
     const maxGain = intensity === 'strong' ? 0.2 : 0.1;
 
-    // Envelope descendante (expire = volume qui descend)
     gainNode.gain.setValueAtTime(maxGain, now);
     gainNode.gain.linearRampToValueAtTime(maxGain * 0.8, now + duration * 0.5);
     gainNode.gain.exponentialRampToValueAtTime(0.01, now + duration);
@@ -437,9 +562,6 @@ class AudioGuide {
 
     this.currentOscillator = oscillator;
     this.currentGain = gainNode;
-
-    // Voix optionnelle
-    this.playVoiceInstruction(throughNose ? 'exhaleNose' : 'exhaleMouth');
   }
 
   // Son de retention - bip statique doux
@@ -492,6 +614,56 @@ class AudioGuide {
     const now = ctx.currentTime;
     const interval = duration / breaths;
 
+    // Si son naturel sélectionné, jouer en boucle avec pulsations
+    if (this.soundType !== 'synth') {
+      const sound = naturalSounds[this.soundType];
+      if (sound && sound.buffer) {
+        const source = ctx.createBufferSource();
+        source.buffer = sound.buffer;
+        source.loop = true;
+
+        const gainNode = ctx.createGain();
+        const filter = ctx.createBiquadFilter();
+        filter.type = 'lowpass';
+        filter.frequency.value = 1500;
+
+        // Créer des pulsations de volume pour chaque respiration
+        gainNode.gain.setValueAtTime(0.3, now);
+        for (let i = 0; i < breaths; i++) {
+          const time = now + i * interval;
+          const isInhale = i % 2 === 0;
+          const peakGain = isInhale ? 0.6 : 0.35;
+          gainNode.gain.linearRampToValueAtTime(peakGain, time + interval * 0.3);
+          gainNode.gain.linearRampToValueAtTime(0.15, time + interval * 0.9);
+        }
+        gainNode.gain.linearRampToValueAtTime(0, now + duration);
+
+        source.connect(filter);
+        filter.connect(gainNode);
+        gainNode.connect(ctx.destination);
+
+        source.start(now);
+        source.stop(now + duration);
+        this.currentAudioSource = source;
+        this.currentGain = gainNode;
+      } else {
+        // Fallback vers synthétique si son non chargé
+        this.playSynthRapidBreathing(duration, breaths);
+      }
+    } else {
+      this.playSynthRapidBreathing(duration, breaths);
+    }
+
+    // Voix optionnelle
+    this.playVoiceInstruction('rapid');
+  }
+
+  // Version synthétique des respirations rapides
+  playSynthRapidBreathing(duration, breaths) {
+    const ctx = this.audioCtx;
+    const now = ctx.currentTime;
+    const interval = duration / breaths;
+
     for (let i = 0; i < breaths; i++) {
       const time = now + i * interval;
       const isInhale = i % 2 === 0;
@@ -518,9 +690,6 @@ class AudioGuide {
       osc.start(time);
       osc.stop(time + interval);
     }
-
-    // Voix optionnelle
-    this.playVoiceInstruction('rapid');
   }
 
   // Signal de fin de phase
@@ -595,13 +764,35 @@ class AudioGuide {
       } catch (e) {}
       this.currentOscillator = null;
     }
+    if (this.currentAudioSource) {
+      try {
+        this.currentAudioSource.stop();
+      } catch (e) {}
+      this.currentAudioSource = null;
+    }
+    if (this.currentGain) {
+      try {
+        this.currentGain.disconnect();
+      } catch (e) {}
+      this.currentGain = null;
+    }
   }
 
   stop() {
     this.stopCurrent();
+    // Suspendre le contexte audio pour arrêter tous les sons programmés
+    if (this.audioCtx && this.audioCtx.state === 'running') {
+      this.audioCtx.suspend();
+    }
     voicePlayer.stop();
     if ('speechSynthesis' in window) {
       speechSynthesis.cancel();
+    }
+  }
+
+  resume() {
+    if (this.audioCtx && this.audioCtx.state === 'suspended') {
+      this.audioCtx.resume();
     }
   }
 }
@@ -1349,6 +1540,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initMusic();
   initReminders();
   initMeditation();
+  initBiofeedback();
   initDashboard();
   updateStats();
   renderHistory();
@@ -1397,6 +1589,7 @@ function loadData() {
     // Appliquer les settings audio
     audioGuide.isEnabled = state.settings.audioGuide;
     audioGuide.voiceEnabled = state.settings.voiceGuide;
+    audioGuide.soundType = state.settings.breathSoundType || 'synth';
   } catch (e) {
     console.error('Erreur chargement données:', e);
   }
@@ -1437,6 +1630,13 @@ function initNavigation() {
   closeBtn.addEventListener('click', closeSidebar);
   overlay.addEventListener('click', closeSidebar);
 
+  // Clic sur le titre pour retourner à l'accueil
+  const pageTitle = document.getElementById('page-title');
+  pageTitle.addEventListener('click', () => {
+    navigateTo('home');
+    closeSidebar();
+  });
+
   navLinks.forEach(link => {
     link.addEventListener('click', (e) => {
       e.preventDefault();
@@ -1476,17 +1676,18 @@ function navigateTo(pageName) {
 
     // Mettre à jour le titre
     const titles = {
-      home: 'BreathFlow',
+      home: "Respir'Action",
       dashboard: 'Dashboard',
       breathing: 'Respiration',
       coldshower: 'Douche Froide',
       meditation: 'Méditation',
+      biofeedback: 'Biofeedback',
       pomodoro: 'Pomodoro',
       history: 'Historique',
       calisthenics: 'Calisthénie',
       settings: 'Réglages'
     };
-    document.getElementById('page-title').textContent = titles[pageName] || 'BreathFlow';
+    document.getElementById('page-title').textContent = titles[pageName] || "Respir'Action";
 
     // Mettre à jour nav active
     document.querySelectorAll('.nav-link').forEach(link => {
@@ -1504,9 +1705,7 @@ function navigateTo(pageName) {
 function initBreathing() {
   const techniqueCards = document.querySelectorAll('.technique-card');
   const backBtn = document.getElementById('back-to-list');
-  const startBtn = document.getElementById('start-btn');
-  const pauseBtn = document.getElementById('pause-btn');
-  const stopBtn = document.getElementById('stop-btn');
+  const breathCircle = document.getElementById('breath-circle');
 
   techniqueCards.forEach(card => {
     card.addEventListener('click', () => {
@@ -1520,9 +1719,47 @@ function initBreathing() {
     showBreathingList();
   });
 
-  startBtn.addEventListener('click', startSession);
-  pauseBtn.addEventListener('click', togglePause);
-  stopBtn.addEventListener('click', stopSession);
+  // Clic sur cercle = start/pause, long press = stop
+  let pressTimer = null;
+  let isLongPress = false;
+
+  const startPress = () => {
+    isLongPress = false;
+    pressTimer = setTimeout(() => {
+      isLongPress = true;
+      if (state.breathingSession && state.breathingSession.isRunning) {
+        // Vibration feedback
+        if (navigator.vibrate) navigator.vibrate(100);
+        stopSession();
+        updateBreathingHint('start');
+      }
+    }, 800);
+  };
+
+  const endPress = () => {
+    clearTimeout(pressTimer);
+    if (!isLongPress) {
+      // Clic simple
+      if (!state.breathingSession) return;
+      if (!state.breathingSession.isRunning) {
+        startSession();
+      } else {
+        togglePause();
+      }
+    }
+  };
+
+  const cancelPress = () => {
+    clearTimeout(pressTimer);
+  };
+
+  breathCircle.style.cursor = 'pointer';
+  breathCircle.addEventListener('mousedown', startPress);
+  breathCircle.addEventListener('mouseup', endPress);
+  breathCircle.addEventListener('mouseleave', cancelPress);
+  breathCircle.addEventListener('touchstart', (e) => { e.preventDefault(); startPress(); });
+  breathCircle.addEventListener('touchend', (e) => { e.preventDefault(); endPress(); });
+  breathCircle.addEventListener('touchcancel', cancelPress);
 }
 
 function showBreathingList() {
@@ -1565,6 +1802,30 @@ function showBreathingSession(techniqueId) {
 
   document.getElementById('breathing-list').classList.add('hidden');
   document.getElementById('breathing-session').classList.remove('hidden');
+
+  // Reset texte d'aide
+  updateBreathingHint('start');
+}
+
+function updateBreathingHint(mode) {
+  const hint = document.getElementById('breath-circle-hint');
+  if (!hint) return;
+
+  hint.classList.remove('pause-hint', 'stop-hint');
+
+  switch(mode) {
+    case 'start':
+      hint.textContent = 'Appuie sur le cercle pour commencer';
+      break;
+    case 'running':
+      hint.textContent = 'Appuie pour pause · Maintiens pour arrêter';
+      hint.classList.add('pause-hint');
+      break;
+    case 'paused':
+      hint.textContent = 'Appuie pour reprendre · Maintiens pour arrêter';
+      hint.classList.add('stop-hint');
+      break;
+  }
 }
 
 function startSession() {
@@ -1593,6 +1854,9 @@ function startSession() {
   document.getElementById('pause-btn').classList.remove('hidden');
   document.getElementById('stop-btn').classList.remove('hidden');
 
+  // Mise à jour texte d'aide
+  updateBreathingHint('running');
+
   // Timer global
   session.timer = setInterval(updateSessionTime, 1000);
 
@@ -1606,15 +1870,30 @@ function togglePause() {
   const session = state.breathingSession;
   session.isPaused = !session.isPaused;
 
-  // Arreter les sons si on met en pause
+  // Arreter/reprendre les sons
+  const audioPlayer = document.getElementById('audio-player');
   if (session.isPaused) {
     audioGuide.stop();
+    if (audioPlayer && !audioPlayer.paused) {
+      audioPlayer.pause();
+      session.musicWasPlaying = true;
+    }
+  } else {
+    // Reprendre l'audio guide
+    audioGuide.resume();
+    // Reprendre la musique si elle jouait avant la pause
+    if (audioPlayer && session.musicWasPlaying) {
+      audioPlayer.play().catch(() => {});
+    }
   }
 
   const pauseBtn = document.getElementById('pause-btn');
   pauseBtn.innerHTML = session.isPaused
     ? '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg> Reprendre'
     : '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg> Pause';
+
+  // Mise à jour texte d'aide
+  updateBreathingHint(session.isPaused ? 'paused' : 'running');
 }
 
 function stopSession() {
@@ -1628,6 +1907,12 @@ function stopSession() {
 
   // Arreter les sons
   audioGuide.stop();
+
+  // Arreter la musique d'ambiance
+  const audioPlayer = document.getElementById('audio-player');
+  if (audioPlayer && !audioPlayer.paused) {
+    audioPlayer.pause();
+  }
 
   // Arreter les particules
   if (particleSystem) {
@@ -2222,6 +2507,17 @@ function initSettings() {
     audioGuideToggle.addEventListener('change', () => {
       state.settings.audioGuide = audioGuideToggle.checked;
       audioGuide.isEnabled = audioGuideToggle.checked;
+      saveData();
+    });
+  }
+
+  // Sélecteur type de sons respiratoires
+  const breathSoundTypeSelect = document.getElementById('breath-sound-type');
+  if (breathSoundTypeSelect) {
+    breathSoundTypeSelect.value = state.settings.breathSoundType || 'synth';
+    breathSoundTypeSelect.addEventListener('change', () => {
+      state.settings.breathSoundType = breathSoundTypeSelect.value;
+      audioGuide.soundType = breathSoundTypeSelect.value;
       saveData();
     });
   }
@@ -2870,6 +3166,7 @@ const coldShowerEncouragements = {
 
 const coldShowerState = {
   isRunning: false,
+  isPaused: false,
   duration: 30,
   timeLeft: 30,
   timer: null,
@@ -2914,28 +3211,52 @@ function initColdShower() {
     });
   });
 
-  // Bouton start
-  const startBtn = document.getElementById('cold-start-btn');
-  const stopBtn = document.getElementById('cold-stop-btn');
+  // Clic sur cercle = start, long press = stop
+  const coldCircle = document.querySelector('.coldshower-timer-container');
 
-  console.log('Start btn found:', !!startBtn);
-  console.log('Stop btn found:', !!stopBtn);
+  if (coldCircle) {
+    let pressTimer = null;
+    let isLongPress = false;
 
-  if (startBtn) {
-    startBtn.addEventListener('click', () => {
-      console.log('=== START BUTTON CLICKED ===');
-      startColdShower();
-    });
-  }
-  if (stopBtn) {
-    stopBtn.addEventListener('click', () => {
-      console.log('=== STOP BUTTON CLICKED ===');
-      stopColdShower();
-    });
+    const startPress = () => {
+      isLongPress = false;
+      pressTimer = setTimeout(() => {
+        isLongPress = true;
+        if (coldShowerState.isRunning) {
+          if (navigator.vibrate) navigator.vibrate(100);
+          stopColdShower();
+          updateColdShowerHint('start');
+        }
+      }, 800);
+    };
+
+    const endPress = () => {
+      clearTimeout(pressTimer);
+      if (!isLongPress) {
+        if (!coldShowerState.isRunning) {
+          startColdShower();
+        } else {
+          toggleColdShowerPause();
+        }
+      }
+    };
+
+    const cancelPress = () => {
+      clearTimeout(pressTimer);
+    };
+
+    coldCircle.style.cursor = 'pointer';
+    coldCircle.addEventListener('mousedown', startPress);
+    coldCircle.addEventListener('mouseup', endPress);
+    coldCircle.addEventListener('mouseleave', cancelPress);
+    coldCircle.addEventListener('touchstart', (e) => { e.preventDefault(); startPress(); });
+    coldCircle.addEventListener('touchend', (e) => { e.preventDefault(); endPress(); });
+    coldCircle.addEventListener('touchcancel', cancelPress);
   }
 
   updateColdTimerDisplay();
   updateColdLevel();
+  updateColdShowerHint('start');
 
   // Event listeners pour les checkboxes de sons épiques (réactifs en temps réel)
   const coldSoundCheckboxes = document.querySelectorAll('input[name="cold-sound"]');
@@ -3053,6 +3374,9 @@ function startColdShower() {
   if (startBtn) startBtn.classList.add('hidden');
   if (stopBtn) stopBtn.classList.remove('hidden');
 
+  // Mise à jour texte d'aide
+  updateColdShowerHint('running');
+
   // Démarrer les sons épiques cochés (mix de plusieurs sons)
   const coldSoundCheckboxes = document.querySelectorAll('input[name="cold-sound"]:checked');
   coldShowerState.audioPlayers = {}; // Reset
@@ -3086,6 +3410,8 @@ function startColdShower() {
 
   // Timer principal
   coldShowerState.timer = setInterval(() => {
+    if (coldShowerState.isPaused) return;
+
     coldShowerState.timeLeft--;
     updateColdTimerDisplay();
 
@@ -3103,8 +3429,34 @@ function startColdShower() {
 
   // Timer pour les encouragements (toutes les 5-8 secondes)
   coldShowerState.encouragementTimer = setInterval(() => {
-    showEncouragement();
+    if (!coldShowerState.isPaused) {
+      showEncouragement();
+    }
   }, 5000 + Math.random() * 3000);
+}
+
+function toggleColdShowerPause() {
+  if (!coldShowerState.isRunning) return;
+
+  coldShowerState.isPaused = !coldShowerState.isPaused;
+
+  // Pause/reprendre tous les sons
+  if (coldShowerState.audioPlayers && Object.keys(coldShowerState.audioPlayers).length > 0) {
+    Object.values(coldShowerState.audioPlayers).forEach(audio => {
+      if (coldShowerState.isPaused) {
+        audio.pause();
+      } else {
+        audio.play().catch(() => {});
+      }
+    });
+  }
+
+  if (coldShowerState.isPaused) {
+    voicePlayer.stop();
+  }
+
+  // Mise à jour texte d'aide
+  updateColdShowerHint(coldShowerState.isPaused ? 'paused' : 'running');
 }
 
 function showEncouragement() {
@@ -3145,6 +3497,7 @@ function stopColdShower() {
   clearInterval(coldShowerState.timer);
   clearInterval(coldShowerState.encouragementTimer);
   coldShowerState.isRunning = false;
+  coldShowerState.isPaused = false;
 
   // Arrêter la musique
   stopColdShowerMusic();
@@ -3158,7 +3511,31 @@ function stopColdShower() {
   coldShowerState.timeLeft = coldShowerState.duration;
   updateColdTimerDisplay();
 
+  // Mise à jour texte d'aide
+  updateColdShowerHint('start');
+
   voicePlayer.stop();
+}
+
+function updateColdShowerHint(mode) {
+  const hint = document.getElementById('cold-circle-hint');
+  if (!hint) return;
+
+  hint.classList.remove('pause-hint', 'stop-hint');
+
+  switch(mode) {
+    case 'start':
+      hint.textContent = 'Appuie sur le cercle pour commencer';
+      break;
+    case 'running':
+      hint.textContent = 'Appuie pour pause · Maintiens pour arrêter';
+      hint.classList.add('pause-hint');
+      break;
+    case 'paused':
+      hint.textContent = 'Appuie pour reprendre · Maintiens pour arrêter';
+      hint.classList.add('stop-hint');
+      break;
+  }
 }
 
 function stopColdShowerMusic() {
@@ -4039,9 +4416,7 @@ const meditationState = {
 function initMeditation() {
   const meditationCards = document.querySelectorAll('.meditation-card');
   const backBtn = document.getElementById('back-to-meditations');
-  const startBtn = document.getElementById('meditation-start-btn');
-  const pauseBtn = document.getElementById('meditation-pause-btn');
-  const stopBtn = document.getElementById('meditation-stop-btn');
+  const meditationCircle = document.querySelector('.meditation-timer-container');
 
   meditationCards.forEach(card => {
     card.addEventListener('click', () => {
@@ -4058,24 +4433,47 @@ function initMeditation() {
     });
   }
 
-  if (startBtn) {
-    startBtn.addEventListener('click', () => {
-      if (meditationState.selectedType) {
-        startMeditation(meditationState.selectedType);
+  // Clic sur cercle = start/pause, long press = stop
+  if (meditationCircle) {
+    let pressTimer = null;
+    let isLongPress = false;
+
+    const startPress = () => {
+      isLongPress = false;
+      pressTimer = setTimeout(() => {
+        isLongPress = true;
+        if (meditationState.isRunning) {
+          if (navigator.vibrate) navigator.vibrate(100);
+          stopMeditation();
+          updateMeditationHint('start');
+        }
+      }, 800);
+    };
+
+    const endPress = () => {
+      clearTimeout(pressTimer);
+      if (!isLongPress) {
+        if (!meditationState.isRunning) {
+          if (meditationState.selectedType) {
+            startMeditation(meditationState.selectedType);
+          }
+        } else {
+          toggleMeditationPause();
+        }
       }
-    });
-  }
+    };
 
-  if (pauseBtn) {
-    pauseBtn.addEventListener('click', toggleMeditationPause);
-  }
+    const cancelPress = () => {
+      clearTimeout(pressTimer);
+    };
 
-  if (stopBtn) {
-    stopBtn.addEventListener('click', () => {
-      stopMeditation();
-      document.getElementById('meditation-session').classList.add('hidden');
-      document.getElementById('meditation-list').classList.remove('hidden');
-    });
+    meditationCircle.style.cursor = 'pointer';
+    meditationCircle.addEventListener('mousedown', startPress);
+    meditationCircle.addEventListener('mouseup', endPress);
+    meditationCircle.addEventListener('mouseleave', cancelPress);
+    meditationCircle.addEventListener('touchstart', (e) => { e.preventDefault(); startPress(); });
+    meditationCircle.addEventListener('touchend', (e) => { e.preventDefault(); endPress(); });
+    meditationCircle.addEventListener('touchcancel', cancelPress);
   }
 
   // Event listeners pour les checkboxes de sons (réactifs en temps réel)
@@ -4146,6 +4544,30 @@ function prepareMeditation(type) {
   document.getElementById('meditation-start-btn').classList.remove('hidden');
   document.getElementById('meditation-pause-btn').classList.add('hidden');
   document.getElementById('meditation-stop-btn').classList.add('hidden');
+
+  // Reset texte d'aide
+  updateMeditationHint('start');
+}
+
+function updateMeditationHint(mode) {
+  const hint = document.getElementById('meditation-circle-hint');
+  if (!hint) return;
+
+  hint.classList.remove('pause-hint', 'stop-hint');
+
+  switch(mode) {
+    case 'start':
+      hint.textContent = 'Appuie sur le cercle pour commencer';
+      break;
+    case 'running':
+      hint.textContent = 'Appuie pour pause · Maintiens pour arrêter';
+      hint.classList.add('pause-hint');
+      break;
+    case 'paused':
+      hint.textContent = 'Appuie pour reprendre · Maintiens pour arrêter';
+      hint.classList.add('stop-hint');
+      break;
+  }
 }
 
 function startMeditation(type) {
@@ -4169,6 +4591,9 @@ function startMeditation(type) {
   document.getElementById('meditation-start-btn').classList.add('hidden');
   document.getElementById('meditation-pause-btn').classList.remove('hidden');
   document.getElementById('meditation-stop-btn').classList.remove('hidden');
+
+  // Mise à jour texte d'aide
+  updateMeditationHint('running');
 
   // Update UI
   document.getElementById('meditation-instruction').textContent = langScript.intro;
@@ -4271,6 +4696,9 @@ function toggleMeditationPause() {
   if (meditationState.isPaused) {
     voicePlayer.stop();
   }
+
+  // Mise à jour texte d'aide
+  updateMeditationHint(meditationState.isPaused ? 'paused' : 'running');
 }
 
 function stopMeditation() {
@@ -4845,6 +5273,547 @@ function saveDashboardData() {
     unlockedBadges: dashboardState.unlockedBadges,
     globalStreak: dashboardState.globalStreak
   }));
+}
+
+// ===== Biofeedback Cardiaque (PPG) =====
+const biofeedbackState = {
+  isRunning: false,
+  stream: null,
+  video: null,
+  canvas: null,
+  ctx: null,
+  graphCanvas: null,
+  graphCtx: null,
+  animationId: null,
+
+  // Données de signal
+  signalBuffer: [],
+  maxBufferSize: 300, // ~10 secondes à 30fps
+  graphData: [],
+  maxGraphPoints: 150,
+
+  // Données cardiaques
+  peaks: [],
+  bpmHistory: [],
+  hrvHistory: [],
+  lastPeakTime: 0,
+  rrIntervals: [], // Intervalles R-R pour HRV
+
+  // Métriques calculées
+  currentBpm: 0,
+  currentHrv: 0,
+  currentCoherence: 0,
+
+  // Session
+  sessionStart: null,
+  breathingEnabled: false,
+  breathingPhase: 'inhale',
+  breathingTimer: null
+};
+
+function initBiofeedback() {
+  const startBtn = document.getElementById('start-biofeedback');
+  const stopBtn = document.getElementById('stop-biofeedback');
+  const newSessionBtn = document.getElementById('bio-new-session');
+  const breathingSync = document.getElementById('bio-breathing-sync');
+
+  if (startBtn) {
+    startBtn.addEventListener('click', startBiofeedback);
+  }
+
+  if (stopBtn) {
+    stopBtn.addEventListener('click', stopBiofeedback);
+  }
+
+  if (newSessionBtn) {
+    newSessionBtn.addEventListener('click', () => {
+      document.getElementById('bio-summary').classList.add('hidden');
+      document.getElementById('bio-session').classList.remove('hidden');
+      startBiofeedback();
+    });
+  }
+
+  if (breathingSync) {
+    breathingSync.addEventListener('change', (e) => {
+      biofeedbackState.breathingEnabled = e.target.checked;
+      const circle = document.getElementById('bio-breathing-circle');
+      if (e.target.checked) {
+        circle.classList.remove('hidden');
+        startBioBreathing();
+      } else {
+        circle.classList.add('hidden');
+        stopBioBreathing();
+      }
+    });
+  }
+}
+
+async function startBiofeedback() {
+  try {
+    // Demander accès caméra (préférer arrière avec flash)
+    const constraints = {
+      video: {
+        facingMode: 'environment',
+        width: { ideal: 640 },
+        height: { ideal: 480 }
+      }
+    };
+
+    biofeedbackState.stream = await navigator.mediaDevices.getUserMedia(constraints);
+
+    // Configurer la vidéo
+    biofeedbackState.video = document.getElementById('bio-video');
+    biofeedbackState.video.srcObject = biofeedbackState.stream;
+
+    // Configurer le canvas pour l'analyse
+    biofeedbackState.canvas = document.getElementById('bio-canvas');
+    biofeedbackState.canvas.width = 100;
+    biofeedbackState.canvas.height = 100;
+    biofeedbackState.ctx = biofeedbackState.canvas.getContext('2d', { willReadFrequently: true });
+
+    // Configurer le graphique
+    biofeedbackState.graphCanvas = document.getElementById('bio-graph');
+    biofeedbackState.graphCtx = biofeedbackState.graphCanvas.getContext('2d');
+
+    // Réinitialiser les données
+    resetBiofeedbackData();
+
+    // Afficher la session
+    document.getElementById('bio-instructions').classList.add('hidden');
+    document.getElementById('bio-session').classList.remove('hidden');
+    document.getElementById('bio-summary').classList.add('hidden');
+
+    biofeedbackState.isRunning = true;
+    biofeedbackState.sessionStart = Date.now();
+
+    // Activer le flash si possible
+    try {
+      const track = biofeedbackState.stream.getVideoTracks()[0];
+      const capabilities = track.getCapabilities();
+      if (capabilities.torch) {
+        await track.applyConstraints({ advanced: [{ torch: true }] });
+      }
+    } catch (e) {
+      console.log('Flash non disponible');
+    }
+
+    // Démarrer l'analyse
+    analyzePPG();
+
+  } catch (err) {
+    console.error('Erreur accès caméra:', err);
+    alert('Impossible d\'accéder à la caméra. Vérifie les permissions.');
+  }
+}
+
+function stopBiofeedback() {
+  biofeedbackState.isRunning = false;
+
+  // Arrêter l'animation
+  if (biofeedbackState.animationId) {
+    cancelAnimationFrame(biofeedbackState.animationId);
+  }
+
+  // Arrêter le flux caméra
+  if (biofeedbackState.stream) {
+    biofeedbackState.stream.getTracks().forEach(track => track.stop());
+    biofeedbackState.stream = null;
+  }
+
+  // Arrêter la respiration guidée
+  stopBioBreathing();
+
+  // Calculer et afficher le résumé
+  showBiofeedbackSummary();
+}
+
+function resetBiofeedbackData() {
+  biofeedbackState.signalBuffer = [];
+  biofeedbackState.graphData = [];
+  biofeedbackState.peaks = [];
+  biofeedbackState.bpmHistory = [];
+  biofeedbackState.hrvHistory = [];
+  biofeedbackState.lastPeakTime = 0;
+  biofeedbackState.rrIntervals = [];
+  biofeedbackState.currentBpm = 0;
+  biofeedbackState.currentHrv = 0;
+  biofeedbackState.currentCoherence = 0;
+}
+
+function analyzePPG() {
+  if (!biofeedbackState.isRunning) return;
+
+  const video = biofeedbackState.video;
+  const ctx = biofeedbackState.ctx;
+  const canvas = biofeedbackState.canvas;
+
+  // Dessiner la frame vidéo sur le canvas
+  ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+  // Extraire les pixels du centre (zone du doigt)
+  const centerX = canvas.width / 2;
+  const centerY = canvas.height / 2;
+  const sampleSize = 30;
+  const imageData = ctx.getImageData(
+    centerX - sampleSize / 2,
+    centerY - sampleSize / 2,
+    sampleSize,
+    sampleSize
+  );
+
+  // Calculer la moyenne du canal rouge (signal PPG)
+  let redSum = 0;
+  let pixelCount = 0;
+  for (let i = 0; i < imageData.data.length; i += 4) {
+    redSum += imageData.data[i]; // Canal rouge
+    pixelCount++;
+  }
+  const redAvg = redSum / pixelCount;
+
+  // Ajouter au buffer de signal
+  const now = Date.now();
+  biofeedbackState.signalBuffer.push({ value: redAvg, time: now });
+
+  // Limiter la taille du buffer
+  if (biofeedbackState.signalBuffer.length > biofeedbackState.maxBufferSize) {
+    biofeedbackState.signalBuffer.shift();
+  }
+
+  // Ajouter aux données du graphique
+  biofeedbackState.graphData.push(redAvg);
+  if (biofeedbackState.graphData.length > biofeedbackState.maxGraphPoints) {
+    biofeedbackState.graphData.shift();
+  }
+
+  // Détecter les pics et calculer les métriques si assez de données
+  if (biofeedbackState.signalBuffer.length > 60) {
+    detectPeaks();
+    calculateMetrics();
+    updateBiofeedbackUI();
+  }
+
+  // Dessiner le graphique
+  drawPPGGraph();
+
+  // Continuer l'analyse
+  biofeedbackState.animationId = requestAnimationFrame(analyzePPG);
+}
+
+function detectPeaks() {
+  const buffer = biofeedbackState.signalBuffer;
+  const len = buffer.length;
+
+  if (len < 30) return;
+
+  // Calculer la moyenne et l'écart-type du signal
+  let sum = 0;
+  for (let i = 0; i < len; i++) {
+    sum += buffer[i].value;
+  }
+  const mean = sum / len;
+
+  let varianceSum = 0;
+  for (let i = 0; i < len; i++) {
+    varianceSum += Math.pow(buffer[i].value - mean, 2);
+  }
+  const stdDev = Math.sqrt(varianceSum / len);
+
+  // Seuil adaptatif pour détecter les pics
+  const threshold = mean + stdDev * 0.5;
+
+  // Chercher les pics dans les données récentes
+  const recentStart = Math.max(0, len - 30);
+  for (let i = recentStart + 2; i < len - 2; i++) {
+    const prev2 = buffer[i - 2].value;
+    const prev1 = buffer[i - 1].value;
+    const curr = buffer[i].value;
+    const next1 = buffer[i + 1].value;
+    const next2 = buffer[i + 2].value;
+
+    // Vérifier si c'est un pic local au-dessus du seuil
+    if (curr > threshold &&
+        curr > prev1 && curr > prev2 &&
+        curr > next1 && curr > next2) {
+
+      const peakTime = buffer[i].time;
+
+      // Éviter les doublons (minimum 300ms entre pics = max 200 BPM)
+      if (peakTime - biofeedbackState.lastPeakTime > 300) {
+        // Calculer l'intervalle R-R
+        if (biofeedbackState.lastPeakTime > 0) {
+          const rrInterval = peakTime - biofeedbackState.lastPeakTime;
+
+          // Valider l'intervalle (entre 300ms et 1500ms = 40-200 BPM)
+          if (rrInterval > 300 && rrInterval < 1500) {
+            biofeedbackState.rrIntervals.push(rrInterval);
+
+            // Garder seulement les 20 derniers intervalles
+            if (biofeedbackState.rrIntervals.length > 20) {
+              biofeedbackState.rrIntervals.shift();
+            }
+          }
+        }
+
+        biofeedbackState.lastPeakTime = peakTime;
+        biofeedbackState.peaks.push(peakTime);
+
+        // Garder seulement les 30 derniers pics
+        if (biofeedbackState.peaks.length > 30) {
+          biofeedbackState.peaks.shift();
+        }
+      }
+    }
+  }
+}
+
+function calculateMetrics() {
+  const rrIntervals = biofeedbackState.rrIntervals;
+
+  if (rrIntervals.length < 3) return;
+
+  // Calculer le BPM moyen
+  const avgRR = rrIntervals.reduce((a, b) => a + b, 0) / rrIntervals.length;
+  const bpm = Math.round(60000 / avgRR);
+
+  // Valider le BPM (40-200 acceptable)
+  if (bpm >= 40 && bpm <= 200) {
+    biofeedbackState.currentBpm = bpm;
+    biofeedbackState.bpmHistory.push(bpm);
+    if (biofeedbackState.bpmHistory.length > 60) {
+      biofeedbackState.bpmHistory.shift();
+    }
+  }
+
+  // Calculer le HRV (RMSSD - Root Mean Square of Successive Differences)
+  if (rrIntervals.length >= 5) {
+    let sumSquaredDiff = 0;
+    for (let i = 1; i < rrIntervals.length; i++) {
+      const diff = rrIntervals[i] - rrIntervals[i - 1];
+      sumSquaredDiff += diff * diff;
+    }
+    const rmssd = Math.sqrt(sumSquaredDiff / (rrIntervals.length - 1));
+    biofeedbackState.currentHrv = Math.round(rmssd);
+    biofeedbackState.hrvHistory.push(rmssd);
+    if (biofeedbackState.hrvHistory.length > 30) {
+      biofeedbackState.hrvHistory.shift();
+    }
+  }
+
+  // Calculer la cohérence cardiaque
+  // Basé sur la régularité des intervalles R-R (faible variabilité des différences)
+  if (rrIntervals.length >= 8) {
+    // Calculer la variation des différences successives
+    const differences = [];
+    for (let i = 1; i < rrIntervals.length; i++) {
+      differences.push(Math.abs(rrIntervals[i] - rrIntervals[i - 1]));
+    }
+
+    const avgDiff = differences.reduce((a, b) => a + b, 0) / differences.length;
+
+    // Score de cohérence : plus les différences sont faibles et régulières, plus la cohérence est élevée
+    // Score de 0 à 100
+    let coherenceScore;
+    if (avgDiff < 20) {
+      coherenceScore = 95 + Math.random() * 5; // Très haute cohérence
+    } else if (avgDiff < 40) {
+      coherenceScore = 75 + (40 - avgDiff) / 20 * 20;
+    } else if (avgDiff < 80) {
+      coherenceScore = 40 + (80 - avgDiff) / 40 * 35;
+    } else {
+      coherenceScore = Math.max(10, 40 - (avgDiff - 80) / 2);
+    }
+
+    biofeedbackState.currentCoherence = Math.round(coherenceScore);
+  }
+}
+
+function updateBiofeedbackUI() {
+  // Mettre à jour BPM
+  const bpmEl = document.getElementById('bio-bpm');
+  if (bpmEl && biofeedbackState.currentBpm > 0) {
+    bpmEl.textContent = biofeedbackState.currentBpm;
+  }
+
+  // Mettre à jour HRV
+  const hrvEl = document.getElementById('bio-hrv');
+  if (hrvEl && biofeedbackState.currentHrv > 0) {
+    hrvEl.textContent = biofeedbackState.currentHrv;
+  }
+
+  // Mettre à jour Cohérence
+  const coherenceEl = document.getElementById('bio-coherence');
+  if (coherenceEl && biofeedbackState.currentCoherence > 0) {
+    coherenceEl.textContent = biofeedbackState.currentCoherence + '%';
+  }
+
+  // Mettre à jour l'indicateur de cohérence
+  const indicator = document.getElementById('bio-coherence-indicator');
+  if (indicator && biofeedbackState.currentCoherence > 0) {
+    // Position de 5% (stress) à 95% (cohérence)
+    const position = 5 + (biofeedbackState.currentCoherence / 100) * 90;
+    indicator.style.left = position + '%';
+
+    // Couleur selon le niveau
+    if (biofeedbackState.currentCoherence > 70) {
+      indicator.style.background = '#00ff88';
+      indicator.style.boxShadow = '0 0 15px rgba(0, 255, 136, 0.8), 0 2px 10px rgba(0, 0, 0, 0.3)';
+    } else if (biofeedbackState.currentCoherence > 40) {
+      indicator.style.background = '#ffc800';
+      indicator.style.boxShadow = '0 0 15px rgba(255, 200, 0, 0.8), 0 2px 10px rgba(0, 0, 0, 0.3)';
+    } else {
+      indicator.style.background = '#ff3366';
+      indicator.style.boxShadow = '0 0 15px rgba(255, 51, 102, 0.8), 0 2px 10px rgba(0, 0, 0, 0.3)';
+    }
+  }
+
+  // Mettre à jour le statut de la caméra
+  const status = document.getElementById('bio-camera-status');
+  if (status && biofeedbackState.currentBpm > 0) {
+    status.innerHTML = '<span class="pulse-dot"></span><span>' + biofeedbackState.currentBpm + ' BPM</span>';
+  }
+}
+
+function drawPPGGraph() {
+  const ctx = biofeedbackState.graphCtx;
+  const canvas = biofeedbackState.graphCanvas;
+  const data = biofeedbackState.graphData;
+
+  if (!ctx || data.length < 2) return;
+
+  // Effacer le canvas
+  ctx.fillStyle = 'rgba(10, 10, 15, 0.95)';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  // Trouver min/max pour normaliser
+  let min = Infinity, max = -Infinity;
+  for (let i = 0; i < data.length; i++) {
+    if (data[i] < min) min = data[i];
+    if (data[i] > max) max = data[i];
+  }
+  const range = max - min || 1;
+
+  // Dessiner la grille
+  ctx.strokeStyle = 'rgba(100, 100, 150, 0.2)';
+  ctx.lineWidth = 1;
+  for (let i = 0; i < 5; i++) {
+    const y = (canvas.height / 5) * i;
+    ctx.beginPath();
+    ctx.moveTo(0, y);
+    ctx.lineTo(canvas.width, y);
+    ctx.stroke();
+  }
+
+  // Dessiner le signal PPG
+  ctx.strokeStyle = '#ff6b6b';
+  ctx.lineWidth = 2;
+  ctx.shadowColor = '#ff6b6b';
+  ctx.shadowBlur = 10;
+  ctx.beginPath();
+
+  const stepX = canvas.width / (biofeedbackState.maxGraphPoints - 1);
+
+  for (let i = 0; i < data.length; i++) {
+    const x = i * stepX;
+    const normalized = (data[i] - min) / range;
+    const y = canvas.height - (normalized * canvas.height * 0.8 + canvas.height * 0.1);
+
+    if (i === 0) {
+      ctx.moveTo(x, y);
+    } else {
+      ctx.lineTo(x, y);
+    }
+  }
+
+  ctx.stroke();
+  ctx.shadowBlur = 0;
+}
+
+function startBioBreathing() {
+  const circle = document.getElementById('bio-breathing-circle');
+  const instruction = document.getElementById('bio-breath-instruction');
+
+  if (!circle || !instruction) return;
+
+  // Respiration cohérence cardiaque : 5s inspire, 5s expire
+  let phase = 'inhale';
+
+  const breathe = () => {
+    if (!biofeedbackState.breathingEnabled) return;
+
+    if (phase === 'inhale') {
+      circle.classList.remove('exhale');
+      circle.classList.add('inhale');
+      instruction.textContent = 'Inspire';
+      phase = 'exhale';
+    } else {
+      circle.classList.remove('inhale');
+      circle.classList.add('exhale');
+      instruction.textContent = 'Expire';
+      phase = 'inhale';
+    }
+
+    biofeedbackState.breathingTimer = setTimeout(breathe, 5000);
+  };
+
+  breathe();
+}
+
+function stopBioBreathing() {
+  if (biofeedbackState.breathingTimer) {
+    clearTimeout(biofeedbackState.breathingTimer);
+    biofeedbackState.breathingTimer = null;
+  }
+  biofeedbackState.breathingEnabled = false;
+
+  const checkbox = document.getElementById('bio-breathing-sync');
+  if (checkbox) checkbox.checked = false;
+
+  const circle = document.getElementById('bio-breathing-circle');
+  if (circle) circle.classList.add('hidden');
+}
+
+function showBiofeedbackSummary() {
+  const duration = Math.round((Date.now() - biofeedbackState.sessionStart) / 1000);
+  const minutes = Math.floor(duration / 60);
+  const seconds = duration % 60;
+
+  // Calculer les moyennes
+  let avgBpm = '--';
+  if (biofeedbackState.bpmHistory.length > 0) {
+    avgBpm = Math.round(
+      biofeedbackState.bpmHistory.reduce((a, b) => a + b, 0) / biofeedbackState.bpmHistory.length
+    );
+  }
+
+  let avgCoherence = '--';
+  if (biofeedbackState.currentCoherence > 0) {
+    avgCoherence = biofeedbackState.currentCoherence + '%';
+  }
+
+  // Afficher le résumé
+  document.getElementById('summary-avg-bpm').textContent = avgBpm;
+  document.getElementById('summary-avg-coherence').textContent = avgCoherence;
+  document.getElementById('summary-duration').textContent =
+    minutes > 0 ? `${minutes}m ${seconds}s` : `${seconds}s`;
+
+  document.getElementById('bio-session').classList.add('hidden');
+  document.getElementById('bio-summary').classList.remove('hidden');
+
+  // Sauvegarder dans l'historique si session valide
+  if (biofeedbackState.bpmHistory.length > 10 && duration > 30) {
+    const session = {
+      type: 'biofeedback',
+      date: new Date().toISOString(),
+      duration: duration,
+      avgBpm: avgBpm,
+      avgCoherence: biofeedbackState.currentCoherence,
+      avgHrv: biofeedbackState.currentHrv
+    };
+
+    if (!state.history) state.history = [];
+    state.history.unshift(session);
+    saveData();
+  }
 }
 
 // ===== Service Worker =====
