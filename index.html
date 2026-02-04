@@ -52,6 +52,12 @@
         <li><a href="#" data-page="meditation" class="nav-link">Méditation</a></li>
         <li><a href="#" data-page="biofeedback" class="nav-link">Biofeedback</a></li>
         <li><a href="#" data-page="pomodoro" class="nav-link">Pomodoro</a></li>
+        <li><a href="#" data-page="focus" class="nav-link">Focus</a></li>
+        <li><a href="#" data-page="routines" class="nav-link">Routines</a></li>
+        <li><a href="#" data-page="dreams" class="nav-link">Mes Rêves</a></li>
+        <li><a href="#" data-page="journal" class="nav-link">Journal Mental</a></li>
+        <li><a href="#" data-page="business" class="nav-link">Business</a></li>
+        <li><a href="#" data-page="lecture" class="nav-link">Lecture</a></li>
         <li><a href="#" data-page="history" class="nav-link">Historique</a></li>
         <li><a href="#" data-page="poetry" class="nav-link">Poésie</a></li>
         <li><a href="#" data-page="calisthenics" class="nav-link">Calisthénie</a></li>
@@ -113,6 +119,75 @@
               </svg>
             </div>
             <span>Biofeedback</span>
+          </button>
+
+          <button class="home-card" data-goto="dreams">
+            <div class="card-icon dreams-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <path d="M12 3l1.5 4.5L18 9l-4.5 1.5L12 15l-1.5-4.5L6 9l4.5-1.5L12 3z"></path>
+                <path d="M5 19l1 3 3-1-1-3-3 1zM19 19l-1 3-3-1 1-3 3 1z"></path>
+              </svg>
+            </div>
+            <span>Mes Rêves</span>
+          </button>
+
+          <button class="home-card" data-goto="journal">
+            <div class="card-icon journal-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"></path>
+                <path d="M14 2v6h6M16 13H8M16 17H8M10 9H8"></path>
+              </svg>
+            </div>
+            <span>Journal</span>
+          </button>
+
+          <button class="home-card" data-goto="business">
+            <div class="card-icon business-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path>
+              </svg>
+            </div>
+            <span>Business</span>
+          </button>
+
+          <button class="home-card" data-goto="poetry">
+            <div class="card-icon poetry-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <path d="M12 6.25278V19.2528M12 6.25278C10.8321 5.47686 9.24649 5 7.5 5C5.75351 5 4.16789 5.47686 3 6.25278V19.2528C4.16789 18.4769 5.75351 18 7.5 18C9.24649 18 10.8321 18.4769 12 19.2528M12 6.25278C13.1679 5.47686 14.7535 5 16.5 5C18.2465 5 19.8321 5.47686 21 6.25278V19.2528C19.8321 18.4769 18.2465 18 16.5 18C14.7535 18 13.1679 18.4769 12 19.2528"></path>
+              </svg>
+            </div>
+            <span>Poésie</span>
+          </button>
+
+          <button class="home-card" data-goto="focus">
+            <div class="card-icon focus-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/>
+              </svg>
+            </div>
+            <span>Focus</span>
+          </button>
+
+          <button class="home-card" data-goto="routines">
+            <div class="card-icon routines-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/>
+                <rect x="9" y="3" width="6" height="4" rx="1"/>
+                <path d="M9 12l2 2 4-4"/>
+              </svg>
+            </div>
+            <span>Routines</span>
+          </button>
+
+          <button class="home-card" data-goto="lecture">
+            <div class="card-icon lecture-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <path d="M4 19.5A2.5 2.5 0 016.5 17H20"/>
+                <path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/>
+                <path d="M8 7h8M8 11h6"/>
+              </svg>
+            </div>
+            <span>Lecture</span>
           </button>
 
           <button class="home-card" data-goto="calisthenics">
@@ -276,6 +351,41 @@
             </div>
           </div>
         </div>
+
+        <!-- Streaks & Heatmap -->
+        <div class="streaks-heatmap-card">
+          <div class="streaks-header">
+            <div class="streak-flame-display">
+              <span class="streak-flame-big" id="streak-flame-icon">🔥</span>
+              <div class="streak-numbers">
+                <span class="streak-current" id="streak-current">0</span>
+                <span class="streak-label-text">jours d'affilée</span>
+              </div>
+            </div>
+            <div class="streak-best">
+              <span class="streak-best-label">Record</span>
+              <span class="streak-best-value" id="streak-best">0</span>
+            </div>
+          </div>
+          <div class="heatmap-container">
+            <div class="heatmap-months" id="heatmap-months"></div>
+            <div class="heatmap-grid" id="heatmap-grid"></div>
+            <div class="heatmap-legend">
+              <span class="heatmap-legend-label">Moins</span>
+              <span class="heatmap-cell-legend" style="opacity:0.15"></span>
+              <span class="heatmap-cell-legend" style="opacity:0.35"></span>
+              <span class="heatmap-cell-legend" style="opacity:0.6"></span>
+              <span class="heatmap-cell-legend" style="opacity:0.85"></span>
+              <span class="heatmap-cell-legend" style="opacity:1"></span>
+              <span class="heatmap-legend-label">Plus</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Bilan Hebdo -->
+        <button class="bilan-hebdo-btn" id="open-bilan-hebdo">
+          <span>📊</span> Bilan de la semaine
+        </button>
 
         <!-- Résumé du jour -->
         <div class="dashboard-today">
@@ -1424,6 +1534,488 @@
         </div>
       </section>
 
+      <!-- Page Mes Rêves -->
+      <section id="page-dreams" class="page">
+        <h2 class="section-title">Mes Rêves</h2>
+
+        <!-- Vision globale -->
+        <div class="dreams-vision">
+          <div class="vision-header">
+            <span class="vision-icon">✦</span>
+            <h3>Ma vision de vie</h3>
+          </div>
+          <textarea id="dreams-global-vision" rows="3" placeholder="Décris la vie de tes rêves en quelques phrases... À quoi ressemble ta vie idéale dans 5 ans ?"></textarea>
+        </div>
+
+        <!-- Catégories de rêves -->
+        <div class="dreams-categories" id="dreams-categories">
+
+          <!-- Amour & Relations -->
+          <div class="dream-category-card" data-category="love">
+            <div class="dream-cat-header">
+              <span class="dream-cat-emoji">❤️</span>
+              <div class="dream-cat-info">
+                <h4>Amour & Relations</h4>
+                <span class="dream-cat-count" id="dream-count-love">0 rêves</span>
+              </div>
+              <span class="dream-cat-arrow">›</span>
+            </div>
+          </div>
+
+          <!-- Carrière & Argent -->
+          <div class="dream-category-card" data-category="career">
+            <div class="dream-cat-header">
+              <span class="dream-cat-emoji">💰</span>
+              <div class="dream-cat-info">
+                <h4>Carrière & Argent</h4>
+                <span class="dream-cat-count" id="dream-count-career">0 rêves</span>
+              </div>
+              <span class="dream-cat-arrow">›</span>
+            </div>
+          </div>
+
+          <!-- Santé & Corps -->
+          <div class="dream-category-card" data-category="health">
+            <div class="dream-cat-header">
+              <span class="dream-cat-emoji">💪</span>
+              <div class="dream-cat-info">
+                <h4>Santé & Corps</h4>
+                <span class="dream-cat-count" id="dream-count-health">0 rêves</span>
+              </div>
+              <span class="dream-cat-arrow">›</span>
+            </div>
+          </div>
+
+          <!-- Famille -->
+          <div class="dream-category-card" data-category="family">
+            <div class="dream-cat-header">
+              <span class="dream-cat-emoji">👨‍👩‍👧‍👦</span>
+              <div class="dream-cat-info">
+                <h4>Famille</h4>
+                <span class="dream-cat-count" id="dream-count-family">0 rêves</span>
+              </div>
+              <span class="dream-cat-arrow">›</span>
+            </div>
+          </div>
+
+          <!-- Développement personnel -->
+          <div class="dream-category-card" data-category="growth">
+            <div class="dream-cat-header">
+              <span class="dream-cat-emoji">🧠</span>
+              <div class="dream-cat-info">
+                <h4>Développement personnel</h4>
+                <span class="dream-cat-count" id="dream-count-growth">0 rêves</span>
+              </div>
+              <span class="dream-cat-arrow">›</span>
+            </div>
+          </div>
+
+          <!-- Aventure & Expériences -->
+          <div class="dream-category-card" data-category="adventure">
+            <div class="dream-cat-header">
+              <span class="dream-cat-emoji">🌍</span>
+              <div class="dream-cat-info">
+                <h4>Aventure & Expériences</h4>
+                <span class="dream-cat-count" id="dream-count-adventure">0 rêves</span>
+              </div>
+              <span class="dream-cat-arrow">›</span>
+            </div>
+          </div>
+
+          <!-- Impact & Contribution -->
+          <div class="dream-category-card" data-category="impact">
+            <div class="dream-cat-header">
+              <span class="dream-cat-emoji">🌟</span>
+              <div class="dream-cat-info">
+                <h4>Impact & Contribution</h4>
+                <span class="dream-cat-count" id="dream-count-impact">0 rêves</span>
+              </div>
+              <span class="dream-cat-arrow">›</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Notifications de rappel -->
+        <div class="dreams-notif-settings">
+          <div class="dreams-notif-header">
+            <span>🔔</span>
+            <span>Rappels motivants</span>
+            <label class="toggle">
+              <input type="checkbox" id="dreams-notif-toggle">
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+          <p class="dreams-notif-desc">Active les notifications pour recevoir des rappels de tes rêves avec des messages de motivation</p>
+        </div>
+      </section>
+
+      <!-- Modal catégorie rêve (détail) -->
+      <div id="dream-detail-modal" class="dream-detail-overlay hidden">
+        <div class="dream-detail-page">
+          <div class="dream-detail-header">
+            <button class="dream-back-btn" id="close-dream-detail">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="24" height="24">
+                <path d="M19 12H5M12 19l-7-7 7-7"/>
+              </svg>
+            </button>
+            <span class="dream-detail-emoji" id="dream-detail-emoji">❤️</span>
+            <h2 id="dream-detail-title">Amour & Relations</h2>
+          </div>
+
+          <!-- Question coaching -->
+          <div class="dream-coaching-box">
+            <div class="coaching-label">🎯 Question coaching</div>
+            <p class="coaching-question" id="dream-coaching-question"></p>
+            <button class="btn-next-question" id="next-coaching-question">Question suivante →</button>
+          </div>
+
+          <!-- Écrire un rêve -->
+          <div class="dream-add-section">
+            <textarea id="dream-new-text" rows="3" placeholder="Écris ton rêve ici... Sois précis, visualise-le !"></textarea>
+            <button id="save-dream-btn" class="btn primary" style="width:100%;">Ajouter ce rêve</button>
+          </div>
+
+          <!-- Liste des rêves -->
+          <div class="dream-entries-list" id="dream-entries-list">
+            <!-- Généré par JS -->
+          </div>
+
+          <!-- Chat coaching IA -->
+          <div class="ai-coach-section">
+            <div class="ai-coach-header">
+              <span class="ai-coach-badge">🤖 Coach IA</span>
+              <span class="ai-coach-status" id="ai-coach-status">Prêt</span>
+            </div>
+            <div class="ai-coach-chat" id="ai-coach-chat">
+              <div class="ai-message">
+                <div class="ai-message-content">Salut ! Je suis ton coach. Réponds à la question ci-dessus ou dis-moi sur quoi tu veux travailler. Je m'adapte à TES rêves.</div>
+              </div>
+            </div>
+            <div class="ai-coach-input">
+              <button id="ai-coach-mic" class="btn-mic" title="Parler au coach">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
+                  <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
+                  <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+                  <line x1="12" y1="19" x2="12" y2="23"/>
+                  <line x1="8" y1="23" x2="16" y2="23"/>
+                </svg>
+              </button>
+              <input type="text" id="ai-coach-input" placeholder="Parle à ton coach...">
+              <button id="ai-coach-send" class="btn primary small">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
+                  <path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/>
+                </svg>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Page Journal Mental -->
+      <section id="page-journal" class="page">
+        <h2 class="section-title">Journal Mental</h2>
+
+        <!-- Check-in Humeur -->
+        <div class="journal-checkin">
+          <h3>Comment tu te sens ?</h3>
+          <div class="mood-selector">
+            <button class="mood-btn" data-mood="1" data-label="Terrible">😩</button>
+            <button class="mood-btn" data-mood="2" data-label="Pas top">😕</button>
+            <button class="mood-btn" data-mood="3" data-label="Neutre">😐</button>
+            <button class="mood-btn" data-mood="4" data-label="Bien">🙂</button>
+            <button class="mood-btn" data-mood="5" data-label="Au top">🔥</button>
+          </div>
+          <div class="mood-label" id="mood-label"></div>
+
+          <div class="checkin-sliders">
+            <div class="slider-group">
+              <label>Énergie</label>
+              <input type="range" id="energy-slider" min="1" max="10" value="5">
+              <span class="slider-value" id="energy-value">5</span>
+            </div>
+            <div class="slider-group">
+              <label>Stress</label>
+              <input type="range" id="stress-slider" min="1" max="10" value="5">
+              <span class="slider-value" id="stress-value">5</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Intention du jour -->
+        <div class="journal-intention">
+          <h3>Intention du jour</h3>
+          <input type="text" id="journal-intention-input" placeholder="Qu'est-ce que je veux accomplir/incarner aujourd'hui ?" maxlength="200">
+        </div>
+
+        <!-- Écriture libre avec prompt -->
+        <div class="journal-writing">
+          <div class="writing-header">
+            <h3>Écriture libre</h3>
+            <button class="btn-prompt-refresh" id="refresh-prompt">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+                <path d="M23 4v6h-6M1 20v-6h6M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/>
+              </svg>
+              Nouveau prompt
+            </button>
+          </div>
+          <div class="writing-prompt" id="journal-prompt"></div>
+          <textarea id="journal-text" rows="6" placeholder="Écris librement ici..."></textarea>
+        </div>
+
+        <!-- Pattern Tracker -->
+        <div class="journal-patterns">
+          <h3>Tracker de Patterns</h3>
+          <div class="pattern-tabs">
+            <button class="pattern-tab active" data-tab="triggers">Déclencheurs</button>
+            <button class="pattern-tab" data-tab="relationships">Relations</button>
+            <button class="pattern-tab" data-tab="beliefs">Croyances</button>
+          </div>
+
+          <!-- Onglet Déclencheurs -->
+          <div class="pattern-content active" id="tab-triggers">
+            <p class="pattern-desc">Note ce qui a déclenché une émotion forte aujourd'hui</p>
+            <div class="pattern-quick-tags">
+              <button class="tag-btn" data-tag="travail">Travail</button>
+              <button class="tag-btn" data-tag="relation">Relation</button>
+              <button class="tag-btn" data-tag="argent">Argent</button>
+              <button class="tag-btn" data-tag="sante">Santé</button>
+              <button class="tag-btn" data-tag="famille">Famille</button>
+              <button class="tag-btn" data-tag="estime">Estime de soi</button>
+            </div>
+            <textarea id="trigger-detail" rows="3" placeholder="Qu'est-ce qui s'est passé ? Quelle émotion ? Quelle réaction ?"></textarea>
+          </div>
+
+          <!-- Onglet Relations -->
+          <div class="pattern-content" id="tab-relationships">
+            <p class="pattern-desc">Identifie les schémas qui se répètent dans tes relations</p>
+            <div class="relationship-prompts">
+              <div class="rel-prompt-card" id="rel-prompt-text"></div>
+            </div>
+            <textarea id="relationship-detail" rows="3" placeholder="Décris la situation, le schéma que tu reconnais..."></textarea>
+            <div class="pattern-quick-tags">
+              <button class="tag-btn" data-tag="dependance">Dépendance</button>
+              <button class="tag-btn" data-tag="evitement">Évitement</button>
+              <button class="tag-btn" data-tag="controle">Contrôle</button>
+              <button class="tag-btn" data-tag="plaire">Besoin de plaire</button>
+              <button class="tag-btn" data-tag="abandon">Peur abandon</button>
+              <button class="tag-btn" data-tag="conflit">Fuite conflit</button>
+            </div>
+          </div>
+
+          <!-- Onglet Croyances -->
+          <div class="pattern-content" id="tab-beliefs">
+            <p class="pattern-desc">Identifie et challenge tes croyances limitantes</p>
+            <div class="belief-exercise">
+              <div class="belief-row">
+                <label>Croyance limitante</label>
+                <input type="text" id="belief-limiting" placeholder="Ex: Je ne mérite pas le succès">
+              </div>
+              <div class="belief-arrow">↓</div>
+              <div class="belief-row">
+                <label>Preuve du contraire</label>
+                <input type="text" id="belief-evidence" placeholder="Ex: J'ai déjà réussi X, Y, Z">
+              </div>
+              <div class="belief-arrow">↓</div>
+              <div class="belief-row">
+                <label>Nouvelle croyance</label>
+                <input type="text" id="belief-new" placeholder="Ex: Je mérite le succès car je travaille dur">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Review du soir -->
+        <div class="journal-review">
+          <h3>Review du soir</h3>
+          <div class="review-questions">
+            <div class="review-item">
+              <label>3 choses bien aujourd'hui</label>
+              <textarea id="review-wins" rows="2" placeholder="1. ... 2. ... 3. ..."></textarea>
+            </div>
+            <div class="review-item">
+              <label>Ce que j'aurais pu mieux faire</label>
+              <textarea id="review-improve" rows="2" placeholder="Sois honnête, sans jugement..."></textarea>
+            </div>
+          </div>
+        </div>
+
+        <!-- Bouton sauvegarder -->
+        <button id="save-journal" class="btn primary" style="width:100%;margin-top:1rem;">Sauvegarder le journal</button>
+
+        <!-- Tendances -->
+        <div class="journal-trends">
+          <h3>Tendances (7 derniers jours)</h3>
+          <canvas id="mood-trend-canvas" width="350" height="120"></canvas>
+          <div class="trend-legend">
+            <span class="trend-dot mood-trend-dot"></span> Humeur
+            <span class="trend-dot energy-trend-dot"></span> Énergie
+            <span class="trend-dot stress-trend-dot"></span> Stress
+          </div>
+        </div>
+      </section>
+
+      <!-- Page Business Tracker -->
+      <section id="page-business" class="page">
+        <h2 class="section-title">Business Tracker</h2>
+
+        <!-- KPIs du mois -->
+        <div class="biz-kpis">
+          <div class="biz-kpi-card revenue-kpi">
+            <span class="kpi-label">Revenus ce mois</span>
+            <span class="kpi-value" id="biz-revenue">0 &euro;</span>
+            <span class="kpi-trend" id="biz-revenue-trend"></span>
+          </div>
+          <div class="biz-kpi-card clients-kpi">
+            <span class="kpi-label">Nouveaux clients</span>
+            <span class="kpi-value" id="biz-clients">0</span>
+          </div>
+          <div class="biz-kpi-card tasks-kpi">
+            <span class="kpi-label">Tâches complétées</span>
+            <span class="kpi-value" id="biz-tasks-done">0</span>
+          </div>
+        </div>
+
+        <!-- Objectifs -->
+        <div class="biz-goals">
+          <div class="biz-section-header">
+            <h3>Objectifs</h3>
+            <button id="add-goal-btn" class="btn secondary small">+ Ajouter</button>
+          </div>
+          <div id="goals-list" class="goals-list">
+            <!-- Généré par JS -->
+          </div>
+        </div>
+
+        <!-- Modal ajout objectif -->
+        <div id="goal-modal" class="modal hidden">
+          <div class="modal-content goal-modal-content">
+            <div class="modal-header">
+              <h3>Nouvel objectif</h3>
+              <button id="close-goal-modal" class="icon-btn">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <line x1="18" y1="6" x2="6" y2="18"></line>
+                  <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+              </button>
+            </div>
+            <div class="goal-inputs">
+              <input type="text" id="goal-title-input" placeholder="Titre de l'objectif">
+              <input type="number" id="goal-target-input" placeholder="Cible (montant, nombre...)">
+              <select id="goal-type-input">
+                <option value="revenue">Revenu</option>
+                <option value="clients">Clients</option>
+                <option value="tasks">Tâches</option>
+                <option value="custom">Personnalisé</option>
+              </select>
+              <select id="goal-period-input">
+                <option value="week">Cette semaine</option>
+                <option value="month">Ce mois</option>
+                <option value="quarter">Ce trimestre</option>
+              </select>
+            </div>
+            <button id="save-goal-btn" class="btn primary" style="width:100%;margin-top:1rem;">Créer</button>
+          </div>
+        </div>
+
+        <!-- Revenus -->
+        <div class="biz-revenue-section">
+          <div class="biz-section-header">
+            <h3>Suivi Revenus</h3>
+            <button id="add-revenue-btn" class="btn secondary small">+ Ajouter</button>
+          </div>
+          <div id="revenue-list" class="revenue-list">
+            <!-- Généré par JS -->
+          </div>
+          <canvas id="revenue-chart" width="350" height="150"></canvas>
+        </div>
+
+        <!-- Modal ajout revenu -->
+        <div id="revenue-modal" class="modal hidden">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h3>Ajouter un revenu</h3>
+              <button id="close-revenue-modal" class="icon-btn">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <line x1="18" y1="6" x2="6" y2="18"></line>
+                  <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+              </button>
+            </div>
+            <div class="revenue-inputs">
+              <input type="text" id="revenue-desc-input" placeholder="Description (ex: Client X, Vente produit)">
+              <input type="number" id="revenue-amount-input" placeholder="Montant en euros" step="0.01">
+              <input type="date" id="revenue-date-input">
+              <select id="revenue-category-input">
+                <option value="service">Service / Prestation</option>
+                <option value="product">Produit</option>
+                <option value="recurring">Abonnement / Récurrent</option>
+                <option value="other">Autre</option>
+              </select>
+            </div>
+            <button id="save-revenue-btn" class="btn primary" style="width:100%;margin-top:1rem;">Enregistrer</button>
+          </div>
+        </div>
+
+        <!-- Tâches business -->
+        <div class="biz-tasks-section">
+          <div class="biz-section-header">
+            <h3>Tâches prioritaires</h3>
+          </div>
+          <div class="biz-task-input">
+            <input type="text" id="biz-task-input" placeholder="Nouvelle tâche...">
+            <select id="biz-task-priority">
+              <option value="high">Urgent</option>
+              <option value="medium">Normal</option>
+              <option value="low">Plus tard</option>
+            </select>
+            <button id="add-biz-task-btn" class="btn primary small">+</button>
+          </div>
+          <div id="biz-tasks-list" class="biz-tasks-list">
+            <!-- Généré par JS -->
+          </div>
+        </div>
+
+        <!-- Notes clients -->
+        <div class="biz-clients-section">
+          <div class="biz-section-header">
+            <h3>Pipeline Clients</h3>
+            <button id="add-client-btn" class="btn secondary small">+ Client</button>
+          </div>
+          <div id="clients-pipeline" class="clients-pipeline">
+            <!-- Généré par JS -->
+          </div>
+        </div>
+
+        <!-- Modal ajout client -->
+        <div id="client-modal" class="modal hidden">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h3>Nouveau client</h3>
+              <button id="close-client-modal" class="icon-btn">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <line x1="18" y1="6" x2="6" y2="18"></line>
+                  <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+              </button>
+            </div>
+            <div class="client-inputs">
+              <input type="text" id="client-name-input" placeholder="Nom du client">
+              <input type="text" id="client-contact-input" placeholder="Contact (email, tel...)">
+              <input type="number" id="client-value-input" placeholder="Valeur potentielle (euros)" step="0.01">
+              <select id="client-status-input">
+                <option value="prospect">Prospect</option>
+                <option value="contacted">Contacté</option>
+                <option value="negotiation">Négociation</option>
+                <option value="won">Gagné</option>
+                <option value="lost">Perdu</option>
+              </select>
+              <textarea id="client-notes-input" rows="2" placeholder="Notes..."></textarea>
+            </div>
+            <button id="save-client-btn" class="btn primary" style="width:100%;margin-top:1rem;">Enregistrer</button>
+          </div>
+        </div>
+      </section>
+
       <!-- Page Poésie -->
       <section id="page-poetry" class="page">
         <h2 class="section-title">Poésie & Inspiration</h2>
@@ -1625,6 +2217,213 @@
     <audio id="bell-sound" preload="auto">
       <source src="data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2teleR0NW6LM2aV5JQxXoM/dqXsjC1OZ0eGweCMOU5bO4LN6JxBVl8zdsnsmDk+QzuK4fyoTU5HJ3bN/Kg9Mjc7hvIAuFVKLxdi2gS8TT4nD0raFMxVQiL/MsocyE0yDvMmyiDUWT4G4wqqINRNKfbPCq4o4FEp5rbutjDoVSXWpuKqNPBZJc6WzqI8+F0hwobGmkEAYSW2dq6KRQhlIapmnoJNEGkhol6OclUYbR2WTnpmXSB1GYpCZlZlKHkZgj5WTm00fRV6LkJCbTx9EXIiMjptQH0NbhYiLm1IfQlmCg4iaVCBBV3+AhZdVIEFVe3uClFcgP1J4dnyCll0hP1B0cHl+l2EiPlBwbHR6kmQjPU5sa3J3j2clPExoZm9zjmooO0tjYmtwhG0rOklfXWdseXAtOUZbWGNncHUwOEVXU15ibnQyN0JTT1led3k2NkBQS1VZc3w5NT1LS1BScX49NDpHRkxMbX5BNDhDQUdHaXtGNDY/PEJBZHdKMzI7NzsAAAAAAABKNDI2NDgAAAAAAAAASDMxNDIxAAAAAAAAAEUyMDIuLAAAAAAAAAAAAAAAAAAAAAAAAAAA" type="audio/wav">
     </audio>
+
+    <!-- Page Routines -->
+      <section id="page-routines" class="page">
+        <h2 class="section-title">Mes Routines</h2>
+
+        <div class="routine-tabs">
+          <button class="routine-tab active" data-routine="morning">Matin</button>
+          <button class="routine-tab" data-routine="evening">Soir</button>
+        </div>
+
+        <div class="routine-builder" id="routine-builder">
+          <p class="routine-hint">Coche les modules et ordonne ta routine :</p>
+          <div class="routine-modules" id="routine-modules"></div>
+        </div>
+
+        <button class="btn primary routine-launch-btn" id="launch-routine">
+          <svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20"><path d="M8 5v14l11-7z"/></svg>
+          Lancer ma routine
+        </button>
+
+        <!-- Routine en cours -->
+        <div class="routine-active hidden" id="routine-active">
+          <div class="routine-progress-bar">
+            <div class="routine-progress-fill" id="routine-progress-fill"></div>
+          </div>
+          <div class="routine-step-info">
+            <span class="routine-step-number" id="routine-step-number">1/3</span>
+            <span class="routine-step-name" id="routine-step-name">Respiration</span>
+          </div>
+          <button class="btn secondary" id="routine-next-step">Etape suivante →</button>
+          <button class="btn danger small" id="routine-stop">Arrêter</button>
+        </div>
+      </section>
+
+      <!-- Page Focus / Deep Work -->
+      <section id="page-focus" class="page">
+        <h2 class="section-title">Mode Focus</h2>
+
+        <!-- Projet actif -->
+        <div class="focus-project-selector">
+          <label>Projet :</label>
+          <select id="focus-project-select">
+            <option value="general">Général</option>
+          </select>
+          <button class="btn small" id="focus-add-project">+</button>
+        </div>
+
+        <!-- Timer Focus -->
+        <div class="focus-timer-container">
+          <div class="focus-ring">
+            <svg viewBox="0 0 200 200" class="focus-ring-svg">
+              <circle cx="100" cy="100" r="90" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="6"/>
+              <circle id="focus-ring-progress" cx="100" cy="100" r="90" fill="none" stroke="url(#focusGrad)" stroke-width="6" stroke-dasharray="565" stroke-dashoffset="0" transform="rotate(-90 100 100)" stroke-linecap="round"/>
+              <defs>
+                <linearGradient id="focusGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" style="stop-color:#00f5ff"/>
+                  <stop offset="100%" style="stop-color:#8b5cf6"/>
+                </linearGradient>
+              </defs>
+            </svg>
+            <div class="focus-timer-display">
+              <div class="focus-time" id="focus-time">25:00</div>
+              <div class="focus-status" id="focus-status">Prêt</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Ambiance sonore -->
+        <div class="focus-ambiance">
+          <span class="focus-ambiance-label">Ambiance :</span>
+          <div class="focus-ambiance-options">
+            <button class="focus-amb-btn" data-amb="none">Silence</button>
+            <button class="focus-amb-btn active" data-amb="rain">Pluie</button>
+            <button class="focus-amb-btn" data-amb="cafe">Café</button>
+            <button class="focus-amb-btn" data-amb="fire">Feu</button>
+            <button class="focus-amb-btn" data-amb="forest">Forêt</button>
+          </div>
+        </div>
+
+        <!-- Contrôles -->
+        <div class="focus-controls">
+          <button id="focus-start" class="control-btn primary">Démarrer</button>
+          <button id="focus-pause" class="control-btn secondary hidden">Pause</button>
+          <button id="focus-reset" class="control-btn danger">Reset</button>
+        </div>
+
+        <!-- Stats Focus -->
+        <div class="focus-stats-card">
+          <h3>Statistiques Focus</h3>
+          <div class="focus-stats-grid">
+            <div class="focus-stat">
+              <span class="focus-stat-value" id="focus-today-time">0h</span>
+              <span class="focus-stat-label">Aujourd'hui</span>
+            </div>
+            <div class="focus-stat">
+              <span class="focus-stat-value" id="focus-week-time">0h</span>
+              <span class="focus-stat-label">Cette semaine</span>
+            </div>
+            <div class="focus-stat">
+              <span class="focus-stat-value" id="focus-total-sessions">0</span>
+              <span class="focus-stat-label">Sessions totales</span>
+            </div>
+            <div class="focus-stat">
+              <span class="focus-stat-value" id="focus-best-streak">0</span>
+              <span class="focus-stat-label">Meilleure série</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Historique sessions -->
+        <div class="focus-history-card">
+          <h3>Sessions récentes</h3>
+          <div class="focus-history-list" id="focus-history-list">
+            <p class="muted-text">Aucune session encore.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Page Lecture -->
+      <section id="page-lecture" class="page">
+        <h2 class="section-title">Mes Lectures</h2>
+
+        <!-- Stats lecture -->
+        <div class="lecture-stats-bar">
+          <div class="lecture-stat-item">
+            <span class="lecture-stat-num" id="lecture-total">0</span>
+            <span>livres</span>
+          </div>
+          <div class="lecture-stat-item">
+            <span class="lecture-stat-num" id="lecture-reading">0</span>
+            <span>en cours</span>
+          </div>
+          <div class="lecture-stat-item">
+            <span class="lecture-stat-num" id="lecture-done">0</span>
+            <span>terminés</span>
+          </div>
+        </div>
+
+        <!-- Ajouter un livre -->
+        <div class="lecture-add-card">
+          <input type="text" id="lecture-title" placeholder="Titre du livre" class="lecture-input">
+          <input type="text" id="lecture-author" placeholder="Auteur" class="lecture-input">
+          <select id="lecture-status-input" class="lecture-input">
+            <option value="reading">En cours</option>
+            <option value="done">Terminé</option>
+            <option value="toread">A lire</option>
+          </select>
+          <button class="btn primary" id="add-lecture-btn">Ajouter</button>
+        </div>
+
+        <!-- Liste des livres -->
+        <div class="lecture-list" id="lecture-list"></div>
+
+        <!-- Détail livre (overlay) -->
+        <div class="lecture-detail-overlay hidden" id="lecture-detail-overlay">
+          <div class="lecture-detail-content">
+            <button class="icon-btn lecture-detail-close" id="close-lecture-detail">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </button>
+            <h3 id="lecture-detail-title"></h3>
+            <p class="lecture-detail-author" id="lecture-detail-author"></p>
+
+            <div class="lecture-notes-section">
+              <h4>Notes</h4>
+              <textarea id="lecture-notes" placeholder="Tes notes, réflexions..." rows="4"></textarea>
+            </div>
+
+            <div class="lecture-quotes-section">
+              <h4>Citations marquantes</h4>
+              <div class="lecture-quote-add">
+                <input type="text" id="lecture-quote-input" placeholder="Ajouter une citation...">
+                <button class="btn small primary" id="add-lecture-quote">+</button>
+              </div>
+              <div class="lecture-quotes-list" id="lecture-quotes-list"></div>
+            </div>
+
+            <div class="lecture-rating">
+              <h4>Note</h4>
+              <div class="lecture-stars" id="lecture-stars">
+                <span class="lecture-star" data-star="1">★</span>
+                <span class="lecture-star" data-star="2">★</span>
+                <span class="lecture-star" data-star="3">★</span>
+                <span class="lecture-star" data-star="4">★</span>
+                <span class="lecture-star" data-star="5">★</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Modal Bilan Hebdo -->
+      <div id="bilan-hebdo-modal" class="modal hidden">
+        <div class="modal-content bilan-modal-content">
+          <div class="modal-header">
+            <h3>📊 Bilan de la semaine</h3>
+            <button id="close-bilan-hebdo" class="icon-btn">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </button>
+          </div>
+          <div class="bilan-content" id="bilan-content">
+            <canvas id="bilan-canvas" width="400" height="600"></canvas>
+          </div>
+          <div class="modal-actions">
+            <button id="share-bilan" class="btn primary">Partager / Sauvegarder</button>
+          </div>
+        </div>
+      </div>
 
     <!-- Modal Citation au démarrage -->
     <div id="startup-quote-modal" class="startup-quote-modal">

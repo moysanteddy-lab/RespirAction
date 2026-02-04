@@ -1542,13 +1542,20 @@ document.addEventListener('DOMContentLoaded', () => {
   initMeditation();
   initBiofeedback();
   initPoetry();
+  initDreams();
   initSleepTracker();
+  initJournal();
+  initBusiness();
   initDashboard();
+  initFocus();
+  initRoutines();
+  initLecture();
   updateStats();
   renderHistory();
   updateHistoryStats();
   showStartupQuote();
   updateHolisticScore();
+  updateStreaksHeatmap();
 
   // Initialiser le systeme de particules
   particleSystem = new ParticleSystem('particles-canvas');
@@ -1689,6 +1696,12 @@ function navigateTo(pageName) {
       pomodoro: 'Pomodoro',
       history: 'Historique',
       poetry: 'Poésie',
+      dreams: 'Mes Rêves',
+      journal: 'Journal Mental',
+      business: 'Business',
+      focus: 'Mode Focus',
+      routines: 'Mes Routines',
+      lecture: 'Mes Lectures',
       calisthenics: 'Calisthénie',
       settings: 'Réglages'
     };
@@ -4894,6 +4907,7 @@ function toggleHabit(habitId, checked) {
   updateBadgesDisplay();
   generateMonthCalendar();
   updateHomeMiniSummary();
+  updateStreaksHeatmap();
 }
 
 function calculateStreaks() {
@@ -5770,6 +5784,1306 @@ document.addEventListener('change', (e) => {
   }
 });
 
+// ===== Mes Rêves =====
+const dreamCategories = {
+  love: {
+    emoji: '❤️', title: 'Amour & Relations',
+    questions: [
+      "À quoi ressemble ta relation idéale ? Décris une journée type avec cette personne.",
+      "Quelle qualité est non-négociable chez ton/ta partenaire idéal(e) ?",
+      "Quel schéma amoureux du passé tu refuses de reproduire ?",
+      "Comment veux-tu te sentir dans ta relation ? (pas ce que l'autre fait, ce que TU ressens)",
+      "Qu'est-ce que tu as besoin de guérir en toi avant d'attirer cette relation ?",
+      "Imagine : tu as 80 ans, tu regardes en arrière. C'était quoi une vie amoureuse réussie pour toi ?",
+      "Quel type de père/mère veux-tu être ? Comment ta relation de couple nourrit ça ?",
+      "Qu'est-ce que tu donnes dans une relation ? Et qu'est-ce que tu attends en retour ?"
+    ]
+  },
+  career: {
+    emoji: '💰', title: 'Carrière & Argent',
+    questions: [
+      "Si tu avais 10 millions en banque demain, que ferais-tu de tes journées ?",
+      "Quel problème dans le monde tu voudrais résoudre et qu'on te paye pour ?",
+      "Quel revenu mensuel rendrait ta vie confortable, sans stress ?",
+      "Qu'est-ce qui te bloque pour atteindre ce revenu ? Sois honnête.",
+      "Dans 3 ans, c'est quoi ton titre, ton activité, ta journée type ?",
+      "Quelle compétence, si tu la maîtrisais, changerait tout ?",
+      "Quel est ton rapport à l'argent ? D'où vient-il (famille, éducation) ?",
+      "Qu'est-ce que tu ferais si tu savais que tu ne pouvais pas échouer ?"
+    ]
+  },
+  health: {
+    emoji: '💪', title: 'Santé & Corps',
+    questions: [
+      "Comment tu veux te sentir physiquement au quotidien ?",
+      "Quel est ton physique idéal ? Pas pour les autres - pour toi.",
+      "Quelle habitude de santé tu procrastines depuis trop longtemps ?",
+      "Qu'est-ce que tu mets dans ton corps qui ne te sert pas ?",
+      "À 70 ans, tu veux être capable de faire quoi physiquement ?",
+      "Quel sport ou pratique te fait vibrer quand tu le fais ?",
+      "Quelle est ta plus grande peur liée à ta santé ?",
+      "Comment ta santé physique impacte le reste de ta vie (mental, relations, travail) ?"
+    ]
+  },
+  family: {
+    emoji: '👨‍👩‍👧‍👦', title: 'Famille',
+    questions: [
+      "Quel genre de famille veux-tu construire ? Décris l'ambiance.",
+      "Qu'est-ce que tu veux transmettre à tes enfants que tes parents ne t'ont pas donné ?",
+      "Quelle relation veux-tu avec tes parents/fratrie maintenant ?",
+      "Comment tu veux que tes enfants se souviennent de toi ?",
+      "Quel blessure familiale as-tu besoin de guérir pour ne pas la transmettre ?",
+      "Combien d'enfants ? Où ? Quel style de vie familiale ?",
+      "Qu'est-ce qui manquait dans ta famille d'origine que tu veux créer ?",
+      "Comment tu équilibres ambition personnelle et présence familiale ?"
+    ]
+  },
+  growth: {
+    emoji: '🧠', title: 'Développement personnel',
+    questions: [
+      "Qui est la meilleure version de toi ? Décris cette personne en détail.",
+      "Quelle peur, si tu la dépassais, changerait ta vie du jour au lendemain ?",
+      "Quel défaut tu connais chez toi mais que tu n'as pas encore travaillé ?",
+      "Quel livre, mentor ou expérience t'a le plus transformé ?",
+      "Qu'est-ce que les gens qui te connaissent bien diraient que tu dois travailler ?",
+      "Si tu pouvais maîtriser une seule qualité (discipline, confiance, patience...), laquelle ?",
+      "Qu'est-ce que tu fuis ? Pourquoi ?",
+      "Dans quel domaine de ta vie tu te mens à toi-même ?"
+    ]
+  },
+  adventure: {
+    emoji: '🌍', title: 'Aventure & Expériences',
+    questions: [
+      "Cite 5 expériences que tu veux vivre avant de mourir.",
+      "Quel pays ou lieu t'appelle ? Pourquoi ?",
+      "Quelle aventure te fait peur ET te fait rêver en même temps ?",
+      "Qu'est-ce que tu regretterais de ne PAS avoir fait ?",
+      "Quel mode de vie tu envies chez quelqu'un d'autre ?",
+      "Si tu avais 1 an sabbatique demain, tu fais quoi ?",
+      "Quelle expérience te ferait grandir le plus ?",
+      "Comment tu veux te sentir quand tu voyages ou vis des aventures ?"
+    ]
+  },
+  impact: {
+    emoji: '🌟', title: 'Impact & Contribution',
+    questions: [
+      "Qu'est-ce que tu veux laisser derrière toi ? Ton héritage, c'est quoi ?",
+      "Quelle cause te touche au point de te mettre en colère ?",
+      "Comment tu veux contribuer au monde avec tes talents ?",
+      "Si tu avais une fondation, elle ferait quoi ?",
+      "Quelles personnes tu veux inspirer ? Comment ?",
+      "Qu'est-ce que le monde a besoin que TU spécifiquement apportes ?",
+      "Si on écrivait un article sur toi dans 10 ans, il dirait quoi ?",
+      "Quelle communauté ou mouvement tu veux créer ou rejoindre ?"
+    ]
+  }
+};
+
+const dreamMotivations = [
+  "Tu te rappelles pourquoi tu te lèves chaque matin ? Ton rêve t'attend. Fonce !",
+  "Rappelle-toi : chaque action aujourd'hui te rapproche de ta vision. Go !",
+  "Hey ! Tu mérites la vie dont tu rêves. N'oublie pas. Jamais.",
+  "Les autres rêvent. Toi, tu construis. Continue.",
+  "C'est dans les jours où t'as pas envie que ça se joue. Pousse !",
+  "Ton futur toi te remercie déjà pour ce que tu fais aujourd'hui.",
+  "Lâche rien. T'es plus proche que tu le crois.",
+  "La discipline bat le talent quand le talent n'est pas discipliné. Tu sais ça."
+];
+
+const WORKER_URL = 'https://black-cell-5b71ted.moysan-teddy.workers.dev';
+
+const dreamsState = {
+  vision: '',
+  dreams: {},
+  notifsEnabled: false,
+  currentCategory: null,
+  chatHistory: [],
+  chatLoading: false
+};
+
+function initDreams() {
+  loadDreamsData();
+  setupDreamsUI();
+  updateDreamCounts();
+  scheduleDreamNotifications();
+}
+
+function loadDreamsData() {
+  const saved = localStorage.getItem('breathflow_dreams');
+  if (saved) {
+    const data = JSON.parse(saved);
+    dreamsState.vision = data.vision || '';
+    dreamsState.dreams = data.dreams || {};
+    dreamsState.notifsEnabled = data.notifsEnabled || false;
+  }
+
+  // Restaurer la vision
+  const visionEl = document.getElementById('dreams-global-vision');
+  if (visionEl && dreamsState.vision) visionEl.value = dreamsState.vision;
+
+  // Restaurer le toggle
+  const toggle = document.getElementById('dreams-notif-toggle');
+  if (toggle) toggle.checked = dreamsState.notifsEnabled;
+}
+
+function saveDreamsData() {
+  dreamsState.vision = document.getElementById('dreams-global-vision')?.value || '';
+  localStorage.setItem('breathflow_dreams', JSON.stringify(dreamsState));
+}
+
+function setupDreamsUI() {
+  // Save vision on blur
+  const visionEl = document.getElementById('dreams-global-vision');
+  if (visionEl) {
+    visionEl.addEventListener('blur', saveDreamsData);
+  }
+
+  // Category cards
+  document.querySelectorAll('.dream-category-card').forEach(card => {
+    card.addEventListener('click', () => {
+      openDreamCategory(card.dataset.category);
+    });
+  });
+
+  // Close detail
+  const closeBtn = document.getElementById('close-dream-detail');
+  if (closeBtn) {
+    closeBtn.addEventListener('click', () => {
+      document.getElementById('dream-detail-modal').classList.add('hidden');
+      updateDreamCounts();
+    });
+  }
+
+  // Next question
+  const nextQ = document.getElementById('next-coaching-question');
+  if (nextQ) {
+    nextQ.addEventListener('click', () => {
+      if (dreamsState.currentCategory) {
+        displayCoachingQuestion(dreamsState.currentCategory);
+      }
+    });
+  }
+
+  // Save dream
+  const saveBtn = document.getElementById('save-dream-btn');
+  if (saveBtn) {
+    saveBtn.addEventListener('click', saveDreamEntry);
+  }
+
+  // Notif toggle
+  const notifToggle = document.getElementById('dreams-notif-toggle');
+  if (notifToggle) {
+    notifToggle.addEventListener('change', (e) => {
+      dreamsState.notifsEnabled = e.target.checked;
+      saveDreamsData();
+      if (e.target.checked) {
+        requestNotificationPermission();
+        scheduleDreamNotifications();
+      }
+    });
+  }
+
+  // AI Coach chat
+  const coachSend = document.getElementById('ai-coach-send');
+  const coachInput = document.getElementById('ai-coach-input');
+  if (coachSend && coachInput) {
+    coachSend.addEventListener('click', () => sendToCoach());
+    coachInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        sendToCoach();
+      }
+    });
+  }
+
+  // AI Coach micro (Speech Recognition)
+  const micBtn = document.getElementById('ai-coach-mic');
+  if (micBtn) {
+    micBtn.addEventListener('click', toggleVoiceRecognition);
+  }
+}
+
+function openDreamCategory(category) {
+  const cat = dreamCategories[category];
+  if (!cat) return;
+
+  dreamsState.currentCategory = category;
+
+  document.getElementById('dream-detail-emoji').textContent = cat.emoji;
+  document.getElementById('dream-detail-title').textContent = cat.title;
+
+  displayCoachingQuestion(category);
+  renderDreamEntries(category);
+
+  document.getElementById('dream-detail-modal').classList.remove('hidden');
+  document.getElementById('dream-new-text').value = '';
+
+  // Reset AI coach chat pour cette catégorie
+  resetCoachChat(category);
+}
+
+function displayCoachingQuestion(category) {
+  const cat = dreamCategories[category];
+  if (!cat) return;
+  const q = cat.questions[Math.floor(Math.random() * cat.questions.length)];
+  const el = document.getElementById('dream-coaching-question');
+  if (el) el.textContent = q;
+}
+
+function saveDreamEntry() {
+  const category = dreamsState.currentCategory;
+  const text = document.getElementById('dream-new-text')?.value.trim();
+  if (!text || !category) return;
+
+  if (!dreamsState.dreams[category]) {
+    dreamsState.dreams[category] = [];
+  }
+
+  dreamsState.dreams[category].push({
+    id: Date.now(),
+    text: text,
+    date: new Date().toISOString(),
+    category: category
+  });
+
+  saveDreamsData();
+  renderDreamEntries(category);
+  document.getElementById('dream-new-text').value = '';
+
+  // Feedback
+  displayCoachingQuestion(category);
+}
+
+function renderDreamEntries(category) {
+  const container = document.getElementById('dream-entries-list');
+  if (!container) return;
+
+  const entries = dreamsState.dreams[category] || [];
+
+  if (entries.length === 0) {
+    container.innerHTML = '<p style="color:var(--text-muted);font-size:0.85rem;text-align:center;padding:1rem;">Aucun rêve noté. Réponds à la question coaching et écris ton premier rêve !</p>';
+    return;
+  }
+
+  container.innerHTML = entries.map(entry => {
+    const date = new Date(entry.date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' });
+    return `
+      <div class="dream-entry">
+        <div class="dream-entry-text">${entry.text}</div>
+        <div class="dream-entry-date">${date}</div>
+        <button class="dream-entry-delete" onclick="deleteDream('${category}', ${entry.id})">×</button>
+      </div>
+    `;
+  }).reverse().join('');
+}
+
+function deleteDream(category, id) {
+  if (dreamsState.dreams[category]) {
+    dreamsState.dreams[category] = dreamsState.dreams[category].filter(d => d.id !== id);
+    saveDreamsData();
+    renderDreamEntries(category);
+    updateDreamCounts();
+  }
+}
+
+function updateDreamCounts() {
+  Object.keys(dreamCategories).forEach(cat => {
+    const count = (dreamsState.dreams[cat] || []).length;
+    const el = document.getElementById(`dream-count-${cat}`);
+    if (el) el.textContent = count + ' rêve' + (count > 1 ? 's' : '');
+  });
+}
+
+// ===== Dream Notifications =====
+function requestNotificationPermission() {
+  if ('Notification' in window && Notification.permission === 'default') {
+    Notification.requestPermission();
+  }
+}
+
+function scheduleDreamNotifications() {
+  if (!dreamsState.notifsEnabled) return;
+
+  // Toast motivant au bout de 30 minutes dans l'app
+  setTimeout(() => {
+    showDreamToast();
+  }, 30 * 60 * 1000);
+
+  // Et toutes les 2 heures
+  setInterval(() => {
+    if (dreamsState.notifsEnabled) {
+      showDreamToast();
+      sendDreamNotification();
+    }
+  }, 2 * 60 * 60 * 1000);
+
+  // Premier toast après 2 min pour montrer que ça marche
+  setTimeout(() => {
+    if (dreamsState.notifsEnabled) showDreamToast();
+  }, 2 * 60 * 1000);
+}
+
+function showDreamToast() {
+  // Récupérer un rêve aléatoire de l'utilisateur
+  const allDreams = [];
+  Object.entries(dreamsState.dreams).forEach(([cat, entries]) => {
+    entries.forEach(e => allDreams.push({ ...e, catEmoji: dreamCategories[cat]?.emoji }));
+  });
+
+  let toastHTML = '';
+
+  if (allDreams.length > 0) {
+    const dream = allDreams[Math.floor(Math.random() * allDreams.length)];
+    const motivation = dreamMotivations[Math.floor(Math.random() * dreamMotivations.length)];
+    toastHTML = `
+      <div class="dream-toast-title">${dream.catEmoji} Rappel de ton rêve</div>
+      <div class="dream-toast-text">"${dream.text.slice(0, 80)}${dream.text.length > 80 ? '...' : ''}"</div>
+      <div style="margin-top:0.5rem;font-weight:600;font-size:0.8rem;">${motivation}</div>
+    `;
+  } else {
+    toastHTML = `
+      <div class="dream-toast-title">✦ Hey !</div>
+      <div class="dream-toast-text">${dreamMotivations[Math.floor(Math.random() * dreamMotivations.length)]}</div>
+    `;
+  }
+
+  // Créer le toast
+  let toast = document.querySelector('.dream-toast');
+  if (!toast) {
+    toast = document.createElement('div');
+    toast.className = 'dream-toast';
+    document.body.appendChild(toast);
+  }
+
+  toast.innerHTML = toastHTML;
+
+  // Animer
+  requestAnimationFrame(() => {
+    toast.classList.add('visible');
+    setTimeout(() => {
+      toast.classList.remove('visible');
+    }, 6000);
+  });
+}
+
+function sendDreamNotification() {
+  if (!('Notification' in window) || Notification.permission !== 'granted') return;
+
+  const allDreams = [];
+  Object.entries(dreamsState.dreams).forEach(([cat, entries]) => {
+    entries.forEach(e => allDreams.push({ ...e, catTitle: dreamCategories[cat]?.title }));
+  });
+
+  if (allDreams.length === 0) return;
+
+  const dream = allDreams[Math.floor(Math.random() * allDreams.length)];
+  const motivation = dreamMotivations[Math.floor(Math.random() * dreamMotivations.length)];
+
+  new Notification("Respir'Action - " + dream.catTitle, {
+    body: `"${dream.text.slice(0, 100)}" — ${motivation}`,
+    icon: 'icon-192.png',
+    tag: 'dream-reminder'
+  });
+}
+
+// ===== AI Coach =====
+let speechRecognition = null;
+let isRecording = false;
+let silenceTimer = null;
+
+function toggleVoiceRecognition() {
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SpeechRecognition) {
+    addChatMessage("Ton navigateur ne supporte pas la reconnaissance vocale. Essaie Chrome ou Edge !", 'ai');
+    return;
+  }
+
+  const micBtn = document.getElementById('ai-coach-mic');
+
+  if (isRecording && speechRecognition) {
+    clearTimeout(silenceTimer);
+    speechRecognition.stop();
+    return;
+  }
+
+  speechRecognition = new SpeechRecognition();
+  speechRecognition.lang = 'fr-FR';
+  speechRecognition.continuous = true;
+  speechRecognition.interimResults = true;
+
+  const input = document.getElementById('ai-coach-input');
+
+  speechRecognition.onstart = () => {
+    isRecording = true;
+    if (micBtn) micBtn.classList.add('recording');
+    if (input) {
+      input.placeholder = 'Je t\'écoute... (3s de silence = envoi)';
+      input.value = '';
+    }
+  };
+
+  speechRecognition.onresult = (event) => {
+    // Reset le timer de silence à chaque nouveau résultat
+    clearTimeout(silenceTimer);
+
+    let transcript = '';
+    for (let i = 0; i < event.results.length; i++) {
+      transcript += event.results[i][0].transcript;
+    }
+    if (input) input.value = transcript;
+
+    // Lancer un timer de 3s : si pas de nouvelle parole, on envoie
+    silenceTimer = setTimeout(() => {
+      if (input && input.value.trim()) {
+        speechRecognition.stop();
+        sendToCoach();
+      }
+    }, 3000);
+  };
+
+  speechRecognition.onerror = (event) => {
+    console.error('Speech error:', event.error);
+    clearTimeout(silenceTimer);
+    isRecording = false;
+    if (micBtn) micBtn.classList.remove('recording');
+    if (input) input.placeholder = 'Parle à ton coach...';
+    if (event.error === 'not-allowed') {
+      addChatMessage("Autorise le micro dans ton navigateur pour utiliser la voix !", 'ai');
+    }
+  };
+
+  speechRecognition.onend = () => {
+    clearTimeout(silenceTimer);
+    isRecording = false;
+    if (micBtn) micBtn.classList.remove('recording');
+    if (input) input.placeholder = 'Parle à ton coach...';
+  };
+
+  speechRecognition.start();
+}
+
+function buildSystemPrompt(category) {
+  const cat = dreamCategories[category];
+  if (!cat) return '';
+
+  const userDreams = dreamsState.dreams[category] || [];
+  const dreamTexts = userDreams.map(d => `- "${d.text}"`).join('\n');
+  const vision = dreamsState.vision || '';
+
+  // Collecter tous les rêves de toutes les catégories pour le contexte global
+  const allDreamsSummary = Object.entries(dreamsState.dreams)
+    .filter(([, entries]) => entries.length > 0)
+    .map(([catKey, entries]) => {
+      const catInfo = dreamCategories[catKey];
+      return `${catInfo?.emoji} ${catInfo?.title}: ${entries.map(e => e.text).join(', ')}`;
+    }).join('\n');
+
+  return `Tu es un coach de vie bienveillant mais direct, qui parle en français familier (tutoiement). Tu es comme un grand frère qui veut sincèrement que la personne réussisse. Tu poses des questions percutantes, tu challenges gentiment, et tu encourages.
+
+CONTEXTE DE L'UTILISATEUR :
+- Vision de vie : ${vision || 'Non renseignée encore'}
+- Catégorie actuelle : ${cat.emoji} ${cat.title}
+${dreamTexts ? `- Ses rêves dans cette catégorie :\n${dreamTexts}` : '- Pas encore de rêves notés dans cette catégorie.'}
+${allDreamsSummary ? `\nTous ses rêves :\n${allDreamsSummary}` : ''}
+
+RÈGLES :
+- Réponds en 2-4 phrases max, sois concis et percutant
+- Pose UNE question de suivi pour creuser plus profond
+- Fais référence aux rêves de l'utilisateur quand c'est pertinent
+- Sois encourageant mais pas dans le bullshit : challenge ses croyances limitantes
+- Utilise le "tu", sois direct comme un vrai coach
+- Si l'utilisateur partage un rêve vague, aide-le à le rendre concret et mesurable
+- N'utilise pas de bullet points, parle naturellement`;
+}
+
+function resetCoachChat(category) {
+  dreamsState.chatHistory = [];
+  const chatContainer = document.getElementById('ai-coach-chat');
+  if (!chatContainer) return;
+
+  const cat = dreamCategories[category];
+  const userDreams = dreamsState.dreams[category] || [];
+
+  let welcomeMsg = '';
+  if (userDreams.length > 0) {
+    const lastDream = userDreams[userDreams.length - 1];
+    welcomeMsg = `Salut ! Je vois que tu bosses sur "${cat?.title}" ${cat?.emoji}. Tu m'as parlé de "${lastDream.text.slice(0, 60)}${lastDream.text.length > 60 ? '...' : ''}". On creuse ça ensemble ? Dis-moi où t'en es !`;
+  } else {
+    welcomeMsg = `Hey ! On va bosser sur "${cat?.title}" ${cat?.emoji} ensemble. Alors dis-moi, c'est quoi ton plus grand rêve dans ce domaine ? Sois précis, pas de "je veux être heureux" hein !`;
+  }
+
+  chatContainer.innerHTML = '';
+  addChatMessage(welcomeMsg, 'ai');
+  updateCoachStatus('Prêt');
+}
+
+function addChatMessage(text, sender) {
+  const chatContainer = document.getElementById('ai-coach-chat');
+  if (!chatContainer) return;
+
+  const msgDiv = document.createElement('div');
+  msgDiv.className = sender === 'ai' ? 'ai-message' : 'user-message';
+
+  const contentDiv = document.createElement('div');
+  contentDiv.className = 'ai-message-content';
+  contentDiv.textContent = text;
+
+  msgDiv.appendChild(contentDiv);
+  chatContainer.appendChild(msgDiv);
+
+  // Scroll to bottom
+  chatContainer.scrollTop = chatContainer.scrollHeight;
+}
+
+function updateCoachStatus(status) {
+  const statusEl = document.getElementById('ai-coach-status');
+  if (statusEl) statusEl.textContent = status;
+}
+
+async function sendToCoach() {
+  const input = document.getElementById('ai-coach-input');
+  if (!input) return;
+
+  const message = input.value.trim();
+  if (!message || dreamsState.chatLoading) return;
+
+  const category = dreamsState.currentCategory;
+  if (!category) return;
+
+  // Afficher le message de l'utilisateur
+  addChatMessage(message, 'user');
+  input.value = '';
+
+  // Ajouter à l'historique
+  dreamsState.chatHistory.push({ role: 'user', content: message });
+
+  // Loading state
+  dreamsState.chatLoading = true;
+  updateCoachStatus('Réfléchit...');
+  const sendBtn = document.getElementById('ai-coach-send');
+  if (sendBtn) sendBtn.disabled = true;
+
+  // Indicateur de typing
+  const typingDiv = document.createElement('div');
+  typingDiv.className = 'ai-message typing-indicator';
+  typingDiv.innerHTML = '<div class="ai-message-content"><span class="typing-dots">●●●</span></div>';
+  const chatContainer = document.getElementById('ai-coach-chat');
+  if (chatContainer) {
+    chatContainer.appendChild(typingDiv);
+    chatContainer.scrollTop = chatContainer.scrollHeight;
+  }
+
+  try {
+    // Construire les messages pour l'API
+    const systemPrompt = buildSystemPrompt(category);
+    const messages = [
+      { role: 'system', content: systemPrompt },
+      ...dreamsState.chatHistory.slice(-10) // Garder les 10 derniers messages pour le contexte
+    ];
+
+    const response = await fetch(WORKER_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ messages })
+    });
+
+    // Retirer le typing indicator
+    if (typingDiv.parentNode) typingDiv.remove();
+
+    if (!response.ok) {
+      throw new Error(`Erreur ${response.status}`);
+    }
+
+    const data = await response.json();
+    const reply = data.reply || "Hmm, j'ai pas pu répondre. Réessaie !";
+
+    // Ajouter la réponse à l'historique et l'afficher
+    dreamsState.chatHistory.push({ role: 'assistant', content: reply });
+    addChatMessage(reply, 'ai');
+    updateCoachStatus('Prêt');
+
+  } catch (err) {
+    // Retirer le typing indicator
+    if (typingDiv.parentNode) typingDiv.remove();
+
+    console.error('Coach AI error:', err);
+    addChatMessage("Oups, problème de connexion. Vérifie ta connexion internet et réessaie !", 'ai');
+    updateCoachStatus('Erreur - Réessaie');
+  } finally {
+    dreamsState.chatLoading = false;
+    if (sendBtn) sendBtn.disabled = false;
+    const inputEl = document.getElementById('ai-coach-input');
+    if (inputEl) inputEl.focus();
+  }
+}
+
+// ===== Journal Mental =====
+const journalPrompts = [
+  "Qu'est-ce qui t'a rendu fier aujourd'hui ?",
+  "De quoi as-tu peur en ce moment ? Pourquoi ?",
+  "Quelle croyance limitante aimerais-tu lâcher ?",
+  "Si tu pouvais parler à toi-même d'il y a 5 ans, que dirais-tu ?",
+  "Qu'est-ce qui te met en colère et que ça dit de tes valeurs ?",
+  "Quel pattern répètes-tu sans t'en rendre compte ?",
+  "Décris ta journée idéale dans 1 an.",
+  "Qu'est-ce que tu tolères que tu ne devrais plus accepter ?",
+  "Quel conseil donnerais-tu à quelqu'un dans ta situation ?",
+  "Quelle émotion essaies-tu d'éviter ces derniers temps ?",
+  "Qu'est-ce qui te donne de l'énergie ? Qu'est-ce qui t'en prend ?",
+  "Si l'argent n'existait pas, que ferais-tu de ta vie ?",
+  "Quelle relation dans ta vie a besoin d'attention ?",
+  "Qu'est-ce que tu n'oses pas demander ?",
+  "Quel serait le plus gros risque que tu pourrais prendre maintenant ?"
+];
+
+const relationshipPrompts = [
+  "Est-ce que tu retrouves un schéma similaire dans plusieurs de tes relations ? Lequel ?",
+  "Quand tu te sens blessé(e) dans une relation, quelle est ta réaction automatique ?",
+  "Qu'est-ce que tu attends des autres que tu ne te donnes pas à toi-même ?",
+  "Quel type de personne attires-tu ? Qu'est-ce que ça dit de toi ?",
+  "Quelle blessure d'enfance se rejoue dans tes relations actuelles ?",
+  "Quand est-ce que tu te perds dans l'autre ? Qu'est-ce que tu abandonnes de toi ?",
+  "De quoi as-tu peur dans l'intimité ?",
+  "Comment réagis-tu quand quelqu'un s'éloigne ? Et quand il se rapproche trop ?"
+];
+
+const journalState = {
+  entries: [],
+  currentEntry: null
+};
+
+function initJournal() {
+  loadJournalData();
+  setupJournalUI();
+  displayJournalPrompt();
+  displayRelationshipPrompt();
+  drawMoodTrends();
+  loadTodayEntry();
+}
+
+function loadJournalData() {
+  const saved = localStorage.getItem('breathflow_journal');
+  if (saved) {
+    journalState.entries = JSON.parse(saved);
+  }
+}
+
+function saveJournalData() {
+  localStorage.setItem('breathflow_journal', JSON.stringify(journalState.entries));
+}
+
+function setupJournalUI() {
+  // Mood buttons
+  document.querySelectorAll('.mood-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.mood-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      const label = document.getElementById('mood-label');
+      if (label) label.textContent = btn.dataset.label;
+    });
+  });
+
+  // Sliders
+  const energySlider = document.getElementById('energy-slider');
+  const stressSlider = document.getElementById('stress-slider');
+  if (energySlider) {
+    energySlider.addEventListener('input', () => {
+      document.getElementById('energy-value').textContent = energySlider.value;
+    });
+  }
+  if (stressSlider) {
+    stressSlider.addEventListener('input', () => {
+      document.getElementById('stress-value').textContent = stressSlider.value;
+    });
+  }
+
+  // Prompt refresh
+  const refreshPrompt = document.getElementById('refresh-prompt');
+  if (refreshPrompt) {
+    refreshPrompt.addEventListener('click', displayJournalPrompt);
+  }
+
+  // Pattern tabs
+  document.querySelectorAll('.pattern-tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('.pattern-tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.pattern-content').forEach(c => c.classList.remove('active'));
+      tab.classList.add('active');
+      const target = document.getElementById('tab-' + tab.dataset.tab);
+      if (target) target.classList.add('active');
+    });
+  });
+
+  // Tag buttons
+  document.querySelectorAll('.tag-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      btn.classList.toggle('active');
+    });
+  });
+
+  // Save journal
+  const saveBtn = document.getElementById('save-journal');
+  if (saveBtn) {
+    saveBtn.addEventListener('click', saveJournalEntry);
+  }
+}
+
+function displayJournalPrompt() {
+  const el = document.getElementById('journal-prompt');
+  if (el) {
+    el.textContent = journalPrompts[Math.floor(Math.random() * journalPrompts.length)];
+  }
+}
+
+function displayRelationshipPrompt() {
+  const el = document.getElementById('rel-prompt-text');
+  if (el) {
+    el.textContent = relationshipPrompts[Math.floor(Math.random() * relationshipPrompts.length)];
+  }
+}
+
+function loadTodayEntry() {
+  const today = new Date().toDateString();
+  const entry = journalState.entries.find(e => e.date === today);
+  if (!entry) return;
+
+  // Restaurer les valeurs
+  const moodBtn = document.querySelector(`.mood-btn[data-mood="${entry.mood}"]`);
+  if (moodBtn) {
+    moodBtn.click();
+  }
+
+  const energySlider = document.getElementById('energy-slider');
+  if (energySlider && entry.energy) {
+    energySlider.value = entry.energy;
+    document.getElementById('energy-value').textContent = entry.energy;
+  }
+
+  const stressSlider = document.getElementById('stress-slider');
+  if (stressSlider && entry.stress) {
+    stressSlider.value = entry.stress;
+    document.getElementById('stress-value').textContent = entry.stress;
+  }
+
+  const intention = document.getElementById('journal-intention-input');
+  if (intention && entry.intention) intention.value = entry.intention;
+
+  const text = document.getElementById('journal-text');
+  if (text && entry.text) text.value = entry.text;
+
+  const triggerDetail = document.getElementById('trigger-detail');
+  if (triggerDetail && entry.triggerDetail) triggerDetail.value = entry.triggerDetail;
+
+  const relDetail = document.getElementById('relationship-detail');
+  if (relDetail && entry.relationshipDetail) relDetail.value = entry.relationshipDetail;
+
+  const beliefLimiting = document.getElementById('belief-limiting');
+  if (beliefLimiting && entry.beliefLimiting) beliefLimiting.value = entry.beliefLimiting;
+  const beliefEvidence = document.getElementById('belief-evidence');
+  if (beliefEvidence && entry.beliefEvidence) beliefEvidence.value = entry.beliefEvidence;
+  const beliefNew = document.getElementById('belief-new');
+  if (beliefNew && entry.beliefNew) beliefNew.value = entry.beliefNew;
+
+  const reviewWins = document.getElementById('review-wins');
+  if (reviewWins && entry.wins) reviewWins.value = entry.wins;
+  const reviewImprove = document.getElementById('review-improve');
+  if (reviewImprove && entry.improve) reviewImprove.value = entry.improve;
+
+  // Restaurer les tags actifs
+  if (entry.triggerTags) {
+    entry.triggerTags.forEach(tag => {
+      const btn = document.querySelector(`#tab-triggers .tag-btn[data-tag="${tag}"]`);
+      if (btn) btn.classList.add('active');
+    });
+  }
+  if (entry.relTags) {
+    entry.relTags.forEach(tag => {
+      const btn = document.querySelector(`#tab-relationships .tag-btn[data-tag="${tag}"]`);
+      if (btn) btn.classList.add('active');
+    });
+  }
+}
+
+function saveJournalEntry() {
+  const today = new Date().toDateString();
+  const moodBtn = document.querySelector('.mood-btn.active');
+
+  const entry = {
+    date: today,
+    timestamp: Date.now(),
+    mood: moodBtn ? parseInt(moodBtn.dataset.mood) : 3,
+    energy: parseInt(document.getElementById('energy-slider')?.value || 5),
+    stress: parseInt(document.getElementById('stress-slider')?.value || 5),
+    intention: document.getElementById('journal-intention-input')?.value || '',
+    text: document.getElementById('journal-text')?.value || '',
+    triggerDetail: document.getElementById('trigger-detail')?.value || '',
+    triggerTags: Array.from(document.querySelectorAll('#tab-triggers .tag-btn.active')).map(b => b.dataset.tag),
+    relationshipDetail: document.getElementById('relationship-detail')?.value || '',
+    relTags: Array.from(document.querySelectorAll('#tab-relationships .tag-btn.active')).map(b => b.dataset.tag),
+    beliefLimiting: document.getElementById('belief-limiting')?.value || '',
+    beliefEvidence: document.getElementById('belief-evidence')?.value || '',
+    beliefNew: document.getElementById('belief-new')?.value || '',
+    wins: document.getElementById('review-wins')?.value || '',
+    improve: document.getElementById('review-improve')?.value || ''
+  };
+
+  // Remplacer ou ajouter l'entrée du jour
+  const idx = journalState.entries.findIndex(e => e.date === today);
+  if (idx >= 0) {
+    journalState.entries[idx] = entry;
+  } else {
+    journalState.entries.unshift(entry);
+  }
+
+  // Limiter à 90 jours
+  if (journalState.entries.length > 90) {
+    journalState.entries = journalState.entries.slice(0, 90);
+  }
+
+  saveJournalData();
+  drawMoodTrends();
+  updateHolisticScore();
+
+  // Feedback visuel
+  const btn = document.getElementById('save-journal');
+  if (btn) {
+    btn.textContent = 'Sauvegardé !';
+    btn.style.background = 'var(--neon-green)';
+    setTimeout(() => {
+      btn.textContent = 'Sauvegarder le journal';
+      btn.style.background = '';
+    }, 2000);
+  }
+}
+
+function drawMoodTrends() {
+  const canvas = document.getElementById('mood-trend-canvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+
+  const last7 = journalState.entries
+    .filter(e => {
+      const diff = (Date.now() - e.timestamp) / (1000 * 60 * 60 * 24);
+      return diff <= 7;
+    })
+    .reverse()
+    .slice(-7);
+
+  // Effacer
+  ctx.fillStyle = 'rgba(10, 10, 15, 0.95)';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  if (last7.length < 2) {
+    ctx.fillStyle = 'rgba(160, 160, 176, 0.5)';
+    ctx.font = '12px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('Minimum 2 jours de données', canvas.width / 2, canvas.height / 2);
+    return;
+  }
+
+  // Grille
+  ctx.strokeStyle = 'rgba(100, 100, 150, 0.15)';
+  ctx.lineWidth = 1;
+  for (let i = 0; i < 5; i++) {
+    const y = 10 + (canvas.height - 20) / 4 * i;
+    ctx.beginPath();
+    ctx.moveTo(0, y);
+    ctx.lineTo(canvas.width, y);
+    ctx.stroke();
+  }
+
+  const drawLine = (data, color, max) => {
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 2;
+    ctx.shadowColor = color;
+    ctx.shadowBlur = 8;
+    ctx.beginPath();
+
+    const stepX = canvas.width / (last7.length - 1);
+    data.forEach((val, i) => {
+      const x = i * stepX;
+      const y = canvas.height - 10 - ((val / max) * (canvas.height - 20));
+      if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+    });
+    ctx.stroke();
+    ctx.shadowBlur = 0;
+  };
+
+  drawLine(last7.map(e => e.mood), '#f59e0b', 5);
+  drawLine(last7.map(e => e.energy), '#10b981', 10);
+  drawLine(last7.map(e => e.stress), '#ef4444', 10);
+}
+
+// ===== Business Tracker =====
+const businessState = {
+  goals: [],
+  revenues: [],
+  tasks: [],
+  clients: []
+};
+
+function initBusiness() {
+  loadBusinessData();
+  renderBusinessGoals();
+  renderBusinessRevenues();
+  renderBusinessTasks();
+  renderBusinessClients();
+  updateBusinessKPIs();
+  setupBusinessUI();
+}
+
+function loadBusinessData() {
+  const saved = localStorage.getItem('breathflow_business');
+  if (saved) {
+    const data = JSON.parse(saved);
+    businessState.goals = data.goals || [];
+    businessState.revenues = data.revenues || [];
+    businessState.tasks = data.tasks || [];
+    businessState.clients = data.clients || [];
+  }
+}
+
+function saveBusinessData() {
+  localStorage.setItem('breathflow_business', JSON.stringify(businessState));
+}
+
+function setupBusinessUI() {
+  // Goals
+  const addGoalBtn = document.getElementById('add-goal-btn');
+  const closeGoalModal = document.getElementById('close-goal-modal');
+  const saveGoalBtn = document.getElementById('save-goal-btn');
+
+  if (addGoalBtn) addGoalBtn.addEventListener('click', () => {
+    document.getElementById('goal-modal').classList.remove('hidden');
+  });
+  if (closeGoalModal) closeGoalModal.addEventListener('click', () => {
+    document.getElementById('goal-modal').classList.add('hidden');
+  });
+  if (saveGoalBtn) saveGoalBtn.addEventListener('click', () => {
+    const title = document.getElementById('goal-title-input').value.trim();
+    const target = parseFloat(document.getElementById('goal-target-input').value) || 0;
+    const type = document.getElementById('goal-type-input').value;
+    const period = document.getElementById('goal-period-input').value;
+
+    if (!title) return;
+
+    businessState.goals.push({
+      id: Date.now(),
+      title, target, type, period,
+      current: 0,
+      createdAt: new Date().toISOString()
+    });
+
+    saveBusinessData();
+    renderBusinessGoals();
+    document.getElementById('goal-modal').classList.add('hidden');
+    document.getElementById('goal-title-input').value = '';
+    document.getElementById('goal-target-input').value = '';
+  });
+
+  // Revenues
+  const addRevBtn = document.getElementById('add-revenue-btn');
+  const closeRevModal = document.getElementById('close-revenue-modal');
+  const saveRevBtn = document.getElementById('save-revenue-btn');
+
+  if (addRevBtn) addRevBtn.addEventListener('click', () => {
+    document.getElementById('revenue-date-input').value = new Date().toISOString().split('T')[0];
+    document.getElementById('revenue-modal').classList.remove('hidden');
+  });
+  if (closeRevModal) closeRevModal.addEventListener('click', () => {
+    document.getElementById('revenue-modal').classList.add('hidden');
+  });
+  if (saveRevBtn) saveRevBtn.addEventListener('click', () => {
+    const desc = document.getElementById('revenue-desc-input').value.trim();
+    const amount = parseFloat(document.getElementById('revenue-amount-input').value) || 0;
+    const date = document.getElementById('revenue-date-input').value;
+    const category = document.getElementById('revenue-category-input').value;
+
+    if (!desc || !amount) return;
+
+    businessState.revenues.push({ id: Date.now(), desc, amount, date, category });
+
+    // Mettre à jour les objectifs de type revenue
+    businessState.goals.forEach(g => {
+      if (g.type === 'revenue') g.current += amount;
+    });
+
+    saveBusinessData();
+    renderBusinessRevenues();
+    renderBusinessGoals();
+    updateBusinessKPIs();
+    document.getElementById('revenue-modal').classList.add('hidden');
+    document.getElementById('revenue-desc-input').value = '';
+    document.getElementById('revenue-amount-input').value = '';
+  });
+
+  // Tasks
+  const addTaskBtn = document.getElementById('add-biz-task-btn');
+  if (addTaskBtn) addTaskBtn.addEventListener('click', addBusinessTask);
+
+  const taskInput = document.getElementById('biz-task-input');
+  if (taskInput) taskInput.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') addBusinessTask();
+  });
+
+  // Clients
+  const addClientBtn = document.getElementById('add-client-btn');
+  const closeClientModal = document.getElementById('close-client-modal');
+  const saveClientBtn = document.getElementById('save-client-btn');
+
+  if (addClientBtn) addClientBtn.addEventListener('click', () => {
+    document.getElementById('client-modal').classList.remove('hidden');
+  });
+  if (closeClientModal) closeClientModal.addEventListener('click', () => {
+    document.getElementById('client-modal').classList.add('hidden');
+  });
+  if (saveClientBtn) saveClientBtn.addEventListener('click', () => {
+    const name = document.getElementById('client-name-input').value.trim();
+    const contact = document.getElementById('client-contact-input').value.trim();
+    const value = parseFloat(document.getElementById('client-value-input').value) || 0;
+    const status = document.getElementById('client-status-input').value;
+    const notes = document.getElementById('client-notes-input').value;
+
+    if (!name) return;
+
+    businessState.clients.push({ id: Date.now(), name, contact, value, status, notes });
+
+    // Mettre à jour les objectifs de type clients
+    if (status === 'won') {
+      businessState.goals.forEach(g => {
+        if (g.type === 'clients') g.current += 1;
+      });
+    }
+
+    saveBusinessData();
+    renderBusinessClients();
+    renderBusinessGoals();
+    updateBusinessKPIs();
+    document.getElementById('client-modal').classList.add('hidden');
+    document.getElementById('client-name-input').value = '';
+    document.getElementById('client-contact-input').value = '';
+    document.getElementById('client-value-input').value = '';
+    document.getElementById('client-notes-input').value = '';
+  });
+}
+
+function addBusinessTask() {
+  const input = document.getElementById('biz-task-input');
+  const priority = document.getElementById('biz-task-priority').value;
+  const text = input.value.trim();
+
+  if (!text) return;
+
+  businessState.tasks.push({
+    id: Date.now(),
+    text,
+    priority,
+    done: false,
+    createdAt: new Date().toISOString()
+  });
+
+  saveBusinessData();
+  renderBusinessTasks();
+  updateBusinessKPIs();
+  input.value = '';
+}
+
+function renderBusinessGoals() {
+  const container = document.getElementById('goals-list');
+  if (!container) return;
+
+  if (businessState.goals.length === 0) {
+    container.innerHTML = '<p style="color:var(--text-muted);font-size:0.85rem;text-align:center;">Aucun objectif. Ajoute ton premier !</p>';
+    return;
+  }
+
+  const periodLabels = { week: 'Semaine', month: 'Mois', quarter: 'Trimestre' };
+
+  container.innerHTML = businessState.goals.map(goal => {
+    const pct = goal.target > 0 ? Math.min(100, Math.round((goal.current / goal.target) * 100)) : 0;
+    return `
+      <div class="goal-card">
+        <div class="goal-card-header">
+          <span class="goal-title">${goal.title}</span>
+          <span class="goal-period">${periodLabels[goal.period] || goal.period}</span>
+        </div>
+        <div class="goal-progress-bar">
+          <div class="goal-progress-fill" style="width:${pct}%"></div>
+        </div>
+        <div class="goal-progress-text">${goal.current} / ${goal.target} (${pct}%)</div>
+      </div>
+    `;
+  }).join('');
+}
+
+function renderBusinessRevenues() {
+  const container = document.getElementById('revenue-list');
+  if (!container) return;
+
+  const recent = businessState.revenues.slice(-10).reverse();
+
+  if (recent.length === 0) {
+    container.innerHTML = '<p style="color:var(--text-muted);font-size:0.85rem;text-align:center;">Aucun revenu enregistré.</p>';
+  } else {
+    container.innerHTML = recent.map(r => `
+      <div class="revenue-item">
+        <div class="revenue-item-info">
+          <span class="revenue-item-desc">${r.desc}</span>
+          <span class="revenue-item-date">${r.date}</span>
+        </div>
+        <span class="revenue-item-amount">+${r.amount.toLocaleString('fr-FR')} &euro;</span>
+      </div>
+    `).join('');
+  }
+
+  drawRevenueChart();
+}
+
+function drawRevenueChart() {
+  const canvas = document.getElementById('revenue-chart');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+
+  ctx.fillStyle = 'rgba(10, 10, 15, 0.95)';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  // Agréger par mois les 6 derniers mois
+  const months = [];
+  const now = new Date();
+  for (let i = 5; i >= 0; i--) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    const key = d.toISOString().slice(0, 7);
+    const label = d.toLocaleDateString('fr-FR', { month: 'short' });
+    const total = businessState.revenues
+      .filter(r => r.date && r.date.startsWith(key))
+      .reduce((sum, r) => sum + r.amount, 0);
+    months.push({ label, total });
+  }
+
+  const maxTotal = Math.max(...months.map(m => m.total), 1);
+  const barWidth = (canvas.width - 40) / months.length;
+
+  months.forEach((m, i) => {
+    const x = 20 + i * barWidth + barWidth * 0.15;
+    const w = barWidth * 0.7;
+    const h = (m.total / maxTotal) * (canvas.height - 40);
+    const y = canvas.height - 20 - h;
+
+    // Barre
+    const gradient = ctx.createLinearGradient(x, y, x, canvas.height - 20);
+    gradient.addColorStop(0, '#10b981');
+    gradient.addColorStop(1, 'rgba(16, 185, 129, 0.2)');
+    ctx.fillStyle = gradient;
+    ctx.fillRect(x, y, w, h);
+
+    // Label
+    ctx.fillStyle = 'rgba(160, 160, 176, 0.7)';
+    ctx.font = '10px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText(m.label, x + w / 2, canvas.height - 5);
+
+    // Montant
+    if (m.total > 0) {
+      ctx.fillStyle = '#10b981';
+      ctx.fillText(m.total.toLocaleString('fr-FR') + ' \u20AC', x + w / 2, y - 5);
+    }
+  });
+}
+
+function renderBusinessTasks() {
+  const container = document.getElementById('biz-tasks-list');
+  if (!container) return;
+
+  // Trier : non-faites d'abord, puis par priorité
+  const sorted = [...businessState.tasks].sort((a, b) => {
+    if (a.done !== b.done) return a.done ? 1 : -1;
+    const priorityOrder = { high: 0, medium: 1, low: 2 };
+    return (priorityOrder[a.priority] || 1) - (priorityOrder[b.priority] || 1);
+  });
+
+  container.innerHTML = sorted.map(task => `
+    <div class="biz-task-item ${task.done ? 'done' : ''}" data-task-id="${task.id}">
+      <div class="biz-task-check" onclick="toggleBusinessTask(${task.id})"></div>
+      <span class="biz-task-text">${task.text}</span>
+      <span class="biz-task-priority ${task.priority}">${task.priority === 'high' ? 'Urgent' : task.priority === 'medium' ? 'Normal' : 'Plus tard'}</span>
+      <button class="biz-task-delete" onclick="deleteBusinessTask(${task.id})">×</button>
+    </div>
+  `).join('');
+}
+
+function toggleBusinessTask(id) {
+  const task = businessState.tasks.find(t => t.id === id);
+  if (task) {
+    task.done = !task.done;
+    saveBusinessData();
+    renderBusinessTasks();
+    updateBusinessKPIs();
+  }
+}
+
+function deleteBusinessTask(id) {
+  businessState.tasks = businessState.tasks.filter(t => t.id !== id);
+  saveBusinessData();
+  renderBusinessTasks();
+  updateBusinessKPIs();
+}
+
+function renderBusinessClients() {
+  const container = document.getElementById('clients-pipeline');
+  if (!container) return;
+
+  if (businessState.clients.length === 0) {
+    container.innerHTML = '<p style="color:var(--text-muted);font-size:0.85rem;text-align:center;">Aucun client. Ajoute ton premier prospect !</p>';
+    return;
+  }
+
+  const statusOrder = { prospect: 0, contacted: 1, negotiation: 2, won: 3, lost: 4 };
+  const sorted = [...businessState.clients].sort((a, b) => (statusOrder[a.status] || 0) - (statusOrder[b.status] || 0));
+
+  const statusLabels = {
+    prospect: 'Prospect', contacted: 'Contacté',
+    negotiation: 'Négo', won: 'Gagné', lost: 'Perdu'
+  };
+
+  container.innerHTML = sorted.map(c => {
+    const initials = c.name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
+    return `
+      <div class="client-card">
+        <div class="client-avatar">${initials}</div>
+        <div class="client-info">
+          <span class="client-name">${c.name}</span>
+          <span class="client-contact">${c.contact || ''}</span>
+        </div>
+        ${c.value ? `<span class="client-value">${c.value.toLocaleString('fr-FR')} \u20AC</span>` : ''}
+        <span class="client-status-badge ${c.status}">${statusLabels[c.status] || c.status}</span>
+      </div>
+    `;
+  }).join('');
+}
+
+function updateBusinessKPIs() {
+  const now = new Date();
+  const monthKey = now.toISOString().slice(0, 7);
+
+  // Revenus du mois
+  const monthRevenue = businessState.revenues
+    .filter(r => r.date && r.date.startsWith(monthKey))
+    .reduce((sum, r) => sum + r.amount, 0);
+
+  const revenueEl = document.getElementById('biz-revenue');
+  if (revenueEl) revenueEl.innerHTML = monthRevenue.toLocaleString('fr-FR') + ' &euro;';
+
+  // Clients gagnés ce mois
+  const newClients = businessState.clients.filter(c => c.status === 'won').length;
+  const clientsEl = document.getElementById('biz-clients');
+  if (clientsEl) clientsEl.textContent = newClients;
+
+  // Tâches complétées
+  const tasksDone = businessState.tasks.filter(t => t.done).length;
+  const tasksEl = document.getElementById('biz-tasks-done');
+  if (tasksEl) tasksEl.textContent = tasksDone;
+}
+
 // ===== Biofeedback Cardiaque (PPG) =====
 const biofeedbackState = {
   isRunning: false,
@@ -6309,6 +7623,873 @@ function showBiofeedbackSummary() {
     state.history.unshift(session);
     saveData();
   }
+}
+
+// ===== Streaks & Heatmap =====
+function updateStreaksHeatmap() {
+  // Calculer le streak global
+  const today = new Date().toISOString().split('T')[0];
+  let streak = 0;
+  let bestStreak = dashboardState.globalStreak || 0;
+  let checkDate = new Date();
+
+  for (let i = 0; i < 365; i++) {
+    const dateStr = checkDate.toISOString().split('T')[0];
+    const dayHabits = dashboardState.habits[dateStr];
+    if (dayHabits) {
+      const completed = Object.values(dayHabits).filter(v => v).length;
+      if (completed >= 3) {
+        streak++;
+        checkDate.setDate(checkDate.getDate() - 1);
+      } else if (i === 0) {
+        // Aujourd'hui pas encore complet, checker hier
+        checkDate.setDate(checkDate.getDate() - 1);
+        streak = 0;
+      } else {
+        break;
+      }
+    } else if (i === 0) {
+      checkDate.setDate(checkDate.getDate() - 1);
+    } else {
+      break;
+    }
+  }
+
+  if (streak > bestStreak) bestStreak = streak;
+
+  const streakEl = document.getElementById('streak-current');
+  const bestEl = document.getElementById('streak-best');
+  const flameEl = document.getElementById('streak-flame-icon');
+  if (streakEl) streakEl.textContent = streak;
+  if (bestEl) bestEl.textContent = bestStreak;
+  if (flameEl) flameEl.style.animationDuration = streak > 7 ? '0.8s' : '1.5s';
+
+  // Générer le heatmap (13 semaines = ~3 mois)
+  const grid = document.getElementById('heatmap-grid');
+  const monthsEl = document.getElementById('heatmap-months');
+  if (!grid) return;
+
+  grid.innerHTML = '';
+  const weeks = 13;
+  const startDate = new Date();
+  startDate.setDate(startDate.getDate() - (weeks * 7 - 1) - startDate.getDay());
+
+  const months = [];
+  let lastMonth = -1;
+
+  for (let w = 0; w < weeks; w++) {
+    for (let d = 0; d < 7; d++) {
+      const cellDate = new Date(startDate);
+      cellDate.setDate(startDate.getDate() + w * 7 + d);
+      const dateStr = cellDate.toISOString().split('T')[0];
+      const dayHabits = dashboardState.habits[dateStr];
+      const completed = dayHabits ? Object.values(dayHabits).filter(v => v).length : 0;
+      const total = habitsList.length;
+      const level = completed === 0 ? 0 : Math.min(5, Math.ceil(completed / total * 5));
+
+      const cell = document.createElement('div');
+      cell.className = 'heatmap-cell';
+      cell.dataset.level = level;
+      cell.title = `${cellDate.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })}: ${completed}/${total} habitudes`;
+      grid.appendChild(cell);
+
+      // Track months
+      const m = cellDate.getMonth();
+      if (d === 0 && m !== lastMonth) {
+        months.push({ name: cellDate.toLocaleDateString('fr-FR', { month: 'short' }), week: w });
+        lastMonth = m;
+      }
+    }
+  }
+
+  if (monthsEl) {
+    monthsEl.innerHTML = '';
+    months.forEach((m, i) => {
+      const span = document.createElement('span');
+      span.textContent = m.name;
+      span.style.marginLeft = i === 0 ? '0' : `${(m.week - (months[i-1]?.week || 0)) * 14 - 20}px`;
+      monthsEl.appendChild(span);
+    });
+  }
+}
+
+// ===== Routines =====
+const routineModules = [
+  { id: 'breathing', name: 'Respiration', icon: '🌬️', page: 'breathing' },
+  { id: 'meditation', name: 'Méditation', icon: '🧘', page: 'meditation' },
+  { id: 'coldshower', name: 'Douche froide', icon: '🚿', page: 'coldshower' },
+  { id: 'journal', name: 'Journal Mental', icon: '📝', page: 'journal' },
+  { id: 'calisthenics', name: 'Calisthénie', icon: '💪', page: 'calisthenics' },
+  { id: 'focus', name: 'Session Focus', icon: '🎯', page: 'focus' },
+  { id: 'dreams', name: 'Mes Rêves', icon: '✦', page: 'dreams' },
+  { id: 'poetry', name: 'Poésie', icon: '📖', page: 'poetry' }
+];
+
+const routinesState = {
+  morning: { modules: ['breathing', 'meditation', 'journal'] },
+  evening: { modules: ['journal', 'meditation'] },
+  currentTab: 'morning',
+  activeRoutine: null,
+  currentStep: 0
+};
+
+function initRoutines() {
+  const saved = localStorage.getItem('breathflow_routines');
+  if (saved) {
+    const data = JSON.parse(saved);
+    routinesState.morning = data.morning || routinesState.morning;
+    routinesState.evening = data.evening || routinesState.evening;
+  }
+
+  // Tabs
+  document.querySelectorAll('.routine-tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('.routine-tab').forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+      routinesState.currentTab = tab.dataset.routine;
+      renderRoutineModules();
+    });
+  });
+
+  // Launch
+  const launchBtn = document.getElementById('launch-routine');
+  if (launchBtn) launchBtn.addEventListener('click', launchRoutine);
+
+  const nextBtn = document.getElementById('routine-next-step');
+  if (nextBtn) nextBtn.addEventListener('click', routineNextStep);
+
+  const stopBtn = document.getElementById('routine-stop');
+  if (stopBtn) stopBtn.addEventListener('click', stopRoutine);
+
+  renderRoutineModules();
+}
+
+function saveRoutines() {
+  localStorage.setItem('breathflow_routines', JSON.stringify({
+    morning: routinesState.morning,
+    evening: routinesState.evening
+  }));
+}
+
+function renderRoutineModules() {
+  const container = document.getElementById('routine-modules');
+  if (!container) return;
+
+  const tab = routinesState.currentTab;
+  const selected = routinesState[tab].modules;
+
+  // Render: selected first in order, then unselected
+  const orderedModules = [
+    ...selected.map(id => routineModules.find(m => m.id === id)).filter(Boolean),
+    ...routineModules.filter(m => !selected.includes(m.id))
+  ];
+
+  container.innerHTML = orderedModules.map(mod => {
+    const isSelected = selected.includes(mod.id);
+    return `
+      <div class="routine-module-item ${isSelected ? 'selected' : ''}" data-module="${mod.id}">
+        <input type="checkbox" ${isSelected ? 'checked' : ''} data-mod-check="${mod.id}">
+        <span class="routine-module-icon">${mod.icon}</span>
+        <span class="routine-module-name">${mod.name}</span>
+        <span class="routine-module-handle">⠿</span>
+      </div>
+    `;
+  }).join('');
+
+  // Checkbox listeners
+  container.querySelectorAll('input[type="checkbox"]').forEach(cb => {
+    cb.addEventListener('change', () => {
+      const modId = cb.dataset.modCheck;
+      const modules = routinesState[tab].modules;
+      if (cb.checked) {
+        if (!modules.includes(modId)) modules.push(modId);
+      } else {
+        routinesState[tab].modules = modules.filter(m => m !== modId);
+      }
+      saveRoutines();
+      renderRoutineModules();
+    });
+  });
+}
+
+function launchRoutine() {
+  const tab = routinesState.currentTab;
+  const modules = routinesState[tab].modules;
+  if (modules.length === 0) return;
+
+  routinesState.activeRoutine = modules.map(id => routineModules.find(m => m.id === id)).filter(Boolean);
+  routinesState.currentStep = 0;
+
+  document.getElementById('routine-active')?.classList.remove('hidden');
+  document.querySelector('.routine-builder')?.classList.add('hidden');
+  document.querySelector('.routine-launch-btn')?.classList.add('hidden');
+
+  showRoutineStep();
+}
+
+function showRoutineStep() {
+  const steps = routinesState.activeRoutine;
+  const step = routinesState.currentStep;
+  if (!steps || step >= steps.length) {
+    stopRoutine();
+    return;
+  }
+
+  const mod = steps[step];
+  const progress = ((step) / steps.length) * 100;
+
+  document.getElementById('routine-progress-fill').style.width = progress + '%';
+  document.getElementById('routine-step-number').textContent = `${step + 1}/${steps.length}`;
+  document.getElementById('routine-step-name').textContent = mod.icon + ' ' + mod.name;
+
+  // Navigate to the module page
+  navigateTo(mod.page);
+}
+
+function routineNextStep() {
+  routinesState.currentStep++;
+  if (routinesState.currentStep >= routinesState.activeRoutine.length) {
+    document.getElementById('routine-progress-fill').style.width = '100%';
+    document.getElementById('routine-step-name').textContent = 'Routine terminée !';
+    document.getElementById('routine-next-step')?.classList.add('hidden');
+    setTimeout(stopRoutine, 2000);
+  } else {
+    showRoutineStep();
+  }
+}
+
+function stopRoutine() {
+  routinesState.activeRoutine = null;
+  routinesState.currentStep = 0;
+  document.getElementById('routine-active')?.classList.add('hidden');
+  document.querySelector('.routine-builder')?.classList.remove('hidden');
+  document.querySelector('.routine-launch-btn')?.classList.remove('hidden');
+  document.getElementById('routine-next-step')?.classList.remove('hidden');
+  navigateTo('routines');
+}
+
+// ===== Focus / Deep Work =====
+const focusAmbiances = {
+  none: null,
+  rain: 'https://cdn.freesound.org/previews/531/531947_6290790-lq.mp3',
+  cafe: 'https://cdn.freesound.org/previews/424/424895_359585-lq.mp3',
+  fire: 'https://cdn.freesound.org/previews/499/499257_2105413-lq.mp3',
+  forest: 'https://cdn.freesound.org/previews/462/462483_1048747-lq.mp3'
+};
+
+const focusState = {
+  projects: ['Général'],
+  currentProject: 'Général',
+  isRunning: false,
+  isPaused: false,
+  timeLeft: 25 * 60,
+  totalTime: 25 * 60,
+  sessions: [],
+  timer: null,
+  ambianceAudio: null,
+  currentAmbiance: 'rain'
+};
+
+function initFocus() {
+  const saved = localStorage.getItem('breathflow_focus');
+  if (saved) {
+    const data = JSON.parse(saved);
+    focusState.projects = data.projects || ['Général'];
+    focusState.sessions = data.sessions || [];
+  }
+
+  // Populate project selector
+  updateFocusProjectSelect();
+
+  // Add project
+  const addBtn = document.getElementById('focus-add-project');
+  if (addBtn) {
+    addBtn.addEventListener('click', () => {
+      const name = prompt('Nom du projet :');
+      if (name && name.trim()) {
+        focusState.projects.push(name.trim());
+        saveFocus();
+        updateFocusProjectSelect();
+      }
+    });
+  }
+
+  // Project select
+  const select = document.getElementById('focus-project-select');
+  if (select) {
+    select.addEventListener('change', () => {
+      focusState.currentProject = select.value;
+    });
+  }
+
+  // Ambiance buttons
+  document.querySelectorAll('.focus-amb-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.focus-amb-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      focusState.currentAmbiance = btn.dataset.amb;
+      if (focusState.isRunning) playFocusAmbiance();
+    });
+  });
+
+  // Controls
+  document.getElementById('focus-start')?.addEventListener('click', startFocus);
+  document.getElementById('focus-pause')?.addEventListener('click', pauseFocus);
+  document.getElementById('focus-reset')?.addEventListener('click', resetFocus);
+
+  updateFocusDisplay();
+  updateFocusStats();
+  renderFocusHistory();
+}
+
+function saveFocus() {
+  localStorage.setItem('breathflow_focus', JSON.stringify({
+    projects: focusState.projects,
+    sessions: focusState.sessions
+  }));
+}
+
+function updateFocusProjectSelect() {
+  const select = document.getElementById('focus-project-select');
+  if (!select) return;
+  select.innerHTML = focusState.projects.map(p =>
+    `<option value="${p}" ${p === focusState.currentProject ? 'selected' : ''}>${p}</option>`
+  ).join('');
+}
+
+function startFocus() {
+  if (focusState.isPaused) {
+    focusState.isPaused = false;
+  } else {
+    focusState.timeLeft = focusState.totalTime;
+  }
+  focusState.isRunning = true;
+
+  document.getElementById('focus-start')?.classList.add('hidden');
+  document.getElementById('focus-pause')?.classList.remove('hidden');
+  document.getElementById('focus-status').textContent = 'En cours';
+
+  playFocusAmbiance();
+
+  focusState.timer = setInterval(() => {
+    focusState.timeLeft--;
+    updateFocusDisplay();
+
+    if (focusState.timeLeft <= 0) {
+      completeFocusSession();
+    }
+  }, 1000);
+}
+
+function pauseFocus() {
+  focusState.isRunning = false;
+  focusState.isPaused = true;
+  clearInterval(focusState.timer);
+  stopFocusAmbiance();
+
+  document.getElementById('focus-start')?.classList.remove('hidden');
+  document.getElementById('focus-pause')?.classList.add('hidden');
+  document.getElementById('focus-status').textContent = 'Pause';
+}
+
+function resetFocus() {
+  focusState.isRunning = false;
+  focusState.isPaused = false;
+  clearInterval(focusState.timer);
+  focusState.timeLeft = focusState.totalTime;
+  stopFocusAmbiance();
+
+  document.getElementById('focus-start')?.classList.remove('hidden');
+  document.getElementById('focus-pause')?.classList.add('hidden');
+  document.getElementById('focus-status').textContent = 'Prêt';
+
+  updateFocusDisplay();
+}
+
+function completeFocusSession() {
+  clearInterval(focusState.timer);
+  focusState.isRunning = false;
+  stopFocusAmbiance();
+
+  const session = {
+    project: focusState.currentProject,
+    duration: focusState.totalTime,
+    date: new Date().toISOString()
+  };
+  focusState.sessions.push(session);
+  saveFocus();
+
+  document.getElementById('focus-status').textContent = 'Terminé !';
+  document.getElementById('focus-start')?.classList.remove('hidden');
+  document.getElementById('focus-pause')?.classList.add('hidden');
+
+  if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
+
+  updateFocusStats();
+  renderFocusHistory();
+
+  setTimeout(() => {
+    focusState.timeLeft = focusState.totalTime;
+    updateFocusDisplay();
+    document.getElementById('focus-status').textContent = 'Prêt';
+  }, 3000);
+}
+
+function updateFocusDisplay() {
+  const mins = Math.floor(focusState.timeLeft / 60);
+  const secs = focusState.timeLeft % 60;
+  const timeEl = document.getElementById('focus-time');
+  if (timeEl) timeEl.textContent = `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+
+  // Update ring
+  const ring = document.getElementById('focus-ring-progress');
+  if (ring) {
+    const circumference = 2 * Math.PI * 90;
+    const progress = focusState.timeLeft / focusState.totalTime;
+    ring.style.strokeDashoffset = circumference * (1 - progress);
+  }
+}
+
+function updateFocusStats() {
+  const today = new Date().toISOString().split('T')[0];
+  const todaySessions = focusState.sessions.filter(s => s.date.startsWith(today));
+  const todayMins = todaySessions.reduce((sum, s) => sum + s.duration, 0) / 60;
+
+  const weekAgo = new Date();
+  weekAgo.setDate(weekAgo.getDate() - 7);
+  const weekSessions = focusState.sessions.filter(s => new Date(s.date) >= weekAgo);
+  const weekMins = weekSessions.reduce((sum, s) => sum + s.duration, 0) / 60;
+
+  const el = (id, val) => { const e = document.getElementById(id); if (e) e.textContent = val; };
+  el('focus-today-time', todayMins >= 60 ? `${(todayMins/60).toFixed(1)}h` : `${Math.round(todayMins)}m`);
+  el('focus-week-time', weekMins >= 60 ? `${(weekMins/60).toFixed(1)}h` : `${Math.round(weekMins)}m`);
+  el('focus-total-sessions', focusState.sessions.length);
+
+  // Best streak (consecutive days with at least 1 session)
+  let bestFocusStreak = 0;
+  let currentFocusStreak = 0;
+  const checkDate = new Date();
+  for (let i = 0; i < 365; i++) {
+    const dateStr = checkDate.toISOString().split('T')[0];
+    const hasSessions = focusState.sessions.some(s => s.date.startsWith(dateStr));
+    if (hasSessions) {
+      currentFocusStreak++;
+      if (currentFocusStreak > bestFocusStreak) bestFocusStreak = currentFocusStreak;
+    } else if (i > 0) {
+      break;
+    }
+    checkDate.setDate(checkDate.getDate() - 1);
+  }
+  el('focus-best-streak', bestFocusStreak);
+}
+
+function renderFocusHistory() {
+  const container = document.getElementById('focus-history-list');
+  if (!container) return;
+
+  const recent = focusState.sessions.slice(-10).reverse();
+  if (recent.length === 0) {
+    container.innerHTML = '<p class="muted-text">Aucune session encore.</p>';
+    return;
+  }
+
+  container.innerHTML = recent.map(s => {
+    const date = new Date(s.date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' });
+    const mins = Math.round(s.duration / 60);
+    return `
+      <div class="focus-history-item">
+        <span class="focus-history-project">${s.project}</span>
+        <span class="focus-history-duration">${mins}min</span>
+        <span class="focus-history-date">${date}</span>
+      </div>
+    `;
+  }).join('');
+}
+
+function playFocusAmbiance() {
+  stopFocusAmbiance();
+  const amb = focusState.currentAmbiance;
+  if (amb === 'none' || !focusAmbiances[amb]) return;
+
+  focusState.ambianceAudio = new Audio(focusAmbiances[amb]);
+  focusState.ambianceAudio.loop = true;
+  focusState.ambianceAudio.volume = 0.3;
+  focusState.ambianceAudio.play().catch(() => {});
+}
+
+function stopFocusAmbiance() {
+  if (focusState.ambianceAudio) {
+    focusState.ambianceAudio.pause();
+    focusState.ambianceAudio = null;
+  }
+}
+
+// ===== Lecture Tracker =====
+const lectureState = {
+  books: []
+};
+let currentBookId = null;
+
+function initLecture() {
+  const saved = localStorage.getItem('breathflow_lecture');
+  if (saved) {
+    lectureState.books = JSON.parse(saved).books || [];
+  }
+
+  document.getElementById('add-lecture-btn')?.addEventListener('click', addBook);
+  document.getElementById('close-lecture-detail')?.addEventListener('click', closeLectureDetail);
+  document.getElementById('add-lecture-quote')?.addEventListener('click', addLectureQuote);
+  document.getElementById('lecture-notes')?.addEventListener('blur', saveLectureNotes);
+
+  // Stars
+  document.querySelectorAll('.lecture-star').forEach(star => {
+    star.addEventListener('click', () => {
+      const rating = parseInt(star.dataset.star);
+      if (currentBookId !== null) {
+        const book = lectureState.books.find(b => b.id === currentBookId);
+        if (book) {
+          book.rating = rating;
+          saveLecture();
+          updateLectureStars(rating);
+        }
+      }
+    });
+  });
+
+  renderLectureList();
+  updateLectureStats();
+}
+
+function saveLecture() {
+  localStorage.setItem('breathflow_lecture', JSON.stringify({ books: lectureState.books }));
+}
+
+function addBook() {
+  const title = document.getElementById('lecture-title')?.value.trim();
+  const author = document.getElementById('lecture-author')?.value.trim();
+  const status = document.getElementById('lecture-status-input')?.value || 'reading';
+  if (!title) return;
+
+  lectureState.books.push({
+    id: Date.now(),
+    title,
+    author: author || 'Inconnu',
+    status,
+    notes: '',
+    quotes: [],
+    rating: 0,
+    dateAdded: new Date().toISOString()
+  });
+
+  saveLecture();
+  renderLectureList();
+  updateLectureStats();
+
+  document.getElementById('lecture-title').value = '';
+  document.getElementById('lecture-author').value = '';
+}
+
+function renderLectureList() {
+  const container = document.getElementById('lecture-list');
+  if (!container) return;
+
+  if (lectureState.books.length === 0) {
+    container.innerHTML = '<p class="muted-text" style="text-align:center;padding:2rem;">Ajoute ton premier livre !</p>';
+    return;
+  }
+
+  const statusLabels = { reading: 'En cours', done: 'Terminé', toread: 'A lire' };
+  const statusIcons = { reading: '📘', done: '✅', toread: '📋' };
+
+  container.innerHTML = lectureState.books.slice().reverse().map(book => `
+    <div class="lecture-book-card" data-book-id="${book.id}">
+      <div class="lecture-book-cover ${book.status}">${statusIcons[book.status] || '📘'}</div>
+      <div class="lecture-book-info" onclick="openLectureDetail(${book.id})">
+        <div class="lecture-book-title">${book.title}</div>
+        <div class="lecture-book-author">${book.author}${book.rating ? ' · ' + '★'.repeat(book.rating) : ''}</div>
+      </div>
+      <span class="lecture-book-badge ${book.status}">${statusLabels[book.status]}</span>
+      <button class="lecture-book-delete" onclick="event.stopPropagation();deleteBook(${book.id})">×</button>
+    </div>
+  `).join('');
+}
+
+function deleteBook(id) {
+  lectureState.books = lectureState.books.filter(b => b.id !== id);
+  saveLecture();
+  renderLectureList();
+  updateLectureStats();
+}
+
+function openLectureDetail(id) {
+  const book = lectureState.books.find(b => b.id === id);
+  if (!book) return;
+  currentBookId = id;
+
+  document.getElementById('lecture-detail-title').textContent = book.title;
+  document.getElementById('lecture-detail-author').textContent = book.author;
+  document.getElementById('lecture-notes').value = book.notes || '';
+  updateLectureStars(book.rating || 0);
+  renderLectureQuotes(book);
+
+  document.getElementById('lecture-detail-overlay')?.classList.remove('hidden');
+}
+
+function closeLectureDetail() {
+  saveLectureNotes();
+  document.getElementById('lecture-detail-overlay')?.classList.add('hidden');
+  currentBookId = null;
+  renderLectureList();
+}
+
+function saveLectureNotes() {
+  if (currentBookId === null) return;
+  const book = lectureState.books.find(b => b.id === currentBookId);
+  if (book) {
+    book.notes = document.getElementById('lecture-notes')?.value || '';
+    saveLecture();
+  }
+}
+
+function addLectureQuote() {
+  const input = document.getElementById('lecture-quote-input');
+  const quote = input?.value.trim();
+  if (!quote || currentBookId === null) return;
+
+  const book = lectureState.books.find(b => b.id === currentBookId);
+  if (book) {
+    book.quotes.push(quote);
+    saveLecture();
+    renderLectureQuotes(book);
+    input.value = '';
+  }
+}
+
+function renderLectureQuotes(book) {
+  const container = document.getElementById('lecture-quotes-list');
+  if (!container) return;
+
+  container.innerHTML = book.quotes.map((q, i) => `
+    <div class="lecture-quote-item">
+      <span>"${q}"</span>
+      <button class="lecture-book-delete" onclick="deleteLectureQuote(${i})">×</button>
+    </div>
+  `).join('');
+}
+
+function deleteLectureQuote(index) {
+  if (currentBookId === null) return;
+  const book = lectureState.books.find(b => b.id === currentBookId);
+  if (book) {
+    book.quotes.splice(index, 1);
+    saveLecture();
+    renderLectureQuotes(book);
+  }
+}
+
+function updateLectureStars(rating) {
+  document.querySelectorAll('.lecture-star').forEach(star => {
+    star.classList.toggle('active', parseInt(star.dataset.star) <= rating);
+  });
+}
+
+function updateLectureStats() {
+  const el = (id, val) => { const e = document.getElementById(id); if (e) e.textContent = val; };
+  el('lecture-total', lectureState.books.length);
+  el('lecture-reading', lectureState.books.filter(b => b.status === 'reading').length);
+  el('lecture-done', lectureState.books.filter(b => b.status === 'done').length);
+}
+
+// ===== Bilan Hebdo =====
+function initBilanHebdo() {
+  document.getElementById('open-bilan-hebdo')?.addEventListener('click', openBilanHebdo);
+  document.getElementById('close-bilan-hebdo')?.addEventListener('click', () => {
+    document.getElementById('bilan-hebdo-modal')?.classList.add('hidden');
+  });
+  document.getElementById('share-bilan')?.addEventListener('click', shareBilan);
+}
+initBilanHebdo();
+
+function openBilanHebdo() {
+  document.getElementById('bilan-hebdo-modal')?.classList.remove('hidden');
+  drawBilanCanvas();
+}
+
+function drawBilanCanvas() {
+  const canvas = document.getElementById('bilan-canvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const w = 400;
+  const h = 600;
+  canvas.width = w;
+  canvas.height = h;
+
+  // Background
+  const bgGrad = ctx.createLinearGradient(0, 0, w, h);
+  bgGrad.addColorStop(0, '#0f0f23');
+  bgGrad.addColorStop(1, '#1a1a3e');
+  ctx.fillStyle = bgGrad;
+  ctx.fillRect(0, 0, w, h);
+
+  // Title
+  ctx.fillStyle = '#ffffff';
+  ctx.font = 'bold 20px system-ui';
+  ctx.textAlign = 'center';
+  ctx.fillText("Bilan de la semaine", w/2, 40);
+
+  const today = new Date();
+  const weekAgo = new Date(today);
+  weekAgo.setDate(weekAgo.getDate() - 7);
+  ctx.font = '12px system-ui';
+  ctx.fillStyle = '#8888aa';
+  ctx.fillText(
+    `${weekAgo.toLocaleDateString('fr-FR', {day:'numeric',month:'short'})} - ${today.toLocaleDateString('fr-FR', {day:'numeric',month:'short',year:'numeric'})}`,
+    w/2, 60
+  );
+
+  let y = 90;
+
+  // Habits this week
+  ctx.textAlign = 'left';
+  ctx.font = 'bold 14px system-ui';
+  ctx.fillStyle = '#00f5ff';
+  ctx.fillText('Habitudes', 20, y);
+  y += 25;
+
+  let totalChecked = 0;
+  let totalPossible = 0;
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(today);
+    d.setDate(d.getDate() - i);
+    const dateStr = d.toISOString().split('T')[0];
+    const dayHabits = dashboardState.habits[dateStr];
+    if (dayHabits) {
+      totalChecked += Object.values(dayHabits).filter(v => v).length;
+    }
+    totalPossible += habitsList.length;
+  }
+  const habitPct = totalPossible > 0 ? Math.round(totalChecked / totalPossible * 100) : 0;
+
+  // Habit bar
+  ctx.fillStyle = 'rgba(255,255,255,0.1)';
+  ctx.fillRect(20, y, w - 40, 20);
+  const grad = ctx.createLinearGradient(20, y, 20 + (w-40) * habitPct/100, y);
+  grad.addColorStop(0, '#00f5ff');
+  grad.addColorStop(1, '#8b5cf6');
+  ctx.fillStyle = grad;
+  ctx.fillRect(20, y, (w - 40) * habitPct / 100, 20);
+  ctx.fillStyle = '#fff';
+  ctx.font = 'bold 11px system-ui';
+  ctx.fillText(`${habitPct}%`, w/2 - 15, y + 14);
+  y += 40;
+
+  // Focus sessions
+  ctx.font = 'bold 14px system-ui';
+  ctx.fillStyle = '#8b5cf6';
+  ctx.fillText('Focus', 20, y);
+  y += 22;
+  const weekSessions = focusState.sessions.filter(s => new Date(s.date) >= weekAgo);
+  const focusMins = Math.round(weekSessions.reduce((sum, s) => sum + s.duration, 0) / 60);
+  ctx.font = '28px system-ui';
+  ctx.fillStyle = '#fff';
+  ctx.fillText(`${focusMins}`, 20, y + 5);
+  ctx.font = '12px system-ui';
+  ctx.fillStyle = '#8888aa';
+  ctx.fillText(`min · ${weekSessions.length} sessions`, 70, y + 5);
+  y += 40;
+
+  // Sleep
+  ctx.font = 'bold 14px system-ui';
+  ctx.fillStyle = '#f59e0b';
+  ctx.fillText('Sommeil', 20, y);
+  y += 22;
+  const sleepData = JSON.parse(localStorage.getItem('breathflow_sleep') || '{}');
+  const sleepHistory = sleepData.history || {};
+  let sleepTotal = 0;
+  let sleepDays = 0;
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(today);
+    d.setDate(d.getDate() - i);
+    const dateStr = d.toISOString().split('T')[0];
+    if (sleepHistory[dateStr]?.duration) {
+      sleepTotal += sleepHistory[dateStr].duration;
+      sleepDays++;
+    }
+  }
+  const avgSleep = sleepDays > 0 ? (sleepTotal / sleepDays).toFixed(1) : '--';
+  ctx.font = '28px system-ui';
+  ctx.fillStyle = '#fff';
+  ctx.fillText(`${avgSleep}`, 20, y + 5);
+  ctx.font = '12px system-ui';
+  ctx.fillStyle = '#8888aa';
+  ctx.fillText(`h de moyenne · ${sleepDays}/7 jours trackés`, 80, y + 5);
+  y += 40;
+
+  // Books
+  ctx.font = 'bold 14px system-ui';
+  ctx.fillStyle = '#22c55e';
+  ctx.fillText('Lecture', 20, y);
+  y += 22;
+  const booksReading = lectureState.books.filter(b => b.status === 'reading').length;
+  const booksDone = lectureState.books.filter(b => b.status === 'done').length;
+  ctx.font = '13px system-ui';
+  ctx.fillStyle = '#fff';
+  ctx.fillText(`${booksReading} en cours · ${booksDone} terminés`, 20, y);
+  y += 35;
+
+  // Dreams
+  ctx.font = 'bold 14px system-ui';
+  ctx.fillStyle = '#ff6b6b';
+  ctx.fillText('Rêves & Objectifs', 20, y);
+  y += 22;
+  let totalDreams = 0;
+  Object.values(dreamsState.dreams).forEach(entries => { totalDreams += entries.length; });
+  ctx.font = '13px system-ui';
+  ctx.fillStyle = '#fff';
+  ctx.fillText(`${totalDreams} rêves notés`, 20, y);
+  y += 40;
+
+  // Quote at bottom
+  ctx.textAlign = 'center';
+  ctx.font = 'italic 11px system-ui';
+  ctx.fillStyle = '#6666aa';
+  const quote = inspirationalQuotes[Math.floor(Math.random() * inspirationalQuotes.length)];
+  ctx.fillText(`"${quote.text.slice(0, 60)}${quote.text.length > 60 ? '...' : ''}"`, w/2, h - 30);
+  ctx.fillText(`— ${quote.author}`, w/2, h - 15);
+
+  // App branding
+  ctx.font = 'bold 10px system-ui';
+  ctx.fillStyle = 'rgba(0,245,255,0.5)';
+  ctx.fillText("Respir'Action", w/2, h - 2);
+}
+
+function shareBilan() {
+  const canvas = document.getElementById('bilan-canvas');
+  if (!canvas) return;
+
+  canvas.toBlob(blob => {
+    if (navigator.share && blob) {
+      const file = new File([blob], 'bilan-semaine.png', { type: 'image/png' });
+      navigator.share({
+        title: "Mon bilan Respir'Action",
+        files: [file]
+      }).catch(() => {
+        // Fallback: download
+        downloadBilan(blob);
+      });
+    } else if (blob) {
+      downloadBilan(blob);
+    }
+  }, 'image/png');
+}
+
+function downloadBilan(blob) {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'bilan-semaine.png';
+  a.click();
+  URL.revokeObjectURL(url);
 }
 
 // ===== Service Worker =====
