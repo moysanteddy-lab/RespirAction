@@ -1,4 +1,4 @@
-const CACHE_NAME = 'breathflow-v18';
+const CACHE_NAME = 'breathflow-v20';
 
 // Service worker minimal - pas de cache pour éviter les problèmes
 self.addEventListener('install', event => {

@@ -6378,7 +6378,7 @@ async function sendToCoach() {
     const systemPrompt = buildSystemPrompt(category);
     const messages = [
       { role: 'system', content: systemPrompt },
-      ...dreamsState.chatHistory.slice(-10) // Garder les 10 derniers messages pour le contexte
+      ...dreamsState.chatHistory
     ];
 
     const response = await fetch(WORKER_URL, {
